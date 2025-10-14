@@ -1,0 +1,108 @@
+import axios from 'axios';
+
+// API base URL - will use proxy in development, direct URL in production
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If error is 401 and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh/`, {
+            refresh: refreshToken,
+          });
+
+          const { access, refresh } = response.data;
+          localStorage.setItem('accessToken', access);
+          localStorage.setItem('refreshToken', refresh);
+
+          // Retry the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${access}`;
+          return axios(originalRequest);
+        }
+      } catch (refreshError) {
+        // Refresh failed, clear tokens and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+// Auth API
+export const authAPI = {
+  register: (userData) => api.post('/api/auth/register/', userData),
+  login: (credentials) => api.post('/api/auth/login/', credentials),
+  logout: (refreshToken) => api.post('/api/auth/logout/', { refresh: refreshToken }),
+  getProfile: () => api.get('/api/auth/profile/'),
+  refreshToken: (refreshToken) => api.post('/api/auth/refresh/', { refresh: refreshToken }),
+  verifyToken: (token) => api.post('/api/auth/verify/', { token }),
+};
+
+// Categories API
+export const categoriesAPI = {
+  getAll: () => api.get('/api/categories/'),
+  getBySlug: (slug) => api.get(`/api/categories/${slug}/`),
+};
+
+// Listings API
+export const listingsAPI = {
+  getAll: (params) => api.get('/api/listings/', { params }),
+  getById: (id) => api.get(`/api/listings/${id}/`),
+  create: (formData) => {
+    return api.post('/api/listings/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  update: (id, formData) => {
+    return api.put(`/api/listings/${id}/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  delete: (id) => api.delete(`/api/listings/${id}/`),
+  getMyListings: () => api.get('/api/listings/my_listings/'),
+  markSold: (id) => api.post(`/api/listings/${id}/mark_sold/`),
+  deleteImage: (id, imageId) => api.delete(`/api/listings/${id}/delete_image/`, {
+    data: { image_id: imageId }
+  }),
+};
+
+export default api;
