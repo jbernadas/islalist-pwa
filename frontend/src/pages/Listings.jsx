@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI, categoriesAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import './Listings.css';
 
 const Listings = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,15 +91,43 @@ const Listings = () => {
     return `₱${Number(price).toLocaleString()}`;
   };
 
+  const handleLogout = async () => {
+    await logout();
+    // Refresh the page to update the UI
+    window.location.reload();
+  };
+
   return (
     <div className="listings-container">
       <header className="listings-header">
         <div className="header-content">
-          <button onClick={() => navigate('/')} className="btn-back">← Home</button>
-          <h1>Browse Listings</h1>
-          <button onClick={() => navigate('/create-listing')} className="btn-create">
-            + Post Listing
-          </button>
+          <div className="brand">
+            <h1>🏝️ IslaList</h1>
+          </div>
+          <div className="header-actions">
+            {isAuthenticated ? (
+              <>
+                <button onClick={() => navigate('/my-listings')} className="btn-secondary">
+                  My Listings
+                </button>
+                <button onClick={() => navigate('/create-listing')} className="btn-create">
+                  + Post Listing
+                </button>
+                <button onClick={handleLogout} className="btn-logout">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className="btn-secondary">
+                  Login
+                </button>
+                <button onClick={() => navigate('/register')} className="btn-create">
+                  Register
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -191,9 +221,17 @@ const Listings = () => {
             <div className="no-listings">
               <h2>No Listings Yet</h2>
               <p>Be the first to post a property on IslaList!</p>
-              <button onClick={() => navigate('/create-listing')} className="btn-primary">
-                + Create First Listing
-              </button>
+              {isAuthenticated ? (
+                <button onClick={() => navigate('/create-listing')} className="btn-primary">
+                  + Create First Listing
+                </button>
+              ) : (
+                <div>
+                  <button onClick={() => navigate('/register')} className="btn-primary">
+                    Register to Post
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="listings-grid">

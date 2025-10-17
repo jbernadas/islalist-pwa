@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { categoriesAPI, listingsAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import './CreateListing.css';
 
 const CreateListing = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,11 +32,23 @@ const CreateListing = () => {
   const fetchCategories = async () => {
     try {
       const response = await categoriesAPI.getAll();
-      setCategories(response.data);
+      console.log('Categories response:', response.data);
+
+      // Handle both paginated and non-paginated responses
+      const categoriesData = response.data.results || response.data;
+      console.log('Categories data:', categoriesData);
+
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+
       // Auto-select Real Estate category
-      const realEstateCategory = response.data.find(cat => cat.name === 'Real Estate');
+      const realEstateCategory = categoriesData.find(cat => cat.name === 'Real Estate');
+      console.log('Real Estate category:', realEstateCategory);
+
       if (realEstateCategory) {
+        console.log('Setting category to:', realEstateCategory.id);
         setFormData(prev => ({ ...prev, category: realEstateCategory.id }));
+      } else {
+        console.warn('Real Estate category not found! Available categories:', categoriesData);
       }
     } catch (err) {
       console.error('Error fetching categories:', err);
@@ -68,9 +82,11 @@ const CreateListing = () => {
       const data = new FormData();
 
       // Add form fields
+      console.log('Form data before submit:', formData);
       Object.keys(formData).forEach(key => {
         if (formData[key] !== '') {
           data.append(key, formData[key]);
+          console.log(`Added to FormData: ${key} = ${formData[key]}`);
         }
       });
 
@@ -79,22 +95,53 @@ const CreateListing = () => {
         data.append('uploaded_images', image);
       });
 
+      console.log('FormData entries:');
+      for (let pair of data.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
+
       await listingsAPI.create(data);
-      navigate('/listings');
+      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create listing. Please try again.');
       console.error('Error creating listing:', err);
+      console.error('Error response:', err.response?.data);
+
+      // Handle validation errors from DRF
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        if (typeof errorData === 'object' && !errorData.detail) {
+          // Field-specific validation errors
+          const errorMessages = Object.entries(errorData)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('\n');
+          setError(errorMessages || 'Failed to create listing. Please try again.');
+        } else {
+          setError(errorData.detail || errorData.message || 'Failed to create listing. Please try again.');
+        }
+      } else {
+        setError('Failed to create listing. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <div className="create-listing-container">
-      <div className="create-listing-header">
-        <button onClick={() => navigate(-1)} className="btn-back">← Back</button>
-        <h1>Create Listing</h1>
-      </div>
+      <header className="listings-header">
+        <div className="header-content">
+          <button onClick={() => navigate(-1)} className="btn-back">← Back</button>
+          <h1>Create Listing</h1>
+          <button onClick={handleLogout} className="btn-logout">
+            Logout
+          </button>
+        </div>
+      </header>
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}
@@ -126,6 +173,24 @@ const CreateListing = () => {
               rows="6"
               placeholder="Describe your property in detail..."
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="category">Category *</label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select a category</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon} {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-row">

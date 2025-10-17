@@ -69,7 +69,7 @@ const ListingDetail = () => {
     return (
       <div className="error-container">
         <h2>Listing not found</h2>
-        <button onClick={() => navigate('/listings')} className="btn-primary">
+        <button onClick={() => navigate('/')} className="btn-primary">
           Back to Listings
         </button>
       </div>
@@ -81,7 +81,7 @@ const ListingDetail = () => {
   return (
     <div className="listing-detail-container">
       <header className="detail-header">
-        <button onClick={() => navigate('/listings')} className="btn-back">
+        <button onClick={() => navigate('/')} className="btn-back">
           ← Back to Listings
         </button>
       </header>

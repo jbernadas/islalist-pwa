@@ -10,13 +10,18 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: space-between;
+}
+
+.create-listing-header h1 {
+  margin: 0;
+  color: #333;
 }
 
 .btn-back {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
   color: #667eea;
   padding: 8px 16px;
@@ -25,6 +30,22 @@
 .btn-back:hover {
   background: #f0f0f0;
   border-radius: 4px;
+}
+
+.btn-logout {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: #c82333;
+  transform: translateY(-2px);
 }
 
 .listing-form {
@@ -200,6 +221,9 @@
   border-radius: 8px;
   margin-bottom: 20px;
   border-left: 4px solid #c33;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {

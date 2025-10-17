@@ -17,6 +17,28 @@
   color: #333;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-logout {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
 .my-listings-content {
   max-width: 1200px;
   margin: 30px auto;
@@ -109,7 +131,8 @@
 
 .listing-image {
   position: relative;
-  width: 250px;
+  width: -webkit-fill-available;
+  width: -moz-available;
   height: 200px;
   background: #e0e0e0;
   cursor: pointer;

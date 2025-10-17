@@ -68,7 +68,7 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>IslaList</h1>
+        <h1>🏝️ IslaList</h1>
         <h2>Register</h2>
 
         {errors.detail && <div className="error-message">{errors.detail}</div>}

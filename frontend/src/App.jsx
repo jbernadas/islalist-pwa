@@ -14,10 +14,15 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Listings />} />
+          <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Protected routes */}
           <Route
-            path="/"
+            path="/home"
             element={
               <ProtectedRoute>
                 <Home />
@@ -29,22 +34,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreateListing />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/listings"
-            element={
-              <ProtectedRoute>
-                <Listings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/listings/:id"
-            element={
-              <ProtectedRoute>
-                <ListingDetail />
               </ProtectedRoute>
             }
           />

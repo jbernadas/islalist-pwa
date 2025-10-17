@@ -10,16 +10,23 @@
 }
 
 .header-content {
-  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.header-content h1 {
+.header-content .brand h1 {
   margin: 0;
   color: #333;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .btn-back {
@@ -34,6 +41,22 @@
 .btn-back:hover {
   background: #f0f0f0;
   border-radius: 4px;
+}
+
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #f8f9ff;
+  transform: translateY(-2px);
 }
 
 .btn-create {
@@ -52,8 +75,23 @@
   transform: translateY(-2px);
 }
 
+.btn-logout {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
 .listings-content {
-  max-width: 1400px;
   margin: 0 auto;
   padding: 30px 20px;
   display: grid;

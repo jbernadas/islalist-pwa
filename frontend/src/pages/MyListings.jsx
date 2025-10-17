@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import './MyListings.css';
 
 const MyListings = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, active, sold
@@ -67,14 +69,26 @@ const MyListings = () => {
     return listing.status === filter;
   });
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <div className="my-listings-container">
-      <header className="my-listings-header">
-        <button onClick={() => navigate('/')} className="btn-back">← Home</button>
-        <h1>My Listings</h1>
-        <button onClick={() => navigate('/create-listing')} className="btn-create">
-          + New Listing
-        </button>
+      <header className="listings-header">
+        <div className="header-content">
+          <button onClick={() => navigate('/')} className="btn-back">← Home</button>
+          <h1>My Listings</h1>
+          <div className="header-actions">
+            <button onClick={() => navigate('/create-listing')} className="btn-create">
+              + New Listing
+            </button>
+            <button onClick={handleLogout} className="btn-logout">
+              Logout
+            </button>
+          </div>
+        </div>
       </header>
 
       <div className="my-listings-content">
