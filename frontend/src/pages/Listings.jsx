@@ -107,6 +107,9 @@ const Listings = () => {
           <div className="header-actions">
             {isAuthenticated ? (
               <>
+                <button onClick={() => navigate('/profile')} className="btn-secondary">
+                  Profile
+                </button>
                 <button onClick={() => navigate('/my-listings')} className="btn-secondary">
                   My Listings
                 </button>
@@ -245,7 +248,7 @@ const Listings = () => {
                     {listing.first_image ? (
                       <img src={listing.first_image} alt={listing.title} />
                     ) : (
-                      <div className="no-image">📷 No Photo</div>
+                      <div className="no-image no-image-ad-listings">📷 No Photo</div>
                     )}
                     {listing.property_type && (
                       <span className="property-badge">

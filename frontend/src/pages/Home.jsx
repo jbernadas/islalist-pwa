@@ -50,6 +50,12 @@ const Home = () => {
 
           <div className="marketplace-actions">
             <button
+              onClick={() => navigate('/profile')}
+              className="btn-profile"
+            >
+              👤 My Profile
+            </button>
+            <button
               onClick={() => navigate('/create-listing')}
               className="btn-create-listing"
             >

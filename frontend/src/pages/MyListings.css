@@ -133,7 +133,8 @@
   position: relative;
   width: -webkit-fill-available;
   width: -moz-available;
-  height: 200px;
+  height: -webkit-fill-available;
+  height: -moz-available;
   background: #e0e0e0;
   cursor: pointer;
   flex-shrink: 0;
@@ -255,6 +256,15 @@
 
 .btn-view:hover {
   background: #5568d3;
+}
+
+.btn-edit {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #138496;
 }
 
 .btn-sold {

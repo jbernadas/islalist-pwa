@@ -11,6 +11,7 @@ const Register = () => {
     password_confirm: '',
     first_name: '',
     last_name: '',
+    phone_number: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -19,9 +20,24 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    let value = e.target.value;
+
+    // Format phone number as user types
+    if (e.target.name === 'phone_number') {
+      // Remove non-digits
+      const cleaned = value.replace(/\D/g, '');
+
+      // Convert 63 prefix to 0 prefix automatically
+      if (cleaned.startsWith('63') && cleaned.length <= 12) {
+        value = '0' + cleaned.substring(2);
+      } else {
+        value = cleaned;
+      }
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
   };
 
@@ -38,6 +54,14 @@ const Register = () => {
 
     if (!formData.email.includes('@')) {
       newErrors.email = 'Please enter a valid email';
+    }
+
+    // Validate phone number if provided
+    if (formData.phone_number) {
+      const cleaned = formData.phone_number.replace(/\D/g, '');
+      if (cleaned.length !== 11 || !cleaned.startsWith('0')) {
+        newErrors.phone_number = 'Phone must be 11 digits starting with 0';
+      }
     }
 
     setErrors(newErrors);
@@ -128,6 +152,24 @@ const Register = () => {
               disabled={loading}
             />
             {errors.email && <span className="field-error">{errors.email}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="phone_number">Phone Number (optional)</label>
+            <input
+              type="tel"
+              id="phone_number"
+              name="phone_number"
+              value={formData.phone_number}
+              onChange={handleChange}
+              placeholder="09651234567 or 639651234567"
+              maxLength="12"
+              disabled={loading}
+            />
+            {errors.phone_number && <span className="field-error">{errors.phone_number}</span>}
+            <small style={{ display: 'block', marginTop: '4px', color: '#666', fontSize: '0.85em' }}>
+              Enter 11-digit number starting with 0, or 12-digit with country code 63
+            </small>
           </div>
 
           <div className="form-group">

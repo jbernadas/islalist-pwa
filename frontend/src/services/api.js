@@ -69,6 +69,7 @@ export const authAPI = {
   login: (credentials) => api.post('/api/auth/login/', credentials),
   logout: (refreshToken) => api.post('/api/auth/logout/', { refresh: refreshToken }),
   getProfile: () => api.get('/api/auth/profile/'),
+  updateProfile: (userData) => api.patch('/api/auth/profile/', userData),
   refreshToken: (refreshToken) => api.post('/api/auth/refresh/', { refresh: refreshToken }),
   verifyToken: (token) => api.post('/api/auth/verify/', { token }),
 };

@@ -81,6 +81,9 @@ const MyListings = () => {
           <button onClick={() => navigate('/')} className="btn-back">← Home</button>
           <h1>My Listings</h1>
           <div className="header-actions">
+            <button onClick={() => navigate('/profile')} className="btn-secondary">
+              Profile
+            </button>
             <button onClick={() => navigate('/create-listing')} className="btn-create">
               + New Listing
             </button>
@@ -175,6 +178,12 @@ const MyListings = () => {
                       className="btn-view"
                     >
                       👁️ View
+                    </button>
+                    <button
+                      onClick={() => navigate(`/edit-listing/${listing.id}`)}
+                      className="btn-edit"
+                    >
+                      ✏️ Edit
                     </button>
                     {listing.status === 'active' && (
                       <button

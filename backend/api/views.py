@@ -9,6 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Category, Listing, ListingImage
 from .serializers import (
     UserSerializer, UserRegistrationSerializer,
+    UserProfileUpdateSerializer,
     CategorySerializer, ListingSerializer, ListingListSerializer
 )
 
@@ -58,12 +59,26 @@ def logout_view(request):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_profile_view(request):
-    """API endpoint to get current user's profile"""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+    """API endpoint to get and update current user's profile"""
+    if request.method == 'GET':
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    elif request.method in ['PUT', 'PATCH']:
+        serializer = UserProfileUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=(request.method == 'PATCH')
+        )
+        if serializer.is_valid():
+            serializer.save()
+            # Return updated user data with phone number
+            user_serializer = UserSerializer(request.user)
+            return Response(user_serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):

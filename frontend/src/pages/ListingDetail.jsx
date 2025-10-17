@@ -163,7 +163,9 @@ const ListingDetail = () => {
 
           <div className="location-section">
             <h3>Location</h3>
-            <p>📍 {listing.location}, {listing.island}</p>
+            <div className="location-card">
+              <p>📍 {listing.location}, {listing.island}</p>
+            </div>
           </div>
 
           <div className="description-section">
@@ -190,8 +192,11 @@ const ListingDetail = () => {
             {showContactInfo && !isOwner && (
               <div className="contact-info">
                 <p><strong>Email:</strong> {listing.seller.email}</p>
+                {listing.seller.phone_number && (
+                  <p><strong>Phone:</strong> {listing.seller.phone_number}</p>
+                )}
                 <p className="help-text">
-                  Contact the seller directly via email to inquire about this listing.
+                  Contact the seller directly to inquire about this listing.
                 </p>
               </div>
             )}

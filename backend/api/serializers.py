@@ -4,11 +4,19 @@ from .models import Category, Listing, ListingImage, UserProfile
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer for User model"""
+    """Serializer for User model with profile data"""
+    phone_number = serializers.CharField(
+        source='profile.phone_number',
+        read_only=True,
+        allow_null=True
+    )
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = [
+            'id', 'username', 'email', 'first_name',
+            'last_name', 'phone_number'
+        ]
         read_only_fields = ['id']
 
 
@@ -16,11 +24,32 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration"""
     password = serializers.CharField(write_only=True, min_length=8)
     password_confirm = serializers.CharField(write_only=True, min_length=8)
+    phone_number = serializers.CharField(required=False, allow_blank=True, max_length=20)
 
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'password_confirm',
-                  'first_name', 'last_name']
+                  'first_name', 'last_name', 'phone_number']
+
+    def validate_phone_number(self, value):
+        """Validate and format Philippine phone numbers"""
+        if not value:
+            return value
+
+        # Remove spaces, dashes, and other common separators
+        cleaned = ''.join(filter(str.isdigit, value))
+
+        # Convert international format (63) to local format (0)
+        if cleaned.startswith('63') and len(cleaned) == 12:
+            cleaned = '0' + cleaned[2:]
+
+        # Validate format: must be 11 digits starting with 0
+        if cleaned and (len(cleaned) != 11 or not cleaned.startswith('0')):
+            raise serializers.ValidationError(
+                "Phone number must be 11 digits starting with 0 (e.g., 09681234567)"
+            )
+
+        return cleaned
 
     def validate(self, data):
         if data['password'] != data['password_confirm']:
@@ -30,9 +59,70 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        phone_number = validated_data.pop('phone_number', '')
         validated_data.pop('password_confirm')
         user = User.objects.create_user(**validated_data)
+
+        # Create user profile with phone number
+        UserProfile.objects.create(user=user, phone_number=phone_number)
+
         return user
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating user profile"""
+    phone_number = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=20
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone_number']
+
+    def validate_phone_number(self, value):
+        """Validate and format Philippine phone numbers"""
+        if not value:
+            return value
+
+        # Remove spaces, dashes, and other common separators
+        cleaned = ''.join(filter(str.isdigit, value))
+
+        # Convert international format (63) to local format (0)
+        if cleaned.startswith('63') and len(cleaned) == 12:
+            cleaned = '0' + cleaned[2:]
+
+        # Validate format: must be 11 digits starting with 0
+        if cleaned and (len(cleaned) != 11 or not cleaned.startswith('0')):
+            raise serializers.ValidationError(
+                "Phone number must be 11 digits starting with 0"
+            )
+
+        return cleaned
+
+    def update(self, instance, validated_data):
+        phone_number = validated_data.pop('phone_number', None)
+
+        # Update user fields
+        instance.first_name = validated_data.get(
+            'first_name', instance.first_name
+        )
+        instance.last_name = validated_data.get(
+            'last_name', instance.last_name
+        )
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+
+        # Update or create profile with phone number
+        if phone_number is not None:
+            profile, created = UserProfile.objects.get_or_create(
+                user=instance
+            )
+            profile.phone_number = phone_number
+            profile.save()
+
+        return instance
 
 
 class CategorySerializer(serializers.ModelSerializer):

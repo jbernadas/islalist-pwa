@@ -5,9 +5,11 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import CreateListing from './pages/CreateListing';
+import EditListing from './pages/EditListing';
 import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
 import MyListings from './pages/MyListings';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -38,10 +40,26 @@ function App() {
             }
           />
           <Route
+            path="/edit-listing/:id"
+            element={
+              <ProtectedRoute>
+                <EditListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/my-listings"
             element={
               <ProtectedRoute>
                 <MyListings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
