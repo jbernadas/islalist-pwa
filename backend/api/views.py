@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Category, Listing, ListingImage
+from .models import Category, Listing, ListingImage, Favorite
 from .serializers import (
     UserSerializer, UserRegistrationSerializer,
     UserProfileUpdateSerializer,
@@ -100,7 +100,7 @@ class ListingViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['list', 'my_listings', 'favorites']:
             return ListingListSerializer
         return ListingSerializer
 
@@ -174,3 +174,53 @@ class ListingViewSet(viewsets.ModelViewSet):
                 {'error': 'Image not found.'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def toggle_favorite(self, request, pk=None):
+        """Add or remove listing from favorites"""
+        listing = self.get_object()
+        favorite = Favorite.objects.filter(
+            user=request.user,
+            listing=listing
+        ).first()
+
+        if favorite:
+            # Remove from favorites
+            favorite.delete()
+            return Response({
+                'message': 'Removed from favorites',
+                'is_favorited': False
+            })
+        else:
+            # Add to favorites
+            Favorite.objects.create(user=request.user, listing=listing)
+            return Response({
+                'message': 'Added to favorites',
+                'is_favorited': True
+            }, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def favorites(self, request):
+        """Get all favorited listings for the current user"""
+        favorites = Favorite.objects.filter(
+            user=request.user
+        ).select_related('listing')
+        listings = [fav.listing for fav in favorites]
+        serializer = self.get_serializer(listings, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def my_images(self, request):
+        """Get all images uploaded by the current user across all their listings"""
+        from .serializers import ListingImageSerializer
+
+        images = ListingImage.objects.filter(
+            listing__seller=request.user
+        ).select_related('listing').order_by('-id')
+
+        serializer = ListingImageSerializer(
+            images,
+            many=True,
+            context={'request': request}
+        )
+        return Response(serializer.data)

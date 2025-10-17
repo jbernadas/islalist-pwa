@@ -100,10 +100,13 @@ export const listingsAPI = {
   },
   delete: (id) => api.delete(`/api/listings/${id}/`),
   getMyListings: () => api.get('/api/listings/my_listings/'),
+  getFavorites: () => api.get('/api/listings/favorites/'),
+  toggleFavorite: (id) => api.post(`/api/listings/${id}/toggle_favorite/`),
   markSold: (id) => api.post(`/api/listings/${id}/mark_sold/`),
   deleteImage: (id, imageId) => api.delete(`/api/listings/${id}/delete_image/`, {
     data: { image_id: imageId }
   }),
+  getMyImages: () => api.get('/api/listings/my_images/'),
 };
 
 export default api;

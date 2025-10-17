@@ -133,8 +133,6 @@
   position: relative;
   width: -webkit-fill-available;
   width: -moz-available;
-  height: -webkit-fill-available;
-  height: -moz-available;
   background: #e0e0e0;
   cursor: pointer;
   flex-shrink: 0;
@@ -282,7 +280,16 @@
 }
 
 .btn-delete:hover {
-  background: #c82333;
+  background: #8b1823;
+}
+
+.btn-remove-favorite {
+  background: #db7faa;
+  color: white;
+}
+
+.btn-remove-favorite:hover {
+  background: #8b1823;
 }
 
 @media (max-width: 768px) {

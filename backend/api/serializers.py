@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Category, Listing, ListingImage, UserProfile
+from .models import Category, Listing, ListingImage, UserProfile, Favorite
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -143,10 +143,21 @@ class CategorySerializer(serializers.ModelSerializer):
 class ListingImageSerializer(serializers.ModelSerializer):
     """Serializer for Listing images"""
     image_url = serializers.SerializerMethodField()
+    listing_title = serializers.CharField(
+        source='listing.title',
+        read_only=True
+    )
+    listing_id = serializers.IntegerField(
+        source='listing.id',
+        read_only=True
+    )
 
     class Meta:
         model = ListingImage
-        fields = ['id', 'image', 'image_url', 'order']
+        fields = [
+            'id', 'image', 'image_url', 'order',
+            'listing_title', 'listing_id'
+        ]
         read_only_fields = ['id']
 
     def get_image_url(self, obj):
@@ -161,13 +172,22 @@ class ListingImageSerializer(serializers.ModelSerializer):
 class ListingSerializer(serializers.ModelSerializer):
     """Serializer for Listing model"""
     seller = UserSerializer(read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
+    category_name = serializers.CharField(
+        source='category.name',
+        read_only=True
+    )
     images = ListingImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(),
         write_only=True,
         required=False
     )
+    reused_image_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = Listing
@@ -176,57 +196,113 @@ class ListingSerializer(serializers.ModelSerializer):
             'area_sqm', 'bedrooms', 'bathrooms', 'category', 'category_name',
             'condition', 'location', 'island', 'seller', 'status',
             'views_count', 'featured', 'created_at', 'updated_at',
-            'expires_at', 'images', 'uploaded_images'
+            'expires_at', 'images', 'uploaded_images', 'reused_image_ids',
+            'is_favorited'
         ]
-        read_only_fields = ['id', 'seller', 'views_count', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id', 'seller', 'views_count', 'created_at',
+            'updated_at', 'is_favorited'
+        ]
+
+    def get_is_favorited(self, obj):
+        """Check if current user has favorited this listing"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Favorite.objects.filter(
+                user=request.user,
+                listing=obj
+            ).exists()
+        return False
 
     def create(self, validated_data):
         uploaded_images = validated_data.pop('uploaded_images', [])
+        reused_image_ids = validated_data.pop('reused_image_ids', [])
         listing = Listing.objects.create(**validated_data)
 
-        # Create images
-        for order, image in enumerate(uploaded_images):
+        order = 0
+
+        # Add reused images first
+        for image_id in reused_image_ids:
+            try:
+                original_image = ListingImage.objects.get(id=image_id)
+                # Create new ListingImage with same file
+                ListingImage.objects.create(
+                    listing=listing,
+                    image=original_image.image.name,
+                    order=order
+                )
+                order += 1
+            except ListingImage.DoesNotExist:
+                continue
+
+        # Then add new uploaded images
+        for image in uploaded_images:
             ListingImage.objects.create(
                 listing=listing,
                 image=image,
                 order=order
             )
+            order += 1
 
         return listing
 
     def update(self, instance, validated_data):
         uploaded_images = validated_data.pop('uploaded_images', [])
+        reused_image_ids = validated_data.pop('reused_image_ids', [])
 
         # Update listing fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Add new images
-        if uploaded_images:
-            current_max_order = instance.images.count()
-            for order, image in enumerate(uploaded_images):
+        current_max_order = instance.images.count()
+
+        # Add reused images
+        for image_id in reused_image_ids:
+            try:
+                original_image = ListingImage.objects.get(id=image_id)
+                # Create new ListingImage with same file
                 ListingImage.objects.create(
                     listing=instance,
-                    image=image,
-                    order=current_max_order + order
+                    image=original_image.image.name,
+                    order=current_max_order
                 )
+                current_max_order += 1
+            except ListingImage.DoesNotExist:
+                continue
+
+        # Add new uploaded images
+        for image in uploaded_images:
+            ListingImage.objects.create(
+                listing=instance,
+                image=image,
+                order=current_max_order
+            )
+            current_max_order += 1
 
         return instance
 
 
 class ListingListSerializer(serializers.ModelSerializer):
     """Simplified serializer for listing lists"""
-    seller_name = serializers.CharField(source='seller.username', read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
+    seller_name = serializers.CharField(
+        source='seller.username',
+        read_only=True
+    )
+    category_name = serializers.CharField(
+        source='category.name',
+        read_only=True
+    )
     first_image = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = Listing
         fields = [
             'id', 'title', 'price', 'property_type', 'location', 'island',
             'category_name', 'seller_name', 'status', 'created_at',
-            'first_image', 'bedrooms', 'bathrooms', 'area_sqm'
+            'first_image', 'bedrooms', 'bathrooms', 'area_sqm',
+            'is_favorited'
         ]
 
     def get_first_image(self, obj):
@@ -237,3 +313,13 @@ class ListingListSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(first_image.image.url)
             return first_image.image.url
         return None
+
+    def get_is_favorited(self, obj):
+        """Check if current user has favorited this listing"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Favorite.objects.filter(
+                user=request.user,
+                listing=obj
+            ).exists()
+        return False

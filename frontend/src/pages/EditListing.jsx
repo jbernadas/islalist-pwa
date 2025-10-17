@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import ImageSelectorModal from '../components/ImageSelectorModal';
 import './CreateListing.css';
 
 const EditListing = () => {
@@ -10,10 +11,12 @@ const EditListing = () => {
   const { user, logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [images, setImages] = useState([]);
+  const [reusedImages, setReusedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingListing, setLoadingListing] = useState(true);
   const [error, setError] = useState('');
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -83,20 +86,23 @@ const EditListing = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const totalImages = existingImages.length + images.length + files.length;
-
+  const handleImageSelection = ({ reusedImages: selected, newFiles }) => {
+    const totalImages = existingImages.length + reusedImages.length + images.length + selected.length + newFiles.length;
     if (totalImages > 10) {
       setError('Maximum 10 images allowed');
       return;
     }
-    setImages(prev => [...prev, ...files]);
+    setReusedImages(prev => [...prev, ...selected]);
+    setImages(prev => [...prev, ...newFiles]);
     setError('');
   };
 
   const removeNewImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeReusedImage = (index) => {
+    setReusedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingImage = async (imageId) => {
@@ -126,6 +132,11 @@ const EditListing = () => {
         if (formData[key] !== '') {
           data.append(key, formData[key]);
         }
+      });
+
+      // Add reused image IDs
+      reusedImages.forEach(image => {
+        data.append('reused_image_ids', image.id);
       });
 
       // Add new images
@@ -339,17 +350,27 @@ const EditListing = () => {
         <div className="form-section">
           <h2>Photos</h2>
           <p className="help-text">
-            You have {existingImages.length} existing photo(s).
-            You can upload {10 - existingImages.length - images.length} more.
+            Current photos: {existingImages.length} existing, {reusedImages.length} reused, {images.length} new
+            ({existingImages.length + reusedImages.length + images.length}/10 total)
           </p>
+
+          <button
+            type="button"
+            onClick={() => setShowImageModal(true)}
+            className="btn-add-images"
+            disabled={existingImages.length + reusedImages.length + images.length >= 10}
+          >
+            📷 Add More Images ({existingImages.length + reusedImages.length + images.length}/10)
+          </button>
 
           {existingImages.length > 0 && (
             <>
-              <h3>Existing Photos</h3>
+              <h3>Existing Photos (from this listing)</h3>
               <div className="image-previews">
                 {existingImages.map((image) => (
                   <div key={image.id} className="image-preview">
                     <img src={image.image_url} alt="Listing" />
+                    <div className="image-badge">Existing</div>
                     <button
                       type="button"
                       onClick={() => removeExistingImage(image.id)}
@@ -363,20 +384,25 @@ const EditListing = () => {
             </>
           )}
 
-          {(existingImages.length + images.length) < 10 && (
-            <div className="image-upload">
-              <input
-                type="file"
-                id="images"
-                accept="image/*"
-                multiple
-                onChange={handleImageChange}
-                disabled={(existingImages.length + images.length) >= 10}
-              />
-              <label htmlFor="images" className="upload-label">
-                📷 Add More Photos
-              </label>
-            </div>
+          {reusedImages.length > 0 && (
+            <>
+              <h3>Reused Photos (from other listings)</h3>
+              <div className="image-previews">
+                {reusedImages.map((image, index) => (
+                  <div key={`reused-${index}`} className="image-preview">
+                    <img src={image.image_url} alt={image.listing_title} />
+                    <div className="image-badge">Reused</div>
+                    <button
+                      type="button"
+                      onClick={() => removeReusedImage(index)}
+                      className="remove-image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           {images.length > 0 && (
@@ -384,8 +410,9 @@ const EditListing = () => {
               <h3>New Photos to Upload</h3>
               <div className="image-previews">
                 {images.map((image, index) => (
-                  <div key={index} className="image-preview">
+                  <div key={`new-${index}`} className="image-preview">
                     <img src={URL.createObjectURL(image)} alt={`Preview ${index + 1}`} />
+                    <div className="image-badge new">New</div>
                     <button
                       type="button"
                       onClick={() => removeNewImage(index)}
@@ -399,6 +426,13 @@ const EditListing = () => {
             </>
           )}
         </div>
+
+        <ImageSelectorModal
+          isOpen={showImageModal}
+          onClose={() => setShowImageModal(false)}
+          onSelectImages={handleImageSelection}
+          excludeImageIds={existingImages.map(img => img.id)}
+        />
 
         <div className="form-actions">
           <button type="button" onClick={() => navigate(-1)} className="btn-secondary">

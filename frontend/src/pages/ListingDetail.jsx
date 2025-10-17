@@ -12,19 +12,59 @@ const ListingDetail = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactInfo, setShowContactInfo] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   useEffect(() => {
     fetchListing();
   }, [id]);
 
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showLightbox) {
+        setShowLightbox(false);
+      }
+    };
+
+    if (showLightbox) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showLightbox]);
+
   const fetchListing = async () => {
     try {
       const response = await listingsAPI.getById(id);
       setListing(response.data);
+      setIsFavorited(response.data.is_favorited || false);
     } catch (error) {
       console.error('Error fetching listing:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setFavoriteLoading(true);
+    try {
+      const response = await listingsAPI.toggleFavorite(id);
+      setIsFavorited(response.data.is_favorited);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Failed to update favorite');
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
@@ -57,6 +97,22 @@ const ListingDetail = () => {
     }
   };
 
+  const openLightbox = () => {
+    if (listing.images && listing.images.length > 0) {
+      setShowLightbox(true);
+    }
+  };
+
+  const closeLightbox = () => {
+    setShowLightbox(false);
+  };
+
+  const handleLightboxClick = (e) => {
+    if (e.target.classList.contains('lightbox-overlay')) {
+      closeLightbox();
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -79,8 +135,39 @@ const ListingDetail = () => {
   const isOwner = user && listing.seller.id === user.id;
 
   return (
-    <div className="listing-detail-container">
-      <header className="detail-header">
+    <>
+      {showLightbox && (
+        <div className="lightbox-overlay" onClick={handleLightboxClick}>
+          <button className="lightbox-close" onClick={closeLightbox}>×</button>
+          <div className="lightbox-content">
+            <img
+              src={listing.images[currentImageIndex].image_url}
+              alt={listing.title}
+            />
+            {listing.images.length > 1 && (
+              <>
+                <button
+                  className="lightbox-nav prev"
+                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                >
+                  ‹
+                </button>
+                <button
+                  className="lightbox-nav next"
+                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                >
+                  ›
+                </button>
+                <div className="lightbox-counter">
+                  {currentImageIndex + 1} / {listing.images.length}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="listing-detail-container">
+        <header className="detail-header">
         <button onClick={() => navigate('/')} className="btn-back">
           ← Back to Listings
         </button>
@@ -90,15 +177,16 @@ const ListingDetail = () => {
         <div className="image-gallery">
           {listing.images && listing.images.length > 0 ? (
             <>
-              <div className="main-image">
+              <div className="main-image" onClick={openLightbox}>
                 <img
                   src={listing.images[currentImageIndex].image_url}
                   alt={listing.title}
                 />
+                <div className="zoom-hint">🔍 Click to zoom</div>
                 {listing.images.length > 1 && (
                   <>
-                    <button className="nav-btn prev" onClick={prevImage}>‹</button>
-                    <button className="nav-btn next" onClick={nextImage}>›</button>
+                    <button className="nav-btn prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>‹</button>
+                    <button className="nav-btn next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>›</button>
                     <div className="image-counter">
                       {currentImageIndex + 1} / {listing.images.length}
                     </div>
@@ -129,7 +217,30 @@ const ListingDetail = () => {
         <div className="listing-details-section">
           <div className="price-section">
             <h1>{listing.title}</h1>
-            <p className="price">{formatPrice(listing.price)}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <p className="price">{formatPrice(listing.price)}</p>
+              {!isOwner && (
+                <button
+                  onClick={handleToggleFavorite}
+                  disabled={favoriteLoading}
+                  className={`btn-favorite ${isFavorited ? 'favorited' : ''}`}
+                  style={{
+                    background: isFavorited ? '#db7faa' : '#f0f0f0',
+                    color: isFavorited ? 'white' : '#666',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    cursor: favoriteLoading ? 'wait' : 'pointer',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    transition: 'all 0.3s'
+                  }}
+                  title={user ? (isFavorited ? 'Remove from favorites' : 'Add to favorites') : 'Login to favorite'}
+                >
+                  {favoriteLoading ? '...' : isFavorited ? '💖 Favorited' : '🤍 Add to Favorites'}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="property-info">
@@ -222,7 +333,8 @@ const ListingDetail = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

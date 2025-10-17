@@ -133,6 +133,31 @@
   background: #5568d3;
 }
 
+.btn-add-images {
+  padding: 12px 24px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.btn-add-images:hover:not(:disabled) {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-add-images:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .image-previews {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -168,6 +193,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s;
+}
+
+.remove-image:hover {
+  background: rgba(255, 0, 0, 1);
+  transform: scale(1.1);
+}
+
+.image-badge {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  background: rgba(102, 126, 234, 0.9);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.image-badge.new {
+  background: rgba(40, 167, 69, 0.9);
 }
 
 .form-actions {

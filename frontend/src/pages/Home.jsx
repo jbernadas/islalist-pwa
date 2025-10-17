@@ -68,6 +68,12 @@ const Home = () => {
               🔍 Browse Listings
             </button>
             <button
+              onClick={() => navigate('/favorites')}
+              className="btn-favorites"
+            >
+              💖 Favorites
+            </button>
+            <button
               onClick={() => navigate('/my-listings')}
               className="btn-my-listings"
             >

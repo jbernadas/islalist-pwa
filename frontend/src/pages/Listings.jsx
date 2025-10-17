@@ -10,6 +10,7 @@ const Listings = () => {
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favoritingIds, setFavoritingIds] = useState(new Set());
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -97,6 +98,41 @@ const Listings = () => {
     window.location.reload();
   };
 
+  const handleToggleFavorite = async (e, listingId) => {
+    e.stopPropagation(); // Prevent card click
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // Mark as favoriting
+    setFavoritingIds(prev => new Set(prev).add(listingId));
+
+    try {
+      const response = await listingsAPI.toggleFavorite(listingId);
+
+      // Update listing's is_favorited status
+      setListings(prev =>
+        prev.map(listing =>
+          listing.id === listingId
+            ? { ...listing, is_favorited: response.data.is_favorited }
+            : listing
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Failed to update favorite');
+    } finally {
+      // Remove from favoriting set
+      setFavoritingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(listingId);
+        return newSet;
+      });
+    }
+  };
+
   return (
     <div className="listings-container">
       <header className="listings-header">
@@ -107,8 +143,8 @@ const Listings = () => {
           <div className="header-actions">
             {isAuthenticated ? (
               <>
-                <button onClick={() => navigate('/profile')} className="btn-secondary">
-                  Profile
+                <button onClick={() => navigate('/favorites')} className="btn-secondary">
+                  💖 Favorites
                 </button>
                 <button onClick={() => navigate('/my-listings')} className="btn-secondary">
                   My Listings
@@ -257,7 +293,20 @@ const Listings = () => {
                     )}
                   </div>
                   <div className="listing-info">
-                    <h3>{listing.title}</h3>
+                    <div className="listing-info-header">
+                      <h3>{listing.title}</h3>
+                      <button
+                        className={`favorite-btn ${listing.is_favorited ? 'favorited' : ''}`}
+                        onClick={(e) => handleToggleFavorite(e, listing.id)}
+                        disabled={favoritingIds.has(listing.id)}
+                        title={isAuthenticated
+                          ? (listing.is_favorited ? 'Remove from favorites' : 'Add to favorites')
+                          : 'Login to favorite'
+                        }
+                      >
+                        {favoritingIds.has(listing.id) ? '...' : (listing.is_favorited ? '💖' : '🤍')}
+                      </button>
+                    </div>
                     <p className="price">{formatPrice(listing.price)}</p>
                     <div className="listing-details">
                       {listing.bedrooms && (

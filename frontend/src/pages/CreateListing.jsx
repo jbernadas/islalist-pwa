@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { categoriesAPI, listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import ImageSelectorModal from '../components/ImageSelectorModal';
 import './CreateListing.css';
 
 const CreateListing = () => {
@@ -9,8 +10,10 @@ const CreateListing = () => {
   const { logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [images, setImages] = useState([]);
+  const [reusedImages, setReusedImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -60,16 +63,22 @@ const CreateListing = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length + images.length > 10) {
+  const handleImageSelection = ({ reusedImages: selected, newFiles }) => {
+    const totalImages = reusedImages.length + images.length + selected.length + newFiles.length;
+    if (totalImages > 10) {
       setError('Maximum 10 images allowed');
       return;
     }
-    setImages(prev => [...prev, ...files]);
+    setReusedImages(prev => [...prev, ...selected]);
+    setImages(prev => [...prev, ...newFiles]);
+    setError('');
   };
 
-  const removeImage = (index) => {
+  const removeReusedImage = (index) => {
+    setReusedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -90,7 +99,12 @@ const CreateListing = () => {
         }
       });
 
-      // Add images
+      // Add reused image IDs
+      reusedImages.forEach(image => {
+        data.append('reused_image_ids', image.id);
+      });
+
+      // Add new uploaded images
       images.forEach(image => {
         data.append('uploaded_images', image);
       });
@@ -298,30 +312,41 @@ const CreateListing = () => {
 
         <div className="form-section">
           <h2>Photos</h2>
-          <p className="help-text">Upload up to 10 photos of your property</p>
+          <p className="help-text">
+            Select from your previously uploaded images or upload new ones (up to 10 total)
+          </p>
 
-          <div className="image-upload">
-            <input
-              type="file"
-              id="images"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}
-              disabled={images.length >= 10}
-            />
-            <label htmlFor="images" className="upload-label">
-              📷 Choose Photos
-            </label>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowImageModal(true)}
+            className="btn-add-images"
+            disabled={reusedImages.length + images.length >= 10}
+          >
+            📷 Add Images ({reusedImages.length + images.length}/10)
+          </button>
 
-          {images.length > 0 && (
+          {(reusedImages.length > 0 || images.length > 0) && (
             <div className="image-previews">
-              {images.map((image, index) => (
-                <div key={index} className="image-preview">
-                  <img src={URL.createObjectURL(image)} alt={`Preview ${index + 1}`} />
+              {reusedImages.map((image, index) => (
+                <div key={`reused-${index}`} className="image-preview">
+                  <img src={image.image_url} alt={image.listing_title} />
+                  <div className="image-badge">Reused</div>
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
+                    onClick={() => removeReusedImage(index)}
+                    className="remove-image"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {images.map((image, index) => (
+                <div key={`new-${index}`} className="image-preview">
+                  <img src={URL.createObjectURL(image)} alt={`Preview ${index + 1}`} />
+                  <div className="image-badge new">New</div>
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(index)}
                     className="remove-image"
                   >
                     ✕
@@ -331,6 +356,12 @@ const CreateListing = () => {
             </div>
           )}
         </div>
+
+        <ImageSelectorModal
+          isOpen={showImageModal}
+          onClose={() => setShowImageModal(false)}
+          onSelectImages={handleImageSelection}
+        />
 
         <div className="form-actions">
           <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
