@@ -14,6 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 }
 
 .header-content .brand h1 {
@@ -21,6 +22,47 @@
   color: #333;
   font-size: 1.8rem;
   cursor: pointer;
+}
+
+.location-selectors {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.province-selector,
+.municipality-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9ff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid #667eea;
+}
+
+.province-selector label,
+.municipality-selector label {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.province-selector select,
+.municipality-selector select {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  padding: 4px 8px;
+  outline: none;
+  min-width: 120px;
+}
+
+.province-selector select:focus,
+.municipality-selector select:focus {
+  outline: none;
 }
 
 .header-actions {
@@ -391,6 +433,30 @@
   .header-content {
     flex-wrap: wrap;
     gap: 10px;
+  }
+
+  .header-content .brand {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
+  .location-selectors {
+    order: -1;
+    flex: 1 1 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .province-selector,
+  .municipality-selector {
+    flex: 1 1 auto;
+    min-width: 140px;
+  }
+
+  .header-actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .listings-grid {

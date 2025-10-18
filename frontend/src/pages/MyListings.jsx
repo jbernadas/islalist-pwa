@@ -74,17 +74,31 @@ const MyListings = () => {
     navigate('/');
   };
 
+  // Helper to build listing URLs (default to siquijor/siquijor for now)
+  const getListingPath = (listingId) => {
+    // TODO: In future, use listing.island and listing.location to build proper path
+    return `/siquijor/siquijor/listings/${listingId}`;
+  };
+
+  const getEditPath = (listingId) => {
+    return `/siquijor/siquijor/edit-listing/${listingId}`;
+  };
+
+  const getCreatePath = () => {
+    return `/siquijor/siquijor/create-listing`;
+  };
+
   return (
     <div className="my-listings-container">
       <header className="listings-header">
         <div className="header-content">
-          <button onClick={() => navigate('/')} className="btn-back">← Home</button>
+          <button onClick={() => navigate('/siquijor/siquijor')} className="btn-back">← Home</button>
           <h1>My Listings</h1>
           <div className="header-actions">
             <button onClick={() => navigate('/profile')} className="btn-secondary">
               Profile
             </button>
-            <button onClick={() => navigate('/create-listing')} className="btn-create">
+            <button onClick={() => navigate(getCreatePath())} className="btn-create">
               + New Listing
             </button>
             <button onClick={handleLogout} className="btn-logout">
@@ -121,7 +135,7 @@ const MyListings = () => {
         ) : filteredListings.length === 0 ? (
           <div className="no-listings">
             <p>{filter === 'all' ? "You haven't created any listings yet" : `No ${filter} listings`}</p>
-            <button onClick={() => navigate('/create-listing')} className="btn-primary">
+            <button onClick={() => navigate(getCreatePath())} className="btn-primary">
               Create Your First Listing
             </button>
           </div>
@@ -131,7 +145,7 @@ const MyListings = () => {
               <div key={listing.id} className="my-listing-card">
                 <div
                   className="listing-image"
-                  onClick={() => navigate(`/listings/${listing.id}`)}
+                  onClick={() => navigate(getListingPath(listing.id))}
                 >
                   {listing.first_image ? (
                     <img src={listing.first_image} alt={listing.title} />
@@ -145,7 +159,7 @@ const MyListings = () => {
 
                 <div className="listing-info">
                   <div className="listing-header">
-                    <h3 onClick={() => navigate(`/listings/${listing.id}`)}>
+                    <h3 onClick={() => navigate(getListingPath(listing.id))}>
                       {listing.title}
                     </h3>
                     <p className="price">{formatPrice(listing.price)}</p>
@@ -174,13 +188,13 @@ const MyListings = () => {
 
                   <div className="listing-actions">
                     <button
-                      onClick={() => navigate(`/listings/${listing.id}`)}
+                      onClick={() => navigate(getListingPath(listing.id))}
                       className="btn-view"
                     >
                       👁️ View
                     </button>
                     <button
-                      onClick={() => navigate(`/edit-listing/${listing.id}`)}
+                      onClick={() => navigate(getEditPath(listing.id))}
                       className="btn-edit"
                     >
                       ✏️ Edit

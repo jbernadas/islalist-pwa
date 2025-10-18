@@ -6,7 +6,7 @@ import ImageSelectorModal from '../components/ImageSelectorModal';
 import './CreateListing.css';
 
 const EditListing = () => {
-  const { id } = useParams();
+  const { id, province, municipality } = useParams();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [categories, setCategories] = useState([]);
@@ -145,7 +145,7 @@ const EditListing = () => {
       });
 
       await listingsAPI.update(id, data);
-      navigate('/my-listings');
+      navigate(`/${province}/${municipality}`);
     } catch (err) {
       console.error('Error updating listing:', err);
       console.error('Error response:', err.response?.data);
@@ -172,6 +172,11 @@ const EditListing = () => {
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  // Helper function to build city/municipality-scoped URLs
+  const getMunicipalityPath = (path = '') => {
+    return `/${province}/${municipality}${path}`;
   };
 
   if (loadingListing) {
@@ -321,7 +326,7 @@ const EditListing = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="location">Location (Municipality/Barangay) *</label>
+              <label htmlFor="location">Location (City/Municipality/Barangay) *</label>
               <input
                 type="text"
                 id="location"
@@ -334,7 +339,7 @@ const EditListing = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="island">Island *</label>
+              <label htmlFor="island">Province *</label>
               <input
                 type="text"
                 id="island"
@@ -342,6 +347,7 @@ const EditListing = () => {
                 value={formData.island}
                 onChange={handleChange}
                 required
+                placeholder="e.g., Siquijor"
               />
             </div>
           </div>

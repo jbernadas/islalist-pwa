@@ -29,7 +29,17 @@ const Login = () => {
     const result = await login(credentials);
 
     if (result.success) {
-      navigate('/');
+      // Redirect to last visited location or home
+      const lastProvince = localStorage.getItem('lastProvince');
+      const lastMunicipality = localStorage.getItem('lastMunicipality');
+
+      if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
+        navigate(`/${lastProvince}/${lastMunicipality}`);
+      } else if (lastProvince) {
+        navigate(`/${lastProvince}`);
+      } else {
+        navigate('/');
+      }
     } else {
       setError(result.error);
     }

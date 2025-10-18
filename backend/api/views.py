@@ -6,8 +6,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Category, Listing, ListingImage, Favorite
+from .models import Province, Municipality, Category, Listing, ListingImage, Favorite
 from .serializers import (
+    ProvinceSerializer, ProvinceListSerializer, MunicipalitySerializer,
     UserSerializer, UserRegistrationSerializer,
     UserProfileUpdateSerializer,
     CategorySerializer, ListingSerializer, ListingListSerializer
@@ -81,6 +82,38 @@ def user_profile_view(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint for viewing provinces"""
+    queryset = Province.objects.filter(active=True).prefetch_related('municipalities')
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+    pagination_class = None  # Disable pagination - need all provinces for dropdown
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProvinceListSerializer
+        return ProvinceSerializer
+
+    @action(detail=True, methods=['get'])
+    def municipalities(self, request, slug=None):
+        """Get all cities/municipalities for a province"""
+        province = self.get_object()
+        municipalities = province.municipalities.filter(active=True)
+        serializer = MunicipalitySerializer(municipalities, many=True)
+        return Response(serializer.data)
+
+
+class MunicipalityViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint for viewing cities/municipalities"""
+    queryset = Municipality.objects.filter(active=True).select_related('province')
+    serializer_class = MunicipalitySerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+    pagination_class = None  # Disable pagination - need all municipalities for dropdown
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['province']
+
+
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint for viewing categories"""
     queryset = Category.objects.filter(active=True, parent=None)
@@ -115,6 +148,13 @@ class ListingViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(price__gte=min_price)
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
+
+        # Filter by municipality (case-insensitive, partial match in location field)
+        municipality = self.request.query_params.get('municipality')
+        if municipality:
+            # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
+            municipality_formatted = municipality.replace('-', ' ').title()
+            queryset = queryset.filter(location__icontains=municipality_formatted)
 
         return queryset
 

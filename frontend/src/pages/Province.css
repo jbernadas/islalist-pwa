@@ -1,0 +1,272 @@
+.province-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.province-header {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.header-content {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-content .brand h1 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.header-content .brand h1:hover {
+  color: #667eea;
+}
+
+.province-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9ff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid #667eea;
+}
+
+.province-selector label {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.province-selector select {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  padding: 4px 8px;
+  outline: none;
+  min-width: 120px;
+}
+
+.province-selector select:focus {
+  outline: none;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #f8f9ff;
+  transform: translateY(-2px);
+}
+
+.btn-create {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-create:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+}
+
+.btn-logout {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+.province-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+.province-hero {
+  text-align: center;
+  color: white;
+  margin-bottom: 60px;
+}
+
+.province-hero h1 {
+  font-size: 3rem;
+  margin: 0 0 20px 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.province-hero p {
+  font-size: 1.3rem;
+  opacity: 0.95;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.municipalities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.municipality-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.municipality-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+}
+
+.municipality-card.all-municipalities {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 2px solid white;
+}
+
+.municipality-card.all-municipalities h3,
+.municipality-card.all-municipalities p {
+  color: white;
+}
+
+.municipality-card.all-municipalities:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #643a8a 100%);
+  transform: translateY(-8px) scale(1.02);
+}
+
+.municipality-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.municipality-card h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.municipality-card p {
+  margin: 0;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.no-municipalities {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.no-municipalities h2 {
+  color: #333;
+  font-size: 2rem;
+  margin: 0 0 16px 0;
+}
+
+.no-municipalities p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0 0 32px 0;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-content .brand {
+    flex: 1 1 100%;
+  }
+
+  .province-selector {
+    order: -1;
+    flex: 1 1 auto;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .province-hero h1 {
+    font-size: 2rem;
+  }
+
+  .province-hero p {
+    font-size: 1.1rem;
+  }
+
+  .municipalities-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .municipality-card {
+    padding: 24px 20px;
+  }
+}

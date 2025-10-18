@@ -5,6 +5,59 @@ from django.utils import timezone
 from datetime import timedelta
 
 
+class Province(models.Model):
+    """Philippine provinces for location filtering"""
+    name = models.CharField(max_length=100, unique=True, help_text="Province name (e.g., Camarines Norte)")
+    slug = models.SlugField(unique=True, blank=True, help_text="URL-friendly version (e.g., camarines-norte)")
+    active = models.BooleanField(default=True, help_text="Show in province listings")
+    featured = models.BooleanField(default=False, help_text="Highlight on homepage")
+    description = models.TextField(blank=True, help_text="Province description")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Province"
+        verbose_name_plural = "Provinces"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class Municipality(models.Model):
+    """Cities and municipalities within provinces"""
+    name = models.CharField(max_length=100, help_text="City/Municipality name (e.g., Daet, Cebu City)")
+    slug = models.SlugField(help_text="URL-friendly version (e.g., daet, cebu-city)")
+    province = models.ForeignKey(
+        Province,
+        on_delete=models.CASCADE,
+        related_name='municipalities',
+        help_text="Parent province"
+    )
+    active = models.BooleanField(default=True, help_text="Show in city/municipality listings")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "City/Municipality"
+        verbose_name_plural = "Cities/Municipalities"
+        unique_together = ['province', 'slug']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name}, {self.province.name}"
+
+
 class Category(models.Model):
     """Categories for marketplace listings"""
     name = models.CharField(max_length=100)
@@ -103,7 +156,7 @@ class Listing(models.Model):
     )
 
     # Location
-    location = models.CharField(max_length=200, help_text="Municipality/Barangay")
+    location = models.CharField(max_length=200, help_text="City/Municipality/Barangay")
     island = models.CharField(max_length=100, default='Siquijor')
 
     # User and Status

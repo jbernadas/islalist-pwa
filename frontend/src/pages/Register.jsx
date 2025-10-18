@@ -81,7 +81,17 @@ const Register = () => {
     const result = await register(formData);
 
     if (result.success) {
-      navigate('/');
+      // Redirect to last visited location or home
+      const lastProvince = localStorage.getItem('lastProvince');
+      const lastMunicipality = localStorage.getItem('lastMunicipality');
+
+      if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
+        navigate(`/${lastProvince}/${lastMunicipality}`);
+      } else if (lastProvince) {
+        navigate(`/${lastProvince}`);
+      } else {
+        navigate('/');
+      }
     } else {
       setErrors(result.error);
     }

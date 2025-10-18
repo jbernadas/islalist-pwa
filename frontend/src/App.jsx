@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import Province from './pages/Province';
 import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Listings from './pages/Listings';
@@ -17,34 +18,16 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Listings />} />
-          <Route path="/listings/:id" element={<ListingDetail />} />
+          {/* Auth routes (global) */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected routes */}
+          {/* User routes (global) */}
           <Route
-            path="/home"
+            path="/profile"
             element={
               <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/create-listing"
-            element={
-              <ProtectedRoute>
-                <CreateListing />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/edit-listing/:id"
-            element={
-              <ProtectedRoute>
-                <EditListing />
+                <Profile />
               </ProtectedRoute>
             }
           />
@@ -64,15 +47,36 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Province/City/Municipality routes (new structure) */}
+          {/* More specific routes first */}
+          <Route path="/:province/:municipality/listings/:id" element={<ListingDetail />} />
           <Route
-            path="/profile"
+            path="/:province/:municipality/create-listing"
             element={
               <ProtectedRoute>
-                <Profile />
+                <CreateListing />
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route
+            path="/:province/:municipality/edit-listing/:id"
+            element={
+              <ProtectedRoute>
+                <EditListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/:province/:municipality" element={<Listings />} />
+
+          {/* Province page - shows cities/municipalities */}
+          <Route path="/:province" element={<Province />} />
+
+          {/* Root shows home page with all provinces */}
+          <Route path="/" element={<Home />} />
+
+          {/* Catch-all redirects to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

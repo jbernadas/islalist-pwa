@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './ListingDetail.css';
 
 const ListingDetail = () => {
-  const { id } = useParams();
+  const { id, province, municipality } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [listing, setListing] = useState(null);
@@ -134,6 +134,11 @@ const ListingDetail = () => {
 
   const isOwner = user && listing.seller.id === user.id;
 
+  // Helper function to build municipality-scoped URLs
+  const getMunicipalityPath = (path = '') => {
+    return `/${province}/${municipality}${path}`;
+  };
+
   return (
     <>
       {showLightbox && (
@@ -168,7 +173,7 @@ const ListingDetail = () => {
       )}
       <div className="listing-detail-container">
         <header className="detail-header">
-        <button onClick={() => navigate('/')} className="btn-back">
+        <button onClick={() => navigate(getMunicipalityPath())} className="btn-back">
           ← Back to Listings
         </button>
       </header>

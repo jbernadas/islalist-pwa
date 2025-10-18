@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { listingsAPI, categoriesAPI } from '../services/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { listingsAPI, categoriesAPI, provincesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
 import './Listings.css';
 
 const Listings = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { province, municipality } = useParams();
+  const { isAuthenticated } = useAuth();
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [municipalities, setMunicipalities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingLocations, setLoadingLocations] = useState(true);
   const [favoritingIds, setFavoritingIds] = useState(new Set());
   const [filters, setFilters] = useState({
     search: '',
@@ -17,13 +22,91 @@ const Listings = () => {
     property_type: '',
     min_price: '',
     max_price: '',
-    island: '',
+    province: '',
   });
+
+  // Fetch provinces and cities/municipalities from API (with caching)
+  useEffect(() => {
+    // If no province in URL, redirect to home page
+    if (!province) {
+      navigate('/');
+      return;
+    }
+
+    // Save current province and municipality to localStorage for remembering last location
+    localStorage.setItem('lastProvince', province);
+    if (municipality) {
+      localStorage.setItem('lastMunicipality', municipality);
+    }
+
+    const fetchLocations = async () => {
+      try {
+        setLoadingLocations(true);
+
+        // Try to get from cache first (24 hour cache)
+        const cachedProvinces = localStorage.getItem('provinces');
+        const cacheTime = localStorage.getItem('provinces_cache_time');
+        const now = Date.now();
+        const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
+
+        if (cachedProvinces && cacheTime && (now - parseInt(cacheTime)) < cacheExpiry) {
+          // Use cached data
+          const provincesData = JSON.parse(cachedProvinces);
+          setProvinces(provincesData);
+
+          // Find current province to get cities/municipalities
+          const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
+          if (currentProv) {
+            const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
+            setMunicipalities(munResponse.data);
+          }
+        } else {
+          // Fetch fresh data
+          const response = await provincesAPI.getAll();
+          const provincesData = response.data.results || response.data;
+          setProvinces(Array.isArray(provincesData) ? provincesData : []);
+
+          // Cache the data
+          localStorage.setItem('provinces', JSON.stringify(provincesData));
+          localStorage.setItem('provinces_cache_time', now.toString());
+
+          // Fetch cities/municipalities for current province
+          if (province) {
+            const munResponse = await provincesAPI.getMunicipalities(province.toLowerCase());
+            setMunicipalities(munResponse.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        setProvinces([]);
+        setMunicipalities([]);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+
+    fetchLocations();
+  }, [province]);
+
+  // Derive province names for dropdown (from API data)
+  const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
+
+  // Get cities/municipalities for current province
+  const currentMunicipalities = municipalities.map(m => m.name);
 
   useEffect(() => {
     fetchCategories();
     fetchListings();
-  }, []);
+    // Pre-populate province filter from URL
+    if (province) {
+      // Convert slug to display name: "camarines-norte" -> "Camarines Norte"
+      const provinceName = province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      setFilters(prev => ({
+        ...prev,
+        province: provinceName
+      }));
+    }
+  }, [province, municipality]);
 
   const fetchCategories = async () => {
     try {
@@ -49,7 +132,12 @@ const Listings = () => {
       if (filters.property_type) params.property_type = filters.property_type;
       if (filters.min_price) params.min_price = filters.min_price;
       if (filters.max_price) params.max_price = filters.max_price;
-      if (filters.island) params.island = filters.island;
+      if (filters.province) params.island = filters.province; // Backend still uses 'island' field
+
+      // Add city/municipality filter from URL if not 'all'
+      if (municipality && municipality.toLowerCase() !== 'all') {
+        params.municipality = municipality;
+      }
 
       const response = await listingsAPI.getAll(params);
       console.log('Listings response:', response.data);
@@ -70,19 +158,42 @@ const Listings = () => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleProvinceChange = (e) => {
+    const selectedProvince = e.target.value;
+    if (selectedProvince) {
+      const provinceSlug = selectedProvince.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/${provinceSlug}`);
+    } else {
+      // "All Provinces" selected - clear saved location and go to home page
+      localStorage.removeItem('lastProvince');
+      localStorage.removeItem('lastMunicipality');
+      navigate('/');
+    }
+  };
+
+  const handleMunicipalityChange = (e) => {
+    const selectedMunicipality = e.target.value;
+    if (selectedMunicipality) {
+      const municipalitySlug = selectedMunicipality.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/${province}/${municipalitySlug}`);
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     fetchListings();
   };
 
   const clearFilters = () => {
+    // Convert slug to display name: "camarines-norte" -> "Camarines Norte"
+    const provinceName = province ? province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : '';
     setFilters({
       search: '',
       category: '',
       property_type: '',
       min_price: '',
       max_price: '',
-      island: '',
+      province: provinceName,
     });
     setTimeout(() => fetchListings(), 0);
   };
@@ -92,10 +203,9 @@ const Listings = () => {
     return `₱${Number(price).toLocaleString()}`;
   };
 
-  const handleLogout = async () => {
-    await logout();
-    // Refresh the page to update the UI
-    window.location.reload();
+  // Helper function to build municipality-scoped URLs
+  const getMunicipalityPath = (path = '') => {
+    return `/${province}/${municipality}${path}`;
   };
 
   const handleToggleFavorite = async (e, listingId) => {
@@ -135,40 +245,16 @@ const Listings = () => {
 
   return (
     <div className="listings-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <div className="brand">
-            <h1>🏝️ IslaList</h1>
-          </div>
-          <div className="header-actions">
-            {isAuthenticated ? (
-              <>
-                <button onClick={() => navigate('/favorites')} className="btn-secondary">
-                  💖 Favorites
-                </button>
-                <button onClick={() => navigate('/my-listings')} className="btn-secondary">
-                  My Listings
-                </button>
-                <button onClick={() => navigate('/create-listing')} className="btn-create">
-                  + Post Listing
-                </button>
-                <button onClick={handleLogout} className="btn-logout">
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => navigate('/login')} className="btn-secondary">
-                  Login
-                </button>
-                <button onClick={() => navigate('/register')} className="btn-create">
-                  Register
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header
+        showProvinceSelector={true}
+        showMunicipalitySelector={true}
+        province={province}
+        municipality={municipality}
+        provinces={PHILIPPINE_PROVINCES}
+        municipalities={currentMunicipalities}
+        onProvinceChange={handleProvinceChange}
+        onMunicipalityChange={handleMunicipalityChange}
+      />
 
       <div className="listings-content">
         <aside className="filters-sidebar">
@@ -211,17 +297,6 @@ const Listings = () => {
             </div>
 
             <div className="filter-group">
-              <label>Island</label>
-              <input
-                type="text"
-                name="island"
-                value={filters.island}
-                onChange={handleFilterChange}
-                placeholder="e.g., Siquijor"
-              />
-            </div>
-
-            <div className="filter-group">
               <label>Price Range</label>
               <div className="price-range">
                 <input
@@ -261,7 +336,7 @@ const Listings = () => {
               <h2>No Listings Yet</h2>
               <p>Be the first to post a property on IslaList!</p>
               {isAuthenticated ? (
-                <button onClick={() => navigate('/create-listing')} className="btn-primary">
+                <button onClick={() => navigate(getMunicipalityPath('/create-listing'))} className="btn-primary">
                   + Create First Listing
                 </button>
               ) : (
@@ -278,7 +353,7 @@ const Listings = () => {
                 <div
                   key={listing.id}
                   className="listing-card"
-                  onClick={() => navigate(`/listings/${listing.id}`)}
+                  onClick={() => navigate(getMunicipalityPath(`/listings/${listing.id}`))}
                 >
                   <div className="listing-image">
                     {listing.first_image ? (

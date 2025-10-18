@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ImageSelectorModal from '../components/ImageSelectorModal';
@@ -7,6 +7,7 @@ import './CreateListing.css';
 
 const CreateListing = () => {
   const navigate = useNavigate();
+  const { province, municipality } = useParams();
   const { logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [images, setImages] = useState([]);
@@ -115,7 +116,7 @@ const CreateListing = () => {
       }
 
       await listingsAPI.create(data);
-      navigate('/');
+      navigate(`/${province}/${municipality}`);
     } catch (err) {
       console.error('Error creating listing:', err);
       console.error('Error response:', err.response?.data);
@@ -143,6 +144,11 @@ const CreateListing = () => {
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  // Helper function to build city/municipality-scoped URLs
+  const getMunicipalityPath = (path = '') => {
+    return `/${province}/${municipality}${path}`;
   };
 
   return (
@@ -284,7 +290,7 @@ const CreateListing = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="location">Location (Municipality/Barangay) *</label>
+              <label htmlFor="location">Location (City/Municipality/Barangay) *</label>
               <input
                 type="text"
                 id="location"
@@ -297,7 +303,7 @@ const CreateListing = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="island">Island *</label>
+              <label htmlFor="island">Province *</label>
               <input
                 type="text"
                 id="island"
@@ -305,6 +311,7 @@ const CreateListing = () => {
                 value={formData.island}
                 onChange={handleChange}
                 required
+                placeholder="e.g., Siquijor"
               />
             </div>
           </div>

@@ -6,6 +6,8 @@ app_name = 'api'
 
 # Create router for viewsets
 router = DefaultRouter()
+router.register(r'provinces', views.ProvinceViewSet, basename='province')
+router.register(r'municipalities', views.MunicipalityViewSet, basename='municipality')
 router.register(r'categories', views.CategoryViewSet, basename='category')
 router.register(r'listings', views.ListingViewSet, basename='listing')
 

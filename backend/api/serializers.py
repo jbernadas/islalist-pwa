@@ -1,6 +1,48 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Category, Listing, ListingImage, UserProfile, Favorite
+from .models import (
+    Province, Municipality, Category, Listing,
+    ListingImage, UserProfile, Favorite
+)
+
+
+class MunicipalitySerializer(serializers.ModelSerializer):
+    """Serializer for City/Municipality model"""
+    province_name = serializers.CharField(source='province.name', read_only=True)
+
+    class Meta:
+        model = Municipality
+        fields = ['id', 'name', 'slug', 'province', 'province_name', 'active']
+        read_only_fields = ['id', 'slug']
+
+
+class ProvinceSerializer(serializers.ModelSerializer):
+    """Serializer for Province model with cities/municipalities"""
+    municipalities = MunicipalitySerializer(many=True, read_only=True)
+    municipality_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Province
+        fields = [
+            'id', 'name', 'slug', 'active', 'featured',
+            'description', 'municipalities', 'municipality_count'
+        ]
+        read_only_fields = ['id', 'slug']
+
+    def get_municipality_count(self, obj):
+        return obj.municipalities.filter(active=True).count()
+
+
+class ProvinceListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for province lists (no cities/municipalities)"""
+    municipality_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Province
+        fields = ['id', 'name', 'slug', 'municipality_count']
+
+    def get_municipality_count(self, obj):
+        return obj.municipalities.filter(active=True).count()
 
 
 class UserSerializer(serializers.ModelSerializer):

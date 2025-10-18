@@ -1,5 +1,25 @@
 from django.contrib import admin
-from .models import Category, Listing, ListingImage, UserProfile
+from .models import Province, Municipality, Category, Listing, ListingImage, UserProfile
+
+
+@admin.register(Province)
+class ProvinceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'active', 'featured', 'municipality_count']
+    list_filter = ['active', 'featured']
+    search_fields = ['name', 'description']
+    prepopulated_fields = {'slug': ('name',)}
+
+    def municipality_count(self, obj):
+        return obj.municipalities.filter(active=True).count()
+    municipality_count.short_description = 'Cities/Municipalities'
+
+
+@admin.register(Municipality)
+class MunicipalityAdmin(admin.ModelAdmin):
+    list_display = ['name', 'province', 'slug', 'active']
+    list_filter = ['active', 'province']
+    search_fields = ['name', 'province__name']
+    prepopulated_fields = {'slug': ('name',)}
 
 
 @admin.register(Category)

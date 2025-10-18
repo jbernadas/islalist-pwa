@@ -74,6 +74,19 @@ export const authAPI = {
   verifyToken: (token) => api.post('/api/auth/verify/', { token }),
 };
 
+// Provinces API
+export const provincesAPI = {
+  getAll: () => api.get('/api/provinces/'),
+  getBySlug: (slug) => api.get(`/api/provinces/${slug}/`),
+  getMunicipalities: (slug) => api.get(`/api/provinces/${slug}/municipalities/`),
+};
+
+// Municipalities API
+export const municipalitiesAPI = {
+  getAll: (params) => api.get('/api/municipalities/', { params }),
+  getBySlug: (slug) => api.get(`/api/municipalities/${slug}/`),
+};
+
 // Categories API
 export const categoriesAPI = {
   getAll: () => api.get('/api/categories/'),
