@@ -19,6 +19,12 @@ const BulletinBoard = () => {
       return;
     }
 
+    // Redirect "all" municipality to province page
+    if (municipality === 'all') {
+      navigate(`/${province}`, { replace: true });
+      return;
+    }
+
     // Save current location to localStorage
     localStorage.setItem('lastProvince', province);
     if (municipality) {
@@ -129,7 +135,7 @@ const BulletinBoard = () => {
 
       <div className="bulletin-board-content">
         <div className="welcome-section">
-          <h1>Welcome to {displayMunicipality}</h1>
+          <h1>{displayMunicipality}</h1>
           <p className="subtitle">{displayMunicipality != "All Cities/Municipalities" ? " Community " : ( displayProvince != "Metro Manila (NCR)" ? displayProvince + " Provincial " : "Metro Manila ")} Bulletin Board</p>
         </div>
 

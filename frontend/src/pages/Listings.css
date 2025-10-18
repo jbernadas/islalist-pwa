@@ -20,7 +20,7 @@
   transition: color 0.2s ease;
 }
 
-.listings-navigation .nav-not-link {
+.listings-navigation .not-link {
   font-size: 0.95rem;
 }
 

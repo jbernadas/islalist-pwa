@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { provincesAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
@@ -114,46 +114,67 @@ const Province = () => {
       />
 
       <div className="province-content">
-        <div className="province-hero">
-          <h1>Welcome to {provinceName}</h1>
-          <p>Select a city/municipality to browse local listings</p>
+        <div className="welcome-section province-bulletin-board">
+          <h1>{provinceName}</h1>
+          <p className="subtitle">
+            {provinceName !== 'Metro Manila (NCR)' ? 'Provincial' : 'Metro Manila'} Bulletin Board
+          </p>
         </div>
 
-        {loading ? (
-          <div className="loading">
-            <p>Loading cities/municipalities...</p>
-          </div>
-        ) : municipalityNames.length > 0 ? (
-          <div className="municipalities-grid">
-            {/* All municipalities option */}
-            <div
-              className="municipality-card all-municipalities"
-              onClick={() => navigate(`/${province}/all`)}
-            >
-              <div className="municipality-icon">🗺️</div>
-              <h3 className="borderless">All Cities/Municipalities</h3>
+        {/* Horizontal City Navigation */}
+        {!loading && municipalityNames.length > 0 && (
+          <nav className="cities-nav">
+            <div className="cities-nav-container">
+              {municipalityNames.map((municipality, index) => (
+                <span key={municipality}>
+                  <button
+                    className="city-link"
+                    onClick={() => handleMunicipalityClick(municipality)}
+                  >
+                    {municipality}
+                  </button>
+                  {index < municipalityNames.length - 1 && <span className="city-separator"> • </span>}
+                </span>
+              ))}
             </div>
+          </nav>
+        )}
 
-            {municipalityNames.map((municipality) => (
-              <div
-                key={municipality}
-                className="municipality-card"
-                onClick={() => handleMunicipalityClick(municipality)}
-              >
-                <div className="municipality-icon">🏘️</div>
-                <h3 className="borderless">{municipality}</h3>
-              </div>
-            ))}
+        <div className="sections-grid">
+          <div className="section-card active">
+            <div className="section-icon">🏷️</div>
+            <h3>Listings & Classifieds</h3>
+            <p>Browse and post province-wide classified ads, items for sale, rentals, and more.</p>
+            <Link
+              to={`/${province}/all/listings`}
+              className="btn-primary btn-width-available"
+            >
+              View Province Listings
+            </Link>
           </div>
-        ) : (
-          <div className="no-municipalities">
-            <h2>Coming Soon</h2>
-            <p>Cities/Municipalities for {provinceName} will be available soon.</p>
-            <button onClick={() => navigate('/siquijor')} className="btn-primary">
-              Visit Siquijor
+
+          <div className="section-card disabled">
+            <div className="section-icon">📅</div>
+            <h3>Events</h3>
+            <p>Discover province-wide events and activities.</p>
+            <button className="btn-secondary" disabled>
+              Coming Soon
             </button>
           </div>
-        )}
+
+          <div className="section-card disabled">
+            <div className="section-icon">📢</div>
+            <h3>Announcements</h3>
+            <p>Stay updated with provincial announcements and important notices.</p>
+            <button className="btn-secondary" disabled>
+              Coming Soon
+            </button>
+          </div>
+        </div>
+
+        <div className="back-link">
+          <Link to="/">← View All Provinces</Link>
+        </div>
       </div>
     </div>
   );

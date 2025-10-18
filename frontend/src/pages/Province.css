@@ -3,275 +3,235 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.province-header {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 20px;
-}
-
-.header-content {
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.header-content .brand h1 {
-  margin: 0;
-  color: #333;
-  font-size: 1.8rem;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.header-content .brand h1:hover {
-  color: #667eea;
-}
-
-.province-selector {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8f9ff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 2px solid #667eea;
-}
-
-.province-selector label {
-  font-size: 1.2rem;
-  margin: 0;
-}
-
-.province-selector select {
-  background: transparent;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #667eea;
-  cursor: pointer;
-  padding: 4px 8px;
-  outline: none;
-  min-width: 120px;
-}
-
-.province-selector select:focus {
-  outline: none;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.btn-secondary {
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-secondary:hover {
-  background: #f8f9ff;
-  transform: translateY(-2px);
-}
-
-.btn-create {
-  background: #667eea;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-create:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-}
-
-.btn-logout {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-logout:hover {
-  background: #c82333;
-  transform: translateY(-2px);
-}
-
 .province-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 20px;
 }
 
-.province-hero {
+.welcome-section.province-bulletin-board {
   text-align: center;
   color: white;
-  margin-bottom: 60px;
+  margin: 3rem 0 2rem;
+}
+
+.welcome-section.province-bulletin-board h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.welcome-section.province-bulletin-board .subtitle {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Horizontal City Navigation */
+.cities-nav {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 3rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.cities-nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.cities-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cities-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.cities-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.cities-nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.city-link {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.city-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  text-decoration: underline;
+}
+
+.city-separator {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  user-select: none;
 }
 
 .province-hero h1 {
   font-size: 3rem;
-  margin: 0 0 20px 0;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
-.province-hero p {
-  font-size: 1.3rem;
-  opacity: 0.95;
+.province-hero .subtitle {
+  font-size: 1.25rem;
+  opacity: 0.9;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
-.municipalities-grid {
+.sections-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 24px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
 }
 
-.municipality-card {
+.section-card {
   background: white;
-  border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.municipality-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+.section-card.active:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
-.municipality-card.all-municipalities {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: 2px solid white;
+.section-card.disabled {
+  opacity: 0.7;
 }
 
-.municipality-card.all-municipalities h3,
-.municipality-card.all-municipalities p {
-  color: white;
-}
-
-.municipality-card.all-municipalities:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #643a8a 100%);
-  transform: translateY(-8px) scale(1.02);
-}
-
-.municipality-icon {
+.section-icon {
   font-size: 3rem;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
-.municipality-card h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 1.3rem;
-}
-
-h3.borderless {
-  border: none !important;
-  border-bottom: none !important;
-}
-
-.municipality-card p {
-  margin: 0;
-  color: #667eea;
+.section-card h3 {
+  font-size: 1.5rem;
   font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.no-municipalities {
-  text-align: center;
-  padding: 80px 20px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.no-municipalities h2 {
+  margin-bottom: 0.75rem;
   color: #333;
-  font-size: 2rem;
-  margin: 0 0 16px 0;
 }
 
-.no-municipalities p {
+.section-card p {
   color: #666;
-  font-size: 1.1rem;
-  margin: 0 0 32px 0;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
 }
 
-.btn-primary {
+.section-card .btn-primary,
+.section-card .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  transition: background 0.3s ease;
+}
+
+.btn-width-available {
+  width: -webkit-fill-available;
+  width: -moz-available;
+}
+
+.section-card .btn-primary {
   background: #667eea;
   color: white;
-  border: none;
-  padding: 12px 32px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 1rem;
 }
 
-.btn-primary:hover {
+.section-card .btn-primary:hover {
   background: #5568d3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+.section-card .btn-secondary {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.section-card .btn-secondary:disabled {
+  cursor: not-allowed;
+}
+
+.back-link {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.back-link a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.back-link a:hover {
+  opacity: 1;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .header-content {
-    flex-wrap: wrap;
-    gap: 10px;
+  .province-content {
+    padding: 1rem;
   }
 
-  .header-content .brand {
-    flex: 1 1 100%;
+  .welcome-section.province-bulletin-board {
+    margin: 2rem 0 1.5rem;
   }
 
-  .province-selector {
-    order: -1;
-    flex: 1 1 auto;
-  }
-
-  .header-actions {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .province-hero h1 {
+  .welcome-section.province-bulletin-board h1 {
     font-size: 2rem;
   }
 
-  .province-hero p {
-    font-size: 1.1rem;
+  .welcome-section.province-bulletin-board .subtitle {
+    font-size: 1rem;
   }
 
-  .municipalities-grid {
+  .cities-nav {
+    padding: 0.75rem 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .cities-nav-container {
+    justify-content: center;
+  }
+
+  .city-link {
+    font-size: 0.9rem;
+  }
+
+  .sections-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .municipality-card {
-    padding: 24px 20px;
+    gap: 1.5rem;
   }
 }
