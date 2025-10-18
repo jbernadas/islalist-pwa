@@ -162,13 +162,16 @@ const Province = () => {
             </button>
           </div>
 
-          <div className="section-card disabled">
+          <div className="section-card active">
             <div className="section-icon">📢</div>
             <h3>Announcements</h3>
             <p>Stay updated with provincial announcements and important notices.</p>
-            <button className="btn-secondary" disabled>
-              Coming Soon
-            </button>
+            <Link
+              to={`/${province}/all/announcements`}
+              className="btn-primary btn-width-available"
+            >
+              View Province Announcements
+            </Link>
           </div>
         </div>
 
