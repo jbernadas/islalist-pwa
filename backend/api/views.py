@@ -6,12 +6,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Province, Municipality, Category, Listing, ListingImage, Favorite
+from .models import (
+    Province, Municipality, Category, Listing,
+    ListingImage, Favorite, Announcement
+)
 from .serializers import (
     ProvinceSerializer, ProvinceListSerializer, MunicipalitySerializer,
     UserSerializer, UserRegistrationSerializer,
     UserProfileUpdateSerializer,
-    CategorySerializer, ListingSerializer, ListingListSerializer
+    CategorySerializer, ListingSerializer, ListingListSerializer,
+    AnnouncementSerializer, AnnouncementListSerializer
 )
 
 
@@ -263,4 +267,46 @@ class ListingViewSet(viewsets.ModelViewSet):
             many=True,
             context={'request': request}
         )
+        return Response(serializer.data)
+
+
+class AnnouncementViewSet(viewsets.ModelViewSet):
+    """API endpoint for creating and managing announcements"""
+    queryset = Announcement.objects.filter(is_active=True)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['priority', 'announcement_type', 'province', 'municipality', 'barangay']
+    search_fields = ['title', 'description', 'barangay']
+    ordering_fields = ['created_at', 'priority', 'expiry_date']
+    ordering = ['-priority', '-created_at']
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'my_announcements']:
+            return AnnouncementListSerializer
+        return AnnouncementSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Option to show expired announcements
+        include_expired = self.request.query_params.get('include_expired', 'false')
+        if include_expired.lower() != 'true':
+            from django.utils import timezone
+            # Filter out expired announcements
+            queryset = queryset.exclude(
+                expiry_date__lt=timezone.now().date()
+            )
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def my_announcements(self, request):
+        """Get announcements created by the current user"""
+        queryset = Announcement.objects.filter(
+            author=request.user
+        ).order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

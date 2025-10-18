@@ -505,3 +505,132 @@
     flex-shrink: 0;
   }
 }
+
+/* Announcements Styles */
+.announcements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.announcement-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 4px solid #ccc;
+}
+
+.announcement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.priority-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.priority-badge.urgent {
+  background: #ff4444;
+  color: white;
+}
+
+.priority-badge.high {
+  background: #ff9800;
+  color: white;
+}
+
+.priority-badge.medium {
+  background: #ffd700;
+  color: #333;
+}
+
+.priority-badge.low {
+  background: #4caf50;
+  color: white;
+}
+
+.announcement-card.urgent {
+  border-left-color: #ff4444;
+}
+
+.announcement-card.high {
+  border-left-color: #ff9800;
+}
+
+.announcement-card.medium {
+  border-left-color: #ffd700;
+}
+
+.announcement-card.low {
+  border-left-color: #4caf50;
+}
+
+.announcement-type {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: capitalize;
+  background: #f0f0f0;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.announcement-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
+  color: #333;
+  line-height: 1.3;
+}
+
+.announcement-description {
+  color: #555;
+  line-height: 1.6;
+  margin: 12px 0;
+  font-size: 0.95rem;
+}
+
+.announcement-meta {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.announcement-meta p {
+  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.announcement-meta .date {
+  color: #999;
+}
+
+.announcement-meta .expiry {
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .announcements-grid {
+    grid-template-columns: 1fr;
+  }
+}

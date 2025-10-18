@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
     Province, Municipality, Category, Listing,
-    ListingImage, UserProfile, Favorite
+    ListingImage, UserProfile, Favorite, Announcement
 )
 
 
@@ -365,3 +365,60 @@ class ListingListSerializer(serializers.ModelSerializer):
                 listing=obj
             ).exists()
         return False
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    """Serializer for Announcement model"""
+    author = UserSerializer(read_only=True)
+    province_name = serializers.CharField(
+        source='province.name',
+        read_only=True
+    )
+    municipality_name = serializers.CharField(
+        source='municipality.name',
+        read_only=True
+    )
+    is_expired = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'description', 'priority', 'announcement_type',
+            'province', 'province_name', 'municipality', 'municipality_name',
+            'barangay', 'author', 'contact_info', 'created_at', 'updated_at',
+            'expiry_date', 'is_active', 'is_expired'
+        ]
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at']
+
+    def get_is_expired(self, obj):
+        """Check if announcement has expired"""
+        return obj.is_expired()
+
+
+class AnnouncementListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for announcement lists"""
+    author_name = serializers.CharField(
+        source='author.username',
+        read_only=True
+    )
+    province_name = serializers.CharField(
+        source='province.name',
+        read_only=True
+    )
+    municipality_name = serializers.CharField(
+        source='municipality.name',
+        read_only=True
+    )
+    is_expired = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'description', 'priority', 'announcement_type',
+            'province_name', 'municipality_name', 'barangay',
+            'author_name', 'contact_info', 'created_at', 'expiry_date',
+            'is_active', 'is_expired'
+        ]
+
+    def get_is_expired(self, obj):
+        """Check if announcement has expired"""
+        return obj.is_expired()

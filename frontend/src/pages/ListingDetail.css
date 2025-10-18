@@ -508,3 +508,65 @@ h3 {
     padding: 6px 12px;
   }
 }
+
+/* Announcement Detail Styles */
+.announcement-detail-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.announcement-detail-header {
+  margin-bottom: 30px;
+}
+
+.announcement-badges {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.announcement-type-badge {
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: #f0f0f0;
+  color: #555;
+}
+
+.announcement-detail-meta {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.meta-item {
+  margin: 12px 0;
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.meta-item strong {
+  color: #333;
+  margin-right: 8px;
+}
+
+.meta-item.expiry-warning {
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.meta-item.expiry-warning strong {
+  color: #ff6b6b;
+}
+
+.description-content p {
+  margin: 16px 0;
+  line-height: 1.8;
+  color: #444;
+}

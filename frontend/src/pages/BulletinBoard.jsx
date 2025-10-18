@@ -161,13 +161,16 @@ const BulletinBoard = () => {
             </button>
           </div>
 
-          <div className="section-card disabled">
+          <div className="section-card active">
             <div className="section-icon">📢</div>
             <h3>Announcements</h3>
             <p>Stay updated with community announcements and important notices.</p>
-            <button className="btn-secondary" disabled>
-              Coming Soon
-            </button>
+            <Link
+              to={`/${province}/${municipality}/announcements`}
+              className="btn-primary btn-width-available"
+            >
+              View Announcements
+            </Link>
           </div>
         </div>
 

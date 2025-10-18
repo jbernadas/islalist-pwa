@@ -122,4 +122,14 @@ export const listingsAPI = {
   getMyImages: () => api.get('/api/listings/my_images/'),
 };
 
+// Announcements API
+export const announcementsAPI = {
+  getAll: (params) => api.get('/api/announcements/', { params }),
+  getById: (id) => api.get(`/api/announcements/${id}/`),
+  create: (data) => api.post('/api/announcements/', data),
+  update: (id, data) => api.put(`/api/announcements/${id}/`, data),
+  delete: (id) => api.delete(`/api/announcements/${id}/`),
+  getMyAnnouncements: () => api.get('/api/announcements/my_announcements/'),
+};
+
 export default api;

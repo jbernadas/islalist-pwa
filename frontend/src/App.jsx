@@ -10,6 +10,9 @@ import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
+import Announcements from './pages/Announcements';
+import CreateAnnouncement from './pages/CreateAnnouncement';
+import AnnouncementDetail from './pages/AnnouncementDetail';
 import MyListings from './pages/MyListings';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
@@ -69,6 +72,18 @@ function App() {
             }
           />
           <Route path="/:province/:municipality/listings" element={<Listings />} />
+
+          <Route path="/:province/:municipality/announcements/:id" element={<AnnouncementDetail />} />
+          <Route
+            path="/:province/:municipality/create-announcement"
+            element={
+              <ProtectedRoute>
+                <CreateAnnouncement />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/:province/:municipality/announcements" element={<Announcements />} />
+
           <Route path="/:province/:municipality" element={<BulletinBoard />} />
 
           {/* Province page - shows cities/municipalities */}

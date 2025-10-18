@@ -253,3 +253,99 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user.username} favorited {self.listing.title}"
+
+
+class Announcement(models.Model):
+    """Community announcements and notices"""
+
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ]
+
+    TYPE_CHOICES = [
+        ('general', 'General'),
+        ('government', 'Government'),
+        ('community', 'Community'),
+        ('alert', 'Alert'),
+        ('infrastructure', 'Infrastructure'),
+        ('safety', 'Safety'),
+        ('health', 'Health'),
+        ('business', 'Business'),
+    ]
+
+    # Basic Information
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+
+    # Classification
+    priority = models.CharField(
+        max_length=20,
+        choices=PRIORITY_CHOICES,
+        default='medium'
+    )
+    announcement_type = models.CharField(
+        max_length=50,
+        choices=TYPE_CHOICES,
+        default='general'
+    )
+
+    # Location
+    province = models.ForeignKey(
+        Province,
+        on_delete=models.CASCADE,
+        related_name='announcements'
+    )
+    municipality = models.ForeignKey(
+        Municipality,
+        on_delete=models.CASCADE,
+        related_name='announcements'
+    )
+    barangay = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Barangay (optional)"
+    )
+
+    # Author and Contact
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='announcements'
+    )
+    contact_info = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Contact information for inquiries"
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    expiry_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="When announcement is no longer relevant"
+    )
+
+    # Status
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-priority', '-created_at']
+        indexes = [
+            models.Index(fields=['province', 'municipality', '-created_at']),
+            models.Index(fields=['priority', '-created_at']),
+            models.Index(fields=['announcement_type']),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def is_expired(self):
+        """Check if announcement has expired"""
+        if not self.expiry_date:
+            return False
+        return timezone.now().date() > self.expiry_date
