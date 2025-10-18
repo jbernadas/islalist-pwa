@@ -25,7 +25,7 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <Header />
+      <Header showTagline={true} />
 
       <main className="home-content">
         <div className="welcome-section">

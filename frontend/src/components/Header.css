@@ -28,6 +28,18 @@
   user-select: none;
 }
 
+.tag-line {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.tag-line h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #764ba2;
+  font-weight: 500;
+}
+
 .location-selectors {
   display: flex;
   gap: 15px;
@@ -153,6 +165,10 @@
     font-size: 1.5rem;
   }
 
+  .tag-line h4 {
+    font-size: 0.95rem;
+  }
+
   .location-selectors {
     gap: 10px;
     width: 100%;
@@ -190,6 +206,10 @@
 
   .brand h1 {
     font-size: 1.3rem;
+  }
+
+  .tag-line h4 {
+    font-size: 0.85rem;
   }
 
   .location-selectors {

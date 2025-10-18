@@ -5,6 +5,7 @@ import './Header.css';
 const Header = ({
   showProvinceSelector = false,
   showMunicipalitySelector = false,
+  showTagline = false,
   province = '',
   municipality = '',
   provinces = [],
@@ -39,6 +40,12 @@ const Header = ({
             🏝️ IslaList
           </h1>
         </div>
+
+        {showTagline && (
+          <div className="tag-line">
+            <h4>Your local bulletin board & marketplace</h4>
+          </div>
+        )}
 
         {(showProvinceSelector || showMunicipalitySelector) && (
           <div className="location-selectors">
