@@ -173,7 +173,7 @@ const BulletinBoard = () => {
 
         <div className="back-link">
           <Link to={`/${province}`}>
-            🡐 View all {displayProvince} Cities/Municipalities
+            🡐 View {displayProvince} {displayProvince != "Metro Manila (NCR)" ? "Province" : ""} Bulletin Board
           </Link>
         </div>
       </div>
