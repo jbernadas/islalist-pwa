@@ -222,7 +222,7 @@ const Register = () => {
         </p>
 
         <p className="auth-link">
-          <Link to="/">← Back to Home</Link>
+          <Link to="/">🡐 Back to Home</Link>
         </p>
       </div>
     </div>

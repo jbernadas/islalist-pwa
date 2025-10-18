@@ -173,7 +173,7 @@ const Province = () => {
         </div>
 
         <div className="back-link">
-          <Link to="/">← View All Provinces</Link>
+          <Link to="/">🡐 View All Provinces</Link>
         </div>
       </div>
     </div>

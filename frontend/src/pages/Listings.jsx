@@ -350,7 +350,7 @@ const Listings = () => {
         <main className="listings-main">
           <div className="listings-navigation">
             <button onClick={() => navigate(`/${province}`)} className="nav-link">
-              {displayProvince} {displayProvince === 'Metro Manila (NCR)' ? '' : 'Province'} Bulletin Board
+              🡐 Back to {displayProvince} {displayProvince === 'Metro Manila (NCR)' ? '' : 'Province'} Bulletin Board
             </button>
             <span className="nav-separator">❯</span>
             <span className="nav-not-link">Goods, Jobs & Services</span>

@@ -126,7 +126,7 @@ const ListingDetail = () => {
       <div className="error-container">
         <h2>Listing not found</h2>
         <button onClick={() => navigate('/')} className="btn-primary">
-          Back to Listings
+          🡐 Back to Listings
         </button>
       </div>
     );
@@ -174,7 +174,7 @@ const ListingDetail = () => {
       <div className="listing-detail-container">
         <header className="detail-header">
         <button onClick={() => navigate(getMunicipalityPath())} className="btn-back">
-          ← Back to Listings
+          🡐 Back to Listings
         </button>
       </header>
 

@@ -173,7 +173,7 @@ const BulletinBoard = () => {
 
         <div className="back-link">
           <Link to={`/${province}`}>
-            ← View all {displayProvince} Cities/Municipalities
+            🡐 View all {displayProvince} Cities/Municipalities
           </Link>
         </div>
       </div>
