@@ -196,19 +196,6 @@
   transform: translateY(-2px);
 }
 
-.home-footer {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  text-align: center;
-  margin-top: auto;
-}
-
-.home-footer p {
-  color: white;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
 /* No specific changes needed for these breakpoints with flex layout */
 @media (max-width: 1024px) {
   .provinces-list {
@@ -300,11 +287,6 @@
   .province-link {
     font-size: 0.75rem;
     padding: 6px 12px;
-  }
-
-  .home-footer p {
-    font-size: 0.8rem;
-    padding: 0 10px;
   }
 }
 

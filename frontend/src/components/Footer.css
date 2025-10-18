@@ -1,0 +1,19 @@
+.app-footer {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  text-align: center;
+  margin-top: auto;
+}
+
+.app-footer p {
+  color: white;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .app-footer p {
+    font-size: 0.8rem;
+    padding: 0 10px;
+  }
+}

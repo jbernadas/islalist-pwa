@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { slugify } from '../utils/slugify';
 import api from '../services/api';
 import './Home.css';
@@ -267,9 +268,7 @@ const Home = () => {
         </div>
       </main>
 
-      <footer className="home-footer">
-        <p>&copy; 2024 IslaList - Connecting communities across the Philippine Islands</p>
-      </footer>
+      <Footer />
     </div>
   );
 };
