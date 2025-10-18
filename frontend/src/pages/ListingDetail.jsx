@@ -280,7 +280,7 @@ const ListingDetail = () => {
           <div className="location-section">
             <h3>Location</h3>
             <div className="location-card">
-              <p>📍 {listing.location}, {listing.island}</p>
+              <p>📍 {listing.barangay ? `${listing.barangay}, ` : ''}{listing.location}, {listing.island}</p>
             </div>
           </div>
 

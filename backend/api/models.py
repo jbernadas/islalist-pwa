@@ -157,6 +157,7 @@ class Listing(models.Model):
 
     # Location
     location = models.CharField(max_length=200, help_text="City/Municipality/Barangay")
+    barangay = models.CharField(max_length=100, blank=True, help_text="Barangay (optional)")
     island = models.CharField(max_length=100, default='Siquijor')
 
     # User and Status

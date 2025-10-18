@@ -26,6 +26,7 @@ const CreateListing = () => {
     bathrooms: '',
     category: '',
     location: '',
+    barangay: '',
     island: 'Siquijor',
   });
 
@@ -290,7 +291,7 @@ const CreateListing = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="location">Location (City/Municipality/Barangay) *</label>
+              <label htmlFor="location">Location (City/Municipality) *</label>
               <input
                 type="text"
                 id="location"
@@ -302,6 +303,20 @@ const CreateListing = () => {
               />
             </div>
 
+            <div className="form-group">
+              <label htmlFor="barangay">Barangay (Optional)</label>
+              <input
+                type="text"
+                id="barangay"
+                name="barangay"
+                value={formData.barangay}
+                onChange={handleChange}
+                placeholder="e.g., Poblacion"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label htmlFor="island">Province *</label>
               <input

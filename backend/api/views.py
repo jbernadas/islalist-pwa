@@ -127,8 +127,8 @@ class ListingViewSet(viewsets.ModelViewSet):
     queryset = Listing.objects.filter(status='active')
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'property_type', 'island', 'location', 'status']
-    search_fields = ['title', 'description', 'location']
+    filterset_fields = ['category', 'property_type', 'island', 'location', 'barangay', 'status']
+    search_fields = ['title', 'description', 'location', 'barangay']
     ordering_fields = ['created_at', 'price', 'views_count']
     ordering = ['-created_at']
 

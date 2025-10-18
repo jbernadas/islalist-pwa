@@ -24,6 +24,7 @@ const Listings = () => {
     min_price: '',
     max_price: '',
     province: '',
+    barangay: '',
   });
 
   // Fetch provinces and cities/municipalities from API (with caching)
@@ -133,6 +134,7 @@ const Listings = () => {
       if (filters.property_type) params.property_type = filters.property_type;
       if (filters.min_price) params.min_price = filters.min_price;
       if (filters.max_price) params.max_price = filters.max_price;
+      if (filters.barangay) params.barangay = filters.barangay;
 
       // ALWAYS filter by province from URL (convert slug to display name)
       if (province) {
@@ -200,6 +202,7 @@ const Listings = () => {
       min_price: '',
       max_price: '',
       province: provinceName,
+      barangay: '',
     });
     setTimeout(() => fetchListings(), 0);
   };
@@ -318,6 +321,17 @@ const Listings = () => {
             </div>
 
             <div className="filter-group">
+              <label>Barangay</label>
+              <input
+                type="text"
+                name="barangay"
+                value={filters.barangay}
+                onChange={handleFilterChange}
+                placeholder="e.g., Poblacion"
+              />
+            </div>
+
+            <div className="filter-group">
               <label>Price Range</label>
               <div className="price-range">
                 <input
@@ -422,7 +436,9 @@ const Listings = () => {
                         <span>📏 {listing.area_sqm} m²</span>
                       )}
                     </div>
-                    <p className="location">📍 {listing.location}, {listing.island}</p>
+                    <p className="location">
+                      📍 {listing.barangay ? `${listing.barangay}, ` : ''}{listing.location}, {listing.island}
+                    </p>
                     <p className="seller">👤 {listing.seller_name}</p>
                   </div>
                 </div>
