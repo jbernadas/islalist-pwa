@@ -132,7 +132,12 @@ const Listings = () => {
       if (filters.property_type) params.property_type = filters.property_type;
       if (filters.min_price) params.min_price = filters.min_price;
       if (filters.max_price) params.max_price = filters.max_price;
-      if (filters.province) params.island = filters.province; // Backend still uses 'island' field
+
+      // ALWAYS filter by province from URL (convert slug to display name)
+      if (province) {
+        const provinceName = province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        params.island = provinceName; // Backend uses 'island' field for province
+      }
 
       // Add city/municipality filter from URL if not 'all'
       if (municipality && municipality.toLowerCase() !== 'all') {
