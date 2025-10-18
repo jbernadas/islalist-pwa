@@ -50,7 +50,7 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>🏝️ IslaList</h1>
+        <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>🏝️ IslaList</h1>
         <h2>Login</h2>
 
         {error && <div className="error-message">{error}</div>}
@@ -89,6 +89,10 @@ const Login = () => {
 
         <p className="auth-link">
           Don't have an account? <Link to="/register">Register here</Link>
+        </p>
+
+        <p className="auth-link">
+          <Link to="/">← Back to Home</Link>
         </p>
       </div>
     </div>

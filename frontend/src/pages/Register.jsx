@@ -102,7 +102,7 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>🏝️ IslaList</h1>
+        <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>🏝️ IslaList</h1>
         <h2>Register</h2>
 
         {errors.detail && <div className="error-message">{errors.detail}</div>}
@@ -219,6 +219,10 @@ const Register = () => {
 
         <p className="auth-link">
           Already have an account? <Link to="/login">Login here</Link>
+        </p>
+
+        <p className="auth-link">
+          <Link to="/">← Back to Home</Link>
         </p>
       </div>
     </div>
