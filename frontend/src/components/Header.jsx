@@ -44,7 +44,7 @@ const Header = ({
 
         {showTagline && (
           <div className="tag-line">
-            <h4>Your local bulletin board & marketplace</h4>
+            <h4>Connecting communities across the Philippine Islands</h4>
           </div>
         )}
 

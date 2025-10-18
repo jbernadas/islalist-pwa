@@ -154,7 +154,7 @@
   color: rgba(255, 255, 255, 0.9);
   font-size: 1rem;
   text-align: center;
-  margin: 0 0 2rem 0;
+  margin: 0 0 1rem 0;
 }
 
 .loading-state {
@@ -168,29 +168,32 @@
 }
 
 .provinces-list {
-  background: white;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   border-radius: 12px;
-  padding: 30px 40px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-bottom: 40px;
-  column-count: 8;
-  column-gap: 30px;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 1.5rem;
 }
 
 .province-link {
-  display: block;
-  color: #667eea;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
   text-decoration: none;
-  padding: 8px 0;
-  font-size: 1rem;
-  transition: all 0.2s;
-  border-bottom: 1px solid transparent;
+  font-weight: 500;
 }
 
 .province-link:hover {
-  color: #764ba2;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
 }
 
 .home-footer {
@@ -206,24 +209,10 @@
   font-size: 0.9rem;
 }
 
-@media (max-width: 1300px) {
-  .provinces-list {
-    column-count: 6;
-  }
-}
-
-@media (max-width: 1200px) {
-  .provinces-list {
-    column-count: 5;
-  }
-}
-
-/* Large tablets and smaller desktops */
+/* No specific changes needed for these breakpoints with flex layout */
 @media (max-width: 1024px) {
   .provinces-list {
-    column-count: 4;
-    column-gap: 25px;
-    padding: 25px;
+    padding: 1.25rem;
   }
 }
 
@@ -261,14 +250,13 @@
   }
 
   .provinces-list {
-    column-count: 2;
-    column-gap: 20px;
-    padding: 20px 25px;
+    padding: 1rem;
+    gap: 8px;
   }
 
   .province-link {
-    font-size: 0.95rem;
-    padding: 6px 0;
+    font-size: 0.8rem;
+    padding: 7px 14px;
   }
 }
 
@@ -305,12 +293,13 @@
   }
 
   .provinces-list {
-    column-count: 1;
-    padding: 20px;
+    padding: 0.75rem;
+    gap: 6px;
   }
 
   .province-link {
-    font-size: 0.95rem;
+    font-size: 0.75rem;
+    padding: 6px 12px;
   }
 
   .home-footer p {
