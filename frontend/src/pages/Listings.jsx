@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { listingsAPI, categoriesAPI, provincesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './Listings.css';
 
@@ -166,7 +167,7 @@ const Listings = () => {
   const handleProvinceChange = (e) => {
     const selectedProvince = e.target.value;
     if (selectedProvince) {
-      const provinceSlug = selectedProvince.toLowerCase().replace(/\s+/g, '-');
+      const provinceSlug = slugify(selectedProvince);
       navigate(`/${provinceSlug}`);
     } else {
       // "All Provinces" selected - clear saved location and go to home page
@@ -179,8 +180,8 @@ const Listings = () => {
   const handleMunicipalityChange = (e) => {
     const selectedMunicipality = e.target.value;
     if (selectedMunicipality) {
-      const municipalitySlug = selectedMunicipality.toLowerCase().replace(/\s+/g, '-');
-      navigate(`/${province}/${municipalitySlug}`);
+      const municipalitySlug = slugify(selectedMunicipality);
+      navigate(`/${province}/${municipalitySlug}/listings`);
     }
   };
 
@@ -247,6 +248,21 @@ const Listings = () => {
       });
     }
   };
+
+  // Get proper display names from API data
+  const currentProvince = provinces.find(p => p.slug === province);
+  const displayProvince = currentProvince?.name || province
+    ?.split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
+  const displayMunicipality = municipality === 'all'
+    ? 'All Cities/Municipalities'
+    : currentMunicipalityObj?.name || municipality
+        ?.split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
   return (
     <div className="listings-container">
@@ -332,6 +348,17 @@ const Listings = () => {
         </aside>
 
         <main className="listings-main">
+          <div className="listings-navigation">
+            <button onClick={() => navigate(`/${province}`)} className="nav-link">
+              {displayProvince} {displayProvince === 'Metro Manila (NCR)' ? '' : 'Province'}
+            </button>
+            <span className="nav-separator">❯</span>
+            <button onClick={() => navigate(`/${province}/${municipality}`)} className="nav-link">
+              {displayMunicipality} Bulletin Board
+            </button>
+            <span className="nav-separator">❯</span>
+            <span className="nav-not-link">Goods, Jobs & Services</span>
+          </div>
           {loading ? (
             <div className="loading">
               <p>Loading listings...</p>

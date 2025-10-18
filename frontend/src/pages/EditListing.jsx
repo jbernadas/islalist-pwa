@@ -145,7 +145,7 @@ const EditListing = () => {
       });
 
       await listingsAPI.update(id, data);
-      navigate(`/${province}/${municipality}`);
+      navigate(`/${province}/${municipality}/listings`);
     } catch (err) {
       console.error('Error updating listing:', err);
       console.error('Error response:', err.response?.data);

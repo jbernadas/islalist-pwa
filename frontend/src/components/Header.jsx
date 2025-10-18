@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { slugify } from '../utils/slugify';
 import './Header.css';
 
 const Header = ({
@@ -54,7 +55,7 @@ const Header = ({
                 <label htmlFor="province-select">📍</label>
                 <select
                   id="province-select"
-                  value={province ? provinces.find(p => p.toLowerCase().replace(/\s+/g, '-') === province) || '' : ''}
+                  value={province ? provinces.find(p => slugify(p) === province) || '' : ''}
                   onChange={onProvinceChange}
                 >
                   <option value="">All Provinces</option>
@@ -75,7 +76,7 @@ const Header = ({
                   value={
                     municipality === 'all' || !municipality
                       ? 'all'
-                      : municipalities.find(m => m.toLowerCase().replace(/\s+/g, '-') === municipality) || 'all'
+                      : municipalities.find(m => slugify(m) === municipality) || 'all'
                   }
                   onChange={onMunicipalityChange}
                 >

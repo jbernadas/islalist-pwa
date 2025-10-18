@@ -188,6 +188,11 @@
   font-size: 1.3rem;
 }
 
+h3.borderless {
+  border: none !important;
+  border-bottom: none !important;
+}
+
 .municipality-card p {
   margin: 0;
   color: #667eea;

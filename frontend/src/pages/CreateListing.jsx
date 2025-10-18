@@ -116,7 +116,7 @@ const CreateListing = () => {
       }
 
       await listingsAPI.create(data);
-      navigate(`/${province}/${municipality}`);
+      navigate(`/${province}/${municipality}/listings`);
     } catch (err) {
       console.error('Error creating listing:', err);
       console.error('Error response:', err.response?.data);

@@ -47,7 +47,7 @@
   padding: 30px 40px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin-bottom: 40px;
-  column-count: 4;
+  column-count: 8;
   column-gap: 30px;
   width: 100%;
   box-sizing: border-box;
@@ -80,12 +80,24 @@
   font-size: 0.9rem;
 }
 
+@media (max-width: 1300px) {
+  .provinces-list {
+    column-count: 6;
+  }
+}
+
+@media (max-width: 1200px) {
+  .provinces-list {
+    column-count: 5;
+  }
+}
+
 /* Large tablets and smaller desktops */
 @media (max-width: 1024px) {
   .provinces-list {
-    column-count: 3;
+    column-count: 4;
     column-gap: 25px;
-    padding: 25px 30px;
+    padding: 25px;
   }
 }
 
@@ -148,3 +160,4 @@
     padding: 0 10px;
   }
 }
+

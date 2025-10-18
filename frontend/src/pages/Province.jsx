@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { provincesAPI } from '../services/api';
+import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './Province.css';
 
@@ -78,20 +79,22 @@ const Province = () => {
   // Get city/municipality names for current province
   const municipalityNames = municipalities.map(m => m.name);
 
-  // Convert URL slug to display name: "camarines-norte" -> "Camarines Norte"
-  const provinceName = province
-    ? province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-    : '';
+  // Get proper display name from API data
+  const currentProvince = provinces.find(p => p.slug === province);
+  const provinceName = currentProvince?.name || province
+    ?.split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ') || '';
 
   const handleMunicipalityClick = (municipality) => {
-    const municipalitySlug = municipality.toLowerCase().replace(/\s+/g, '-');
+    const municipalitySlug = slugify(municipality);
     navigate(`/${province}/${municipalitySlug}`);
   };
 
   const handleProvinceChange = (e) => {
     const selectedProvince = e.target.value;
     if (selectedProvince) {
-      const provinceSlug = selectedProvince.toLowerCase().replace(/\s+/g, '-');
+      const provinceSlug = slugify(selectedProvince);
       navigate(`/${provinceSlug}`);
     } else {
       // "All Provinces" selected - clear saved location and go to home page
@@ -128,8 +131,7 @@ const Province = () => {
               onClick={() => navigate(`/${province}/all`)}
             >
               <div className="municipality-icon">🗺️</div>
-              <h3>All Cities/Municipalities</h3>
-              <p>Browse all listings in {provinceName}</p>
+              <h3 className="borderless">All Cities/Municipalities</h3>
             </div>
 
             {municipalityNames.map((municipality) => (
@@ -139,8 +141,7 @@ const Province = () => {
                 onClick={() => handleMunicipalityClick(municipality)}
               >
                 <div className="municipality-icon">🏘️</div>
-                <h3>{municipality}</h3>
-                <p>Browse listings</p>
+                <h3 className="borderless">{municipality}</h3>
               </div>
             ))}
           </div>

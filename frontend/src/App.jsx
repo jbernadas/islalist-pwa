@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import Province from './pages/Province';
+import BulletinBoard from './pages/BulletinBoard';
 import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Listings from './pages/Listings';
@@ -67,7 +68,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/:province/:municipality" element={<Listings />} />
+          <Route path="/:province/:municipality/listings" element={<Listings />} />
+          <Route path="/:province/:municipality" element={<BulletinBoard />} />
 
           {/* Province page - shows cities/municipalities */}
           <Route path="/:province" element={<Province />} />
