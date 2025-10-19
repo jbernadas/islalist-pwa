@@ -305,11 +305,6 @@ const Announcements = () => {
                       📍 {announcement.barangay ? `${announcement.barangay}, ` : ''}
                       {announcement.municipality_name}, {announcement.province_name}
                     </p>
-                    <p className="author">👤 {announcement.author_name}</p>
-                    <p className="date">📅 {formatDate(announcement.created_at)}</p>
-                    {announcement.expiry_date && (
-                      <p className="expiry">⏰ Expires: {formatDate(announcement.expiry_date)}</p>
-                    )}
                   </div>
                 </div>
               ))}
