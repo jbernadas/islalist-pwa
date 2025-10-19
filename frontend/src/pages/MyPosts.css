@@ -129,7 +129,7 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
-.listing-image {
+.my-listing-card .listing-image {
   position: relative;
   width: 100%;
   height: 100%;
@@ -141,14 +141,14 @@
   justify-content: center;
 }
 
-.listing-image img {
+.my-listing-card .listing-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.no-image {
+.my-listing-card .no-image {
   width: 100%;
   height: 100%;
   display: flex;
@@ -306,7 +306,7 @@
     grid-template-columns: 1fr;
   }
 
-  .listing-image {
+  .my-listing-card .listing-image {
     width: 100%;
   }
 
