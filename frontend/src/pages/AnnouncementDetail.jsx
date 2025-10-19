@@ -106,6 +106,14 @@ const AnnouncementDetail = () => {
           </div>
           <h1>{announcement.title}</h1>
         </div>
+        
+        <div className="description-section">
+          <div className="description-content">
+            {announcement.description.split('\n').map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
+          </div>
+        </div>
 
         <div className="announcement-detail-meta">
           <p className="meta-item">
@@ -132,15 +140,6 @@ const AnnouncementDetail = () => {
               <strong>📞 Contact:</strong> {announcement.contact_info}
             </p>
           )}
-        </div>
-
-        <div className="description-section">
-          <h3>Details</h3>
-          <div className="description-content">
-            {announcement.description.split('\n').map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
         </div>
       </div>
     </div>
