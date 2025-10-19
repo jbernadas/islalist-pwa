@@ -121,23 +121,21 @@ const Province = () => {
           </p>
         </div>
 
-        {/* Horizontal City Navigation */}
+        {/* City/Municipality Navigation */}
         {!loading && municipalityNames.length > 0 && (
-          <nav className="cities-nav">
-            <div className="cities-nav-container">
-              {municipalityNames.map((municipality, index) => (
-                <span key={municipality}>
-                  <button
-                    className="city-link"
-                    onClick={() => handleMunicipalityClick(municipality)}
-                  >
-                    {municipality}
-                  </button>
-                  {index < municipalityNames.length - 1 && <span className="city-separator"> • </span>}
-                </span>
+          <div className="cities-section">
+            <div className="cities-grid">
+              {municipalityNames.map((municipality) => (
+                <button
+                  key={municipality}
+                  className="city-pill"
+                  onClick={() => handleMunicipalityClick(municipality)}
+                >
+                  {municipality}
+                </button>
               ))}
             </div>
-          </nav>
+          </div>
         )}
 
         <div className="sections-grid">
