@@ -36,8 +36,11 @@ const Announcements = () => {
   }, [province]);
 
   useEffect(() => {
-    fetchAnnouncements();
-  }, [province, municipality]);
+    // Only fetch announcements after provinces and municipalities are loaded
+    if (provinces.length > 0) {
+      fetchAnnouncements();
+    }
+  }, [province, municipality, provinces, municipalities]);
 
   const fetchLocations = async () => {
     try {
