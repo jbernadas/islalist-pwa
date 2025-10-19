@@ -301,6 +301,79 @@ curl -X POST http://localhost:8000/api/auth/logout/ \
   -d '{"refresh":"REFRESH_TOKEN"}'
 ```
 
+## Management Commands
+
+### Unpublish Expired Announcements
+
+Automatically unpublish announcements that have passed their expiry date:
+
+```bash
+python manage.py unpublish_expired_announcements
+```
+
+**Options:**
+- `--dry-run` - Preview which announcements would be unpublished without actually doing it
+
+**Example with dry-run:**
+```bash
+python manage.py unpublish_expired_announcements --dry-run
+```
+
+### Scheduling with Cron
+
+To automatically unpublish expired announcements daily, add this to your crontab:
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line to run the command daily at 2:00 AM
+0 2 * * * cd /path/to/islalist/backend && /path/to/venv/bin/python manage.py unpublish_expired_announcements >> /var/log/islalist/cron.log 2>&1
+```
+
+**For production with systemd timer (alternative to cron):**
+
+Create `/etc/systemd/system/islalist-unpublish.service`:
+
+```ini
+[Unit]
+Description=IslaList Unpublish Expired Announcements
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/islalist/backend
+Environment="DJANGO_SETTINGS_MODULE=core.settings.prod"
+ExecStart=/path/to/venv/bin/python manage.py unpublish_expired_announcements
+```
+
+Create `/etc/systemd/system/islalist-unpublish.timer`:
+
+```ini
+[Unit]
+Description=Run IslaList Unpublish Daily
+Requires=islalist-unpublish.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Enable and start the timer:
+
+```bash
+sudo systemctl enable islalist-unpublish.timer
+sudo systemctl start islalist-unpublish.timer
+
+# Check timer status
+sudo systemctl list-timers --all
+```
+
 ## Architecture
 
 This is a headless REST API designed for:
