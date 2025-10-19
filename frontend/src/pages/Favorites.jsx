@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import './MyListings.css';
+import './MyPosts.css';
 
 const Favorites = () => {
   const navigate = useNavigate();

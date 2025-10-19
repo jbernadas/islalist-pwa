@@ -114,6 +114,12 @@ const MyPosts = () => {
     return `/${provinceSlug}/${municipalitySlug}/announcements/${announcement.id}`;
   };
 
+  const getEditAnnouncementPath = (announcement) => {
+    const provinceSlug = slugify(announcement.province_name);
+    const municipalitySlug = slugify(announcement.municipality_name);
+    return `/${provinceSlug}/${municipalitySlug}/announcements/${announcement.id}/edit`;
+  };
+
   const handleLogout = async () => {
     await logout();
     navigate('/');
@@ -282,6 +288,12 @@ const MyPosts = () => {
                           className="btn-view"
                         >
                           👁️ View
+                        </button>
+                        <button
+                          onClick={() => navigate(getEditAnnouncementPath(post))}
+                          className="btn-edit"
+                        >
+                          ✏️ Edit
                         </button>
                         <button
                           onClick={() => handleDeleteAnnouncement(post.id)}

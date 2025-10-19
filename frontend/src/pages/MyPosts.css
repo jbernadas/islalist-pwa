@@ -343,10 +343,9 @@
 
 /* Announcement Preview */
 .announcement-preview {
-  width: 100%;
+  width: -webkit-fill-available;
   min-height: 120px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
