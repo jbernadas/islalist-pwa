@@ -84,16 +84,6 @@ const AnnouncementDetail = () => {
         <button onClick={() => navigate(`/${province}/${municipality}/announcements`)} className="btn-back">
           ← Back to Announcements
         </button>
-        {isOwner && (
-          <div className="owner-actions">
-            <button onClick={() => navigate(`/${province}/${municipality}/announcements/${id}/edit`)} className="btn-edit">
-              Edit
-            </button>
-            <button onClick={handleDelete} className="btn-delete">
-              Delete
-            </button>
-          </div>
-        )}
       </header>
 
       <div className="announcement-detail-content">
@@ -139,6 +129,17 @@ const AnnouncementDetail = () => {
             <p className="meta-item">
               <strong>📞 Contact:</strong> {announcement.contact_info}
             </p>
+          )}
+          
+          {isOwner && (
+            <div className="owner-actions">
+              <button onClick={() => navigate(`/${province}/${municipality}/announcements/${id}/edit`)} className="btn-edit">
+                Edit
+              </button>
+              <button onClick={handleDelete} className="btn-delete">
+                Delete
+              </button>
+            </div>
           )}
         </div>
       </div>
