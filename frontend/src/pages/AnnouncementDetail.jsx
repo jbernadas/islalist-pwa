@@ -116,15 +116,6 @@ const AnnouncementDetail = () => {
           <p className="meta-item">
             <strong>📅 Posted on:</strong> {formatDate(announcement.created_at)}
           </p>
-          {announcement.expiry_date && (
-            <p className="meta-item expiry-warning">
-              <strong>⏰ Expires:</strong> {new Date(announcement.expiry_date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
-          )}
           {announcement.contact_info && (
             <p className="meta-item">
               <strong>📞 Contact:</strong> {announcement.contact_info}
