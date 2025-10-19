@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { listingsAPI, announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
-import './MyListings.css';
+import './MyPosts.css';
 
 const MyPosts = () => {
   const navigate = useNavigate();
