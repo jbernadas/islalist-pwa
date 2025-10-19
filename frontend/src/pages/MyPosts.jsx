@@ -212,21 +212,6 @@ const MyPosts = () => {
                         <span>📅 {formatDate(post.created_at)}</span>
                       </div>
 
-                      <div className="listing-details">
-                        {post.property_type && (
-                          <span className="detail-tag">{post.property_type}</span>
-                        )}
-                        {post.bedrooms && (
-                          <span className="detail-tag">🛏️ {post.bedrooms}</span>
-                        )}
-                        {post.bathrooms && (
-                          <span className="detail-tag">🚿 {post.bathrooms}</span>
-                        )}
-                        {post.area_sqm && (
-                          <span className="detail-tag">📏 {post.area_sqm}m²</span>
-                        )}
-                      </div>
-
                       <div className="listing-actions">
                         <button
                           onClick={() => navigate(getListingPath(post))}
