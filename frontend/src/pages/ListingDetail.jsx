@@ -320,10 +320,10 @@ const ListingDetail = () => {
               <div className="owner-actions">
                 <p className="owner-badge">✨ This is your listing</p>
                 <button
-                  onClick={() => navigate(`/my-listings`)}
+                  onClick={() => navigate(`/my-posts`)}
                   className="btn-manage"
                 >
-                  Manage My Listings
+                  Manage My Posts
                 </button>
               </div>
             )}

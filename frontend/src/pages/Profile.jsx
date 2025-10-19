@@ -164,10 +164,10 @@ const Profile = () => {
                     Edit Profile
                   </button>
                   <button
-                    onClick={() => navigate('/my-listings')}
+                    onClick={() => navigate('/my-posts')}
                     className="btn-secondary"
                   >
-                    My Listings
+                    My Posts
                   </button>
                 </div>
               </>

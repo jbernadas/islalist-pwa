@@ -55,7 +55,7 @@ const EditListing = () => {
       // Check if user owns this listing
       if (listing.seller.id !== user?.id) {
         setError('You can only edit your own listings');
-        setTimeout(() => navigate('/my-listings'), 2000);
+        setTimeout(() => navigate('/my-posts'), 2000);
         return;
       }
 

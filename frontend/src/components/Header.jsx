@@ -95,8 +95,8 @@ const Header = ({
         <div className="header-actions">
           {isAuthenticated ? (
             <>
-              <button onClick={() => navigate('/my-listings')} className="btn-link">
-                My Listings
+              <button onClick={() => navigate('/my-posts')} className="btn-link">
+                My Posts
               </button>
               <button onClick={() => navigate('/favorites')} className="btn-link">
                 Favorites

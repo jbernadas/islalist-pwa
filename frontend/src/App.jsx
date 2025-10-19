@@ -13,7 +13,7 @@ import ListingDetail from './pages/ListingDetail';
 import Announcements from './pages/Announcements';
 import CreateAnnouncement from './pages/CreateAnnouncement';
 import AnnouncementDetail from './pages/AnnouncementDetail';
-import MyListings from './pages/MyListings';
+import MyPosts from './pages/MyPosts';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 
@@ -36,10 +36,10 @@ function App() {
             }
           />
           <Route
-            path="/my-listings"
+            path="/my-posts"
             element={
               <ProtectedRoute>
-                <MyListings />
+                <MyPosts />
               </ProtectedRoute>
             }
           />
