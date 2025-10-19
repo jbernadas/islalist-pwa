@@ -228,6 +228,9 @@ const Home = () => {
         {/* Featured Cities Section */}
         <div className="featured-cities-section">
           <h3 className="section-title">Popular Cities</h3>
+          <p className="section-description">
+            Select a popular city to explore local listings and events
+          </p>
           <div className="featured-cities-list">
             {FEATURED_CITIES.map((city, index) => (
               <button
