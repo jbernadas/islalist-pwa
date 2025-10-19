@@ -12,6 +12,7 @@ import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
 import Announcements from './pages/Announcements';
 import CreateAnnouncement from './pages/CreateAnnouncement';
+import EditAnnouncement from './pages/EditAnnouncement';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import MyPosts from './pages/MyPosts';
 import Favorites from './pages/Favorites';
@@ -79,6 +80,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreateAnnouncement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/:province/:municipality/announcements/:id/edit"
+            element={
+              <ProtectedRoute>
+                <EditAnnouncement />
               </ProtectedRoute>
             }
           />

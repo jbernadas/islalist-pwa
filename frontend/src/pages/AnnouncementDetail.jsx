@@ -86,6 +86,9 @@ const AnnouncementDetail = () => {
         </button>
         {isOwner && (
           <div className="owner-actions">
+            <button onClick={() => navigate(`/${province}/${municipality}/announcements/${id}/edit`)} className="btn-edit">
+              Edit
+            </button>
             <button onClick={handleDelete} className="btn-delete">
               Delete
             </button>
