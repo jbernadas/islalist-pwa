@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Province, Municipality, Category, Listing, ListingImage, UserProfile
+from .models import Province, Municipality, Category, Listing, ListingImage, UserProfile, Announcement
 
 
 @admin.register(Province)
@@ -70,3 +70,32 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'location', 'verified']
     list_filter = ['verified']
     search_fields = ['user__username', 'user__email', 'location']
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ['title', 'announcement_type', 'priority', 'province', 'municipality', 'author', 'is_active', 'expiry_date', 'created_at']
+    list_filter = ['is_active', 'priority', 'announcement_type', 'province', 'municipality', 'created_at']
+    search_fields = ['title', 'description', 'barangay', 'author__username']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'announcement_type', 'priority')
+        }),
+        ('Location', {
+            'fields': ('province', 'municipality', 'barangay')
+        }),
+        ('Author & Contact', {
+            'fields': ('author', 'contact_info')
+        }),
+        ('Status & Expiry', {
+            'fields': ('is_active', 'expiry_date', 'created_at', 'updated_at')
+        }),
+    )
+
+    def get_queryset(self, request):
+        """Optimize queryset with related fields"""
+        queryset = super().get_queryset(request)
+        return queryset.select_related('province', 'municipality', 'author')
