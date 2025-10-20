@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { announcementsAPI, provincesAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './Listings.css';
@@ -9,7 +8,6 @@ import './Listings.css';
 const Announcements = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
-  const { isAuthenticated } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
@@ -175,12 +173,20 @@ const Announcements = () => {
 
   const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
   const currentMunicipalities = municipalities.map(m => m.name);
+  
+  const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
 
   const currentProvince = provinces.find(p => p.slug === province);
   const displayProvince = currentProvince?.name || province
     ?.split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+  const displayMunicipality = municipality === 'all'
+    ? 'All Cities/Municipalities'
+    : currentMunicipalityObj?.name || municipality
+        ?.split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
   return (
     <div className="listings-container">
@@ -259,11 +265,15 @@ const Announcements = () => {
 
         <main className="listings-main">
           <div className="listings-navigation">
-            <button onClick={() => navigate(`/${province}`)} className="nav-link">
+            <button onClick={() => navigate(`/${province}`)} className="nav-link breadcrumb">
               🡐 Back to {displayProvince} {displayProvince === 'Metro Manila (NCR)' ? '' : 'Province'} Bulletin Board
             </button>
             <span className="nav-separator">❯</span>
-            <span className="nav-not-link">Announcements</span>
+            <button onClick={() => navigate(`/${province}/${municipality}`)} className="nav-link breadcrumb">
+              {displayMunicipality}
+            </button>
+            <span className="nav-separator">❯</span>
+            <span className="breadcrumb">Announcements</span>
           </div>
 
           {loading ? (
@@ -274,11 +284,9 @@ const Announcements = () => {
             <div className="no-listings">
               <h2>No Announcements Yet</h2>
               <p>Be the first to post an announcement!</p>
-              {isAuthenticated && (
-                <button onClick={() => navigate(`/${province}/${municipality}/create-announcement`)} className="btn-primary">
-                  + Create First Announcement
-                </button>
-              )}
+              <button onClick={() => navigate(`/${province}/${municipality}/create-announcement`)} className="btn-primary w-auto">
+                + Create First Announcement
+              </button>
             </div>
           ) : (
             <div className="announcements-grid">

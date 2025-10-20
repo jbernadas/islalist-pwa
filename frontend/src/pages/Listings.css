@@ -20,7 +20,7 @@
   transition: color 0.2s ease;
 }
 
-.listings-navigation .not-link {
+.breadcrumb {
   font-size: 0.95rem;
 }
 
@@ -272,10 +272,6 @@
 .loading,
 .no-listings {
   text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin: 20px;
 }
 
@@ -301,6 +297,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+}
+
+.w-auto {
+  width: auto;
 }
 
 .btn-primary:hover {
@@ -472,7 +472,7 @@
   }
 
   .location-selectors {
-    order: -1;
+    order: 2;
     flex: 1 1 100%;
     justify-content: center;
     flex-wrap: wrap;

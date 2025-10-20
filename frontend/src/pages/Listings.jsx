@@ -363,11 +363,15 @@ const Listings = () => {
 
         <main className="listings-main">
           <div className="listings-navigation">
-            <button onClick={() => navigate(`/${province}`)} className="nav-link">
+            <button onClick={() => navigate(`/${province}`)} className="nav-link breadcrumb">
               🡐 Back to {displayProvince} {displayProvince === 'Metro Manila (NCR)' ? '' : 'Province'} Bulletin Board
             </button>
             <span className="nav-separator">❯</span>
-            <span className="nav-not-link">Goods, Jobs & Services</span>
+            <button onClick={() => navigate(`/${province}/${municipality}`)} className="nav-link breadcrumb">
+              {displayMunicipality}
+            </button>
+            <span className="nav-separator">❯</span>
+            <span className="breadcrumb">Goods, Jobs & Services</span>
           </div>
           {loading ? (
             <div className="loading">
@@ -383,7 +387,7 @@ const Listings = () => {
                 </button>
               ) : (
                 <div>
-                  <button onClick={() => navigate('/register')} className="btn-primary">
+                  <button onClick={() => navigate('/register')} className="w-auto btn-primary">
                     Register to Post
                   </button>
                 </div>
