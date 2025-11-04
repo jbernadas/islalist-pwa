@@ -36,8 +36,23 @@ const Home = () => {
   ];
 
   useEffect(() => {
+    // Auto-redirect to last visited province/municipality if available
+    const lastProvince = localStorage.getItem('lastProvince');
+    const lastMunicipality = localStorage.getItem('lastMunicipality');
+
+    if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
+      // Redirect to specific municipality
+      navigate(`/${lastProvince}/${lastMunicipality}`);
+      return;
+    } else if (lastProvince) {
+      // Redirect to province page
+      navigate(`/${lastProvince}`);
+      return;
+    }
+
+    // No saved location, show home page
     fetchData();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     // Close autocomplete when clicking outside

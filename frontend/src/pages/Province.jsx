@@ -75,6 +75,7 @@ const Province = () => {
 
   // Get city/municipality names for current province
   const municipalityNames = municipalities.map(m => m.name);
+  const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
 
   // Get proper display name from API data
   const currentProvince = provinces.find(p => p.slug === province);
@@ -82,6 +83,19 @@ const Province = () => {
     ?.split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ') || '';
+
+  const handleProvinceChange = (e) => {
+    const selectedProvince = e.target.value;
+    if (selectedProvince) {
+      const provinceSlug = slugify(selectedProvince);
+      navigate(`/${provinceSlug}`);
+    } else {
+      // "All Provinces" selected - clear saved location and go to home page
+      localStorage.removeItem('lastProvince');
+      localStorage.removeItem('lastMunicipality');
+      navigate('/');
+    }
+  };
 
   const handleMunicipalityClick = (municipality) => {
     const municipalitySlug = slugify(municipality);
@@ -101,10 +115,13 @@ const Province = () => {
     return (
       <div className="province-container">
         <Header
+          showProvinceSelector={true}
           showMunicipalitySelector={true}
           province={province}
           municipality="all"
+          provinces={PHILIPPINE_PROVINCES}
           municipalities={municipalityNames}
+          onProvinceChange={handleProvinceChange}
           onMunicipalityChange={handleMunicipalityChange}
         />
         <div className="loading-container">
@@ -117,10 +134,13 @@ const Province = () => {
   return (
     <div className="province-container">
       <Header
+        showProvinceSelector={true}
         showMunicipalitySelector={true}
         province={province}
         municipality="all"
+        provinces={PHILIPPINE_PROVINCES}
         municipalities={municipalityNames}
+        onProvinceChange={handleProvinceChange}
         onMunicipalityChange={handleMunicipalityChange}
       />
 

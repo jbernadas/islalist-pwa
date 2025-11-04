@@ -145,6 +145,20 @@ const BulletinBoard = () => {
   };
 
   const currentMunicipalities = municipalities.map(m => m.name);
+  const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
+
+  const handleProvinceChange = (e) => {
+    const selectedProvince = e.target.value;
+    if (selectedProvince) {
+      const provinceSlug = slugify(selectedProvince);
+      navigate(`/${provinceSlug}`);
+    } else {
+      // "All Provinces" selected - clear saved location and go to home page
+      localStorage.removeItem('lastProvince');
+      localStorage.removeItem('lastMunicipality');
+      navigate('/');
+    }
+  };
 
   const handleMunicipalityChange = (e) => {
     const selectedMunicipality = e.target.value;
@@ -216,10 +230,13 @@ const BulletinBoard = () => {
   return (
     <div className="bulletin-board-container">
       <Header
+        showProvinceSelector={true}
         showMunicipalitySelector={true}
         province={province}
         municipality={municipality}
+        provinces={PHILIPPINE_PROVINCES}
         municipalities={currentMunicipalities}
+        onProvinceChange={handleProvinceChange}
         onMunicipalityChange={handleMunicipalityChange}
       />
 

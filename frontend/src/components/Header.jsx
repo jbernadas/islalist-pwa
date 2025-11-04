@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
@@ -16,6 +17,7 @@ const Header = ({
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [showPostDropdown, setShowPostDropdown] = useState(false);
 
   return (
     <header className="app-header">
@@ -42,6 +44,7 @@ const Header = ({
                   value={province ? provinces.find(p => slugify(p) === province) || '' : ''}
                   onChange={onProvinceChange}
                 >
+                  <option value="">All Provinces</option>
                   {provinces.map(prov => (
                     <option key={prov} value={prov}>
                       {prov}
@@ -97,22 +100,52 @@ const Header = ({
           >
             Faves
           </button>
-          <button
-            onClick={() => {
-              if (isAuthenticated) {
-                // Navigate to create listing page with current location context
-                const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
-                const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
-                navigate(`/${lastProvince}/${lastMunicipality}/create-listing`);
-              } else {
-                navigate('/login');
-              }
-            }}
-            className="btn-link"
-            title="Post a listing"
-          >
-            Post
-          </button>
+          <div className="dropdown">
+            <button
+              className="btn-link dropdown-toggle"
+              type="button"
+              onClick={() => setShowPostDropdown(!showPostDropdown)}
+              aria-expanded={showPostDropdown}
+            >
+              Post
+            </button>
+            <ul className={`dropdown-menu ${showPostDropdown ? 'show' : ''}`}>
+              <li>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
+                      const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
+                      navigate(`/${lastProvince}/${lastMunicipality}/create-listing`);
+                      setShowPostDropdown(false);
+                    } else {
+                      navigate('/login');
+                    }
+                  }}
+                >
+                  📝 Post Listing
+                </button>
+              </li>
+              <li>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
+                      const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
+                      navigate(`/${lastProvince}/${lastMunicipality}/create-announcement`);
+                      setShowPostDropdown(false);
+                    } else {
+                      navigate('/login');
+                    }
+                  }}
+                >
+                  📢 Post Announcement
+                </button>
+              </li>
+            </ul>
+          </div>
           <button
             onClick={() => {
               if (isAuthenticated) {

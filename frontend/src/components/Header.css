@@ -5,6 +5,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  overflow: visible !important;
 }
 
 .header-content {
@@ -14,6 +15,7 @@
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+  overflow: visible !important;
 }
 
 .brand {
@@ -90,6 +92,7 @@
   gap: 12px;
   flex-wrap: wrap;
   flex-shrink: 0;
+  overflow: visible !important;
 }
 
 .btn-link {
@@ -108,6 +111,62 @@
 
 .btn-link:hover {
   background: rgba(102, 126, 234, 0.1);
+}
+
+/* Dropdown Styles */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+  z-index: 1001;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  min-width: 200px;
+  z-index: 1002;
+  overflow: hidden;
+  animation: dropdownSlide 0.2s ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: white;
+  border: none;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.dropdown-item:not(:last-child) {
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .btn-primary {

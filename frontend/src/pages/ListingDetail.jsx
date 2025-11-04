@@ -173,7 +173,7 @@ const ListingDetail = () => {
       )}
       <div className="listing-detail-container">
         <header className="detail-header">
-        <button onClick={() => navigate(getMunicipalityPath())} className="btn-back">
+        <button onClick={() => navigate(getMunicipalityPath('/listings'))} className="btn-back">
           🡐 Back to Listings
         </button>
       </header>
