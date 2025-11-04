@@ -384,7 +384,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'priority', 'announcement_type',
             'province', 'province_name', 'municipality', 'municipality_name',
-            'barangay', 'author', 'contact_info', 'created_at', 'updated_at',
+            'barangay', 'is_province_wide', 'author', 'contact_info', 'created_at', 'updated_at',
             'expiry_date', 'is_active', 'is_expired'
         ]
         read_only_fields = ['id', 'author', 'created_at', 'updated_at']

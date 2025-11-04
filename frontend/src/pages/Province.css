@@ -1,235 +1,481 @@
+/* Province Page - Tourism-Inspired Design */
+
 .province-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8f9fa;
 }
 
+/* Hero Section */
+.province-hero {
+  position: relative;
+  height: 500px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 1.75rem;
+  font-weight: 300;
+  margin-bottom: 1rem;
+  opacity: 0.95;
+}
+
+.hero-description {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Province Content */
 .province-content {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 3rem 2rem;
 }
 
-.welcome-section.province-bulletin-board {
-  text-align: center;
-  color: white;
-  margin: 3rem 0 2rem;
-}
-
-.welcome-section.province-bulletin-board h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-}
-
-.welcome-section.province-bulletin-board .subtitle {
-  font-size: 1.25rem;
-  opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-}
-
-/* Cities & Municipalities Section */
-.cities-section {
-  margin-bottom: 3rem;
-}
-
-.cities-title {
-  color: white;
-  font-size: 1.5rem;
-  margin: 0 0 1rem 0;
-  text-align: center;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.cities-grid {
+.loading-container {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 1.5rem;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.25rem;
+  color: #667eea;
 }
 
-.city-pill {
-  background: rgba(255, 255, 255, 0.25);
-  border: none;
-  color: white;
-  padding: 8px 16px;
+/* Stats Section */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: -80px auto 4rem;
+  position: relative;
+  z-index: 3;
+}
+
+.stat-card {
+  background: white;
   border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-weight: 500;
 }
 
-.city-pill:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
-}
-
-.province-hero h1 {
-  font-size: 3rem;
+/* Section Headings */
+.section-heading {
+  font-size: 2.5rem;
   font-weight: 700;
+  text-align: center;
   margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  color: #2c3e50;
 }
 
-.province-hero .subtitle {
+.section-subheading {
   font-size: 1.25rem;
-  opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-}
-
-.sections-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  text-align: center;
+  color: #6c757d;
   margin-bottom: 3rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.section-card {
+/* Explore Section */
+.explore-section {
+  margin-bottom: 5rem;
+}
+
+.municipalities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.municipality-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
-.section-card.active:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+.municipality-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
 }
 
-.section-card.disabled {
-  opacity: 0.7;
-}
-
-.section-icon {
+.municipality-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
 }
 
-.section-card h3 {
+.municipality-name {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #333;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
-.section-card p {
-  color: #666;
+.municipality-tagline {
+  color: #6c757d;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.municipality-arrow {
+  font-size: 1.5rem;
+  color: #667eea;
+  font-weight: 700;
+}
+
+/* Features Section */
+.features-section {
+  margin-bottom: 5rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-card:not(.disabled):hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.feature-card.disabled {
+  opacity: 0.6;
+}
+
+.feature-icon {
+  font-size: 3.5rem;
   margin-bottom: 1.5rem;
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.feature-card p {
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
   flex-grow: 1;
 }
 
-.section-card .btn-primary,
-.section-card .btn-secondary {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+.feature-link {
+  color: #667eea;
   font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-  transition: background 0.3s ease;
-}
-
-.btn-width-available {
-  width: -webkit-fill-available;
-  width: -moz-available;
-}
-
-.section-card .btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.section-card .btn-primary:hover {
-  background: #5568d3;
-}
-
-.section-card .btn-secondary {
-  background: #e0e0e0;
-  color: #666;
-}
-
-.section-card .btn-secondary:disabled {
-  cursor: not-allowed;
-}
-
-.back-link {
-  text-align: center;
-  margin-top: 3rem;
-}
-
-.back-link a {
-  color: white;
   text-decoration: none;
   font-size: 1.1rem;
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
+  transition: color 0.3s ease;
+  display: inline-block;
 }
 
-.back-link a:hover {
-  opacity: 1;
+.feature-link:not(.coming-soon):hover {
+  color: #5568d3;
+  text-decoration: underline;
+}
+
+.feature-link.coming-soon {
+  color: #adb5bd;
+  cursor: default;
+}
+
+/* Call to Action Section */
+.cta-section {
+  margin: 5rem 0 3rem;
+}
+
+.cta-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: white;
+  box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3);
+}
+
+.cta-card h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.cta-card p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  opacity: 0.95;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-cta-primary,
+.btn-cta-secondary {
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  border: 2px solid white;
+}
+
+.btn-cta-primary {
+  background: white;
+  color: #667eea;
+}
+
+.btn-cta-primary:hover {
+  background: transparent;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-cta-secondary {
+  background: transparent;
+  color: white;
+}
+
+.btn-cta-secondary:hover {
+  background: white;
+  color: #667eea;
+  transform: translateY(-2px);
 }
 
 /* Mobile Responsive */
-@media (max-width: 768px) {
-  .province-content {
-    padding: 1rem;
+@media (max-width: 992px) {
+  .hero-title {
+    font-size: 3rem;
   }
 
-  .welcome-section.province-bulletin-board {
-    margin: 2rem 0 1.5rem;
+  .hero-subtitle {
+    font-size: 1.5rem;
   }
 
-  .welcome-section.province-bulletin-board h1 {
+  .hero-description {
+    font-size: 1.1rem;
+  }
+
+  .section-heading {
     font-size: 2rem;
   }
 
-  .welcome-section.province-bulletin-board .subtitle {
-    font-size: 1rem;
-  }
-
-  .cities-title {
-    font-size: 1.3rem;
-  }
-
-  .cities-grid {
-    padding: 1rem;
-    gap: 8px;
-  }
-
-  .city-pill {
-    font-size: 0.8rem;
-    padding: 7px 14px;
-  }
-
-  .sections-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .section-subheading {
+    font-size: 1.1rem;
   }
 }
 
-/* Mobile phones */
+@media (max-width: 768px) {
+  .province-hero {
+    height: 400px;
+  }
+
+  .hero-content {
+    padding: 1.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .province-content {
+    padding: 2rem 1rem;
+  }
+
+  .stats-section {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: -60px 1rem 3rem;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+  }
+
+  .section-heading {
+    font-size: 1.75rem;
+  }
+
+  .section-subheading {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .municipalities-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .cta-card {
+    padding: 3rem 1.5rem;
+  }
+
+  .cta-card h2 {
+    font-size: 2rem;
+  }
+
+  .cta-card p {
+    font-size: 1.1rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-cta-primary,
+  .btn-cta-secondary {
+    width: 100%;
+  }
+}
+
 @media (max-width: 480px) {
-  .cities-title {
-    font-size: 1.2rem;
+  .province-hero {
+    height: 350px;
   }
 
-  .cities-grid {
-    padding: 0.75rem;
-    gap: 6px;
+  .hero-title {
+    font-size: 2rem;
   }
 
-  .city-pill {
-    font-size: 0.75rem;
-    padding: 6px 12px;
+  .hero-subtitle {
+    font-size: 1.1rem;
   }
+
+  .hero-description {
+    font-size: 0.95rem;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .section-heading {
+    font-size: 1.5rem;
+  }
+
+  .municipality-card {
+    padding: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 2rem;
+  }
+}
+
+/* Back Link */
+.back-link {
+  text-align: center;
+  margin-top: 3rem;
+  padding-bottom: 2rem;
+}
+
+.back-link a {
+  color: #667eea;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  display: inline-block;
+}
+
+.back-link a:hover {
+  color: #5568d3;
+  text-decoration: underline;
 }

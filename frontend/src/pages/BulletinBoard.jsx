@@ -19,7 +19,7 @@ const BulletinBoard = () => {
   // Fetch provinces and municipalities
   useEffect(() => {
     if (!province) {
-      navigate('/');
+      navigate('/siquijor');
       return;
     }
 
@@ -91,22 +91,31 @@ const BulletinBoard = () => {
 
       if (!currentProvince || !currentMunicipality) return;
 
-      const params = {
+      // Listings use municipality slug for text search in location field
+      // Also pass province to include province-wide listings
+      const listingsParams = {
+        municipality: municipality,
+        province: province,
+      };
+
+      // Announcements use province and municipality IDs (foreign keys)
+      // Backend will automatically include province-wide announcements
+      const announcementsParams = {
         province: currentProvince.id,
         municipality: currentMunicipality.id,
       };
 
       // Fetch recent listings (limit 3)
-      const listingsResponse = await listingsAPI.getAll({ ...params, page_size: 3, ordering: '-created_at' });
+      const listingsResponse = await listingsAPI.getAll({ ...listingsParams, page_size: 3, ordering: '-created_at' });
       const listingsData = listingsResponse.data.results || listingsResponse.data;
       setRecentListings(Array.isArray(listingsData) ? listingsData.slice(0, 3) : []);
 
       // Fetch all announcements for counts
-      const allAnnouncementsResponse = await announcementsAPI.getAll(params);
+      const allAnnouncementsResponse = await announcementsAPI.getAll(announcementsParams);
       const allAnnouncements = allAnnouncementsResponse.data.results || allAnnouncementsResponse.data;
 
       // Fetch recent announcements (limit 4)
-      const announcementsResponse = await announcementsAPI.getAll({ ...params, page_size: 4, ordering: '-created_at' });
+      const announcementsResponse = await announcementsAPI.getAll({ ...announcementsParams, page_size: 4, ordering: '-created_at' });
       const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
       const announcements = Array.isArray(announcementsData) ? announcementsData : [];
 
@@ -118,8 +127,12 @@ const BulletinBoard = () => {
       setRecentAnnouncements(nonUrgent);
 
       // Get stats from paginated response
-      const listingsCount = listingsResponse.data.count || (Array.isArray(listingsData) ? listingsData.length : 0);
-      const announcementsCount = allAnnouncementsResponse.data.count || (Array.isArray(allAnnouncements) ? allAnnouncements.length : 0);
+      const listingsCount = listingsResponse.data.count !== undefined
+        ? listingsResponse.data.count
+        : (Array.isArray(listingsData) ? listingsData.length : 0);
+      const announcementsCount = allAnnouncementsResponse.data.count !== undefined
+        ? allAnnouncementsResponse.data.count
+        : (Array.isArray(allAnnouncements) ? allAnnouncements.length : 0);
 
       setStats({
         listings: listingsCount,
@@ -131,24 +144,16 @@ const BulletinBoard = () => {
     }
   };
 
-  const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
   const currentMunicipalities = municipalities.map(m => m.name);
-
-  const handleProvinceChange = (e) => {
-    const selectedProvince = e.target.value;
-    if (selectedProvince) {
-      const provinceSlug = slugify(selectedProvince);
-      navigate(`/${provinceSlug}`);
-    } else {
-      navigate('/');
-    }
-  };
 
   const handleMunicipalityChange = (e) => {
     const selectedMunicipality = e.target.value;
-    if (selectedMunicipality) {
+    if (selectedMunicipality && selectedMunicipality !== 'all') {
       const municipalitySlug = slugify(selectedMunicipality);
       navigate(`/${province}/${municipalitySlug}`);
+    } else if (selectedMunicipality === 'all') {
+      // Navigate back to province page
+      navigate(`/${province}`);
     }
   };
 
@@ -211,13 +216,10 @@ const BulletinBoard = () => {
   return (
     <div className="bulletin-board-container">
       <Header
-        showProvinceSelector={true}
         showMunicipalitySelector={true}
         province={province}
         municipality={municipality}
-        provinces={PHILIPPINE_PROVINCES}
         municipalities={currentMunicipalities}
-        onProvinceChange={handleProvinceChange}
         onMunicipalityChange={handleMunicipalityChange}
       />
 
@@ -301,25 +303,6 @@ const BulletinBoard = () => {
                     </div>
                   </div>
                 )}
-
-                <div className="recent-listings-mini">
-                  {recentListings.slice(1).map(listing => (
-                    <div
-                      key={listing.id}
-                      className="listing-mini-item"
-                      onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
-                    >
-                      <span className="listing-title">{listing.title}</span>
-                      <span className="listing-price">{formatPrice(listing.price)}</span>
-                    </div>
-                  ))}
-                  {recentListings.length < 3 && (
-                    <div className="empty-state-mini">
-                      <p>No more recent listings</p>
-                      <Link to={`/${province}/${municipality}/create-listing`}>+ Post a listing</Link>
-                    </div>
-                  )}
-                </div>
               </div>
             ) : (
               <div className="empty-state">

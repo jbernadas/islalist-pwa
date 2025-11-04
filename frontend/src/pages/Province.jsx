@@ -73,9 +73,6 @@ const Province = () => {
     fetchLocations();
   }, [province]);
 
-  // Derive province names for dropdown (from API data)
-  const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
-
   // Get city/municipality names for current province
   const municipalityNames = municipalities.map(m => m.name);
 
@@ -91,90 +88,156 @@ const Province = () => {
     navigate(`/${province}/${municipalitySlug}`);
   };
 
-  const handleProvinceChange = (e) => {
-    const selectedProvince = e.target.value;
-    if (selectedProvince) {
-      const provinceSlug = slugify(selectedProvince);
-      navigate(`/${provinceSlug}`);
-    } else {
-      // "All Provinces" selected - clear saved location and go to home page
-      localStorage.removeItem('lastProvince');
-      localStorage.removeItem('lastMunicipality');
-      navigate('/');
+  const handleMunicipalityChange = (e) => {
+    const selectedMunicipality = e.target.value;
+    if (selectedMunicipality && selectedMunicipality !== 'all') {
+      const municipalitySlug = slugify(selectedMunicipality);
+      navigate(`/${province}/${municipalitySlug}`);
     }
+    // "All Cities/Municipalities" keeps user on province page
   };
+
+  if (loading) {
+    return (
+      <div className="province-container">
+        <Header
+          showMunicipalitySelector={true}
+          province={province}
+          municipality="all"
+          municipalities={municipalityNames}
+          onMunicipalityChange={handleMunicipalityChange}
+        />
+        <div className="loading-container">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="province-container">
       <Header
-        showProvinceSelector={true}
+        showMunicipalitySelector={true}
         province={province}
-        provinces={PHILIPPINE_PROVINCES}
-        onProvinceChange={handleProvinceChange}
+        municipality="all"
+        municipalities={municipalityNames}
+        onMunicipalityChange={handleMunicipalityChange}
       />
 
-      <div className="province-content">
-        <div className="welcome-section province-bulletin-board">
-          <h1>{provinceName}</h1>
-          <p className="subtitle">
-            {provinceName !== 'Metro Manila (NCR)' ? 'Provincial' : 'Metro Manila'} Bulletin Board
+      {/* Hero Section */}
+      <div className="province-hero">
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <h1 className="hero-title">Welcome to {provinceName}</h1>
+          <p className="hero-subtitle">Discover the Island Paradise of the Philippines</p>
+          <p className="hero-description">
+            Explore local listings, community announcements, and connect with your island community
           </p>
         </div>
+      </div>
 
-        {/* City/Municipality Navigation */}
-        {!loading && municipalityNames.length > 0 && (
-          <div className="cities-section">
-            <div className="cities-grid">
-              {municipalityNames.map((municipality) => (
-                <button
-                  key={municipality}
-                  className="city-pill"
-                  onClick={() => handleMunicipalityClick(municipality)}
-                >
-                  {municipality}
-                </button>
-              ))}
-            </div>
+      <div className="province-content">
+        {/* Quick Stats */}
+        <div className="stats-section">
+          <div className="stat-card">
+            <div className="stat-icon">🏘️</div>
+            <div className="stat-number">{municipalities.length}</div>
+            <div className="stat-label">Municipalities</div>
           </div>
-        )}
-
-        <div className="sections-grid">
-          <div className="section-card active">
-            <div className="section-icon">🏷️</div>
-            <h3>Listings & Classifieds</h3>
-            <p>Browse and post province-wide classified ads, items for sale, rentals, and more.</p>
-            <Link
-              to={`/${province}/all/listings`}
-              className="btn-primary btn-width-available"
-            >
-              View Province Listings
-            </Link>
+          <div className="stat-card">
+            <div className="stat-icon">🏝️</div>
+            <div className="stat-number">1</div>
+            <div className="stat-label">Beautiful Island</div>
           </div>
-
-          <div className="section-card disabled">
-            <div className="section-icon">📅</div>
-            <h3>Events</h3>
-            <p>Discover province-wide events and activities.</p>
-            <button className="btn-secondary" disabled>
-              Coming Soon
-            </button>
-          </div>
-
-          <div className="section-card active">
-            <div className="section-icon">📢</div>
-            <h3>Announcements</h3>
-            <p>Stay updated with provincial announcements and important notices.</p>
-            <Link
-              to={`/${province}/all/announcements`}
-              className="btn-primary btn-width-available"
-            >
-              View Province Announcements
-            </Link>
+          <div className="stat-card">
+            <div className="stat-icon">🌊</div>
+            <div className="stat-number">∞</div>
+            <div className="stat-label">Opportunities</div>
           </div>
         </div>
 
+        {/* Explore Section */}
+        <div className="explore-section">
+          <h2 className="section-heading">Explore by Municipality</h2>
+          <p className="section-subheading">Choose your city or town to see local listings and community updates</p>
+
+          {municipalityNames.length > 0 && (
+            <div className="municipalities-grid">
+              {municipalityNames.map((municipality) => (
+                <div
+                  key={municipality}
+                  className="municipality-card"
+                  onClick={() => handleMunicipalityClick(municipality)}
+                >
+                  <div className="municipality-icon">📍</div>
+                  <h3 className="municipality-name">{municipality}</h3>
+                  <p className="municipality-tagline">Explore community</p>
+                  <div className="municipality-arrow">→</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* What's Available Section */}
+        <div className="features-section">
+          <h2 className="section-heading">What's Available</h2>
+          <p className="section-subheading">Everything you need in one island marketplace</p>
+
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">🏷️</div>
+              <h3>Buy & Sell Locally</h3>
+              <p>Browse classifieds, find great deals, and sell your items to the island community</p>
+              <Link to={`/${province}/all/listings`} className="feature-link">
+                View All Listings →
+              </Link>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">📢</div>
+              <h3>Community Updates</h3>
+              <p>Stay informed with local announcements, alerts, and important community news</p>
+              <Link to={`/${province}/all/announcements`} className="feature-link">
+                View Announcements →
+              </Link>
+            </div>
+
+            <div className="feature-card disabled">
+              <div className="feature-icon">📅</div>
+              <h3>Local Events</h3>
+              <p>Discover festivals, gatherings, and activities happening around the island</p>
+              <span className="feature-link coming-soon">Coming Soon</span>
+            </div>
+
+            <div className="feature-card disabled">
+              <div className="feature-icon">🏪</div>
+              <h3>Business Directory</h3>
+              <p>Find local businesses, services, and support your island economy</p>
+              <span className="feature-link coming-soon">Coming Soon</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="cta-section">
+          <div className="cta-card">
+            <h2>Join the {provinceName} Community</h2>
+            <p>Start buying, selling, and connecting with your neighbors today</p>
+            <div className="cta-buttons">
+              <Link to={`/${province}/all/listings`} className="btn-cta-primary">
+                Browse Listings
+              </Link>
+              <Link to="/register" className="btn-cta-secondary">
+                Create Account
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Back to All Provinces */}
         <div className="back-link">
-          <Link to="/">🡐 View All Provinces</Link>
+          <Link to="/">← View All Provinces</Link>
         </div>
       </div>
     </div>

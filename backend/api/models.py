@@ -308,6 +308,10 @@ class Announcement(models.Model):
         blank=True,
         help_text="Barangay (optional)"
     )
+    is_province_wide = models.BooleanField(
+        default=False,
+        help_text="Show this announcement in all municipalities within the province"
+    )
 
     # Author and Contact
     author = models.ForeignKey(

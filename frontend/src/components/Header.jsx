@@ -15,23 +15,7 @@ const Header = ({
   onMunicipalityChange = null
 }) => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-
-    // Get the last visited location and redirect there
-    const lastProvince = localStorage.getItem('lastProvince');
-    const lastMunicipality = localStorage.getItem('lastMunicipality');
-
-    if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
-      navigate(`/${lastProvince}/${lastMunicipality}`);
-    } else if (lastProvince) {
-      navigate(`/${lastProvince}`);
-    } else {
-      navigate('/');
-    }
-  };
+  const { isAuthenticated } = useAuth();
 
   return (
     <header className="app-header">
@@ -58,7 +42,6 @@ const Header = ({
                   value={province ? provinces.find(p => slugify(p) === province) || '' : ''}
                   onChange={onProvinceChange}
                 >
-                  <option value="">All Provinces</option>
                   {provinces.map(prov => (
                     <option key={prov} value={prov}>
                       {prov}
@@ -68,19 +51,27 @@ const Header = ({
               </div>
             )}
 
-            {showMunicipalitySelector && municipalities.length > 0 && (
+            {showMunicipalitySelector && (
               <div className="municipality-selector">
                 <label htmlFor="municipality-select">🏘️</label>
                 <select
                   id="municipality-select"
                   value={
-                    municipality === 'all' || !municipality
+                    !municipality || municipality === 'all'
                       ? 'all'
-                      : municipalities.find(m => slugify(m) === municipality) || 'all'
+                      : municipalities.length > 0
+                        ? (municipalities.find(m => slugify(m) === municipality) || 'all')
+                        : municipality
                   }
                   onChange={onMunicipalityChange}
+                  disabled={municipalities.length === 0}
                 >
                   <option value="all">All Cities/Municipalities</option>
+                  {municipality && municipalities.length === 0 && municipality !== 'all' && (
+                    <option value={municipality}>
+                      {municipality.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    </option>
+                  )}
                   {municipalities.map(mun => (
                     <option key={mun} value={mun}>
                       {mun}
@@ -93,31 +84,48 @@ const Header = ({
         )}
 
         <div className="header-actions">
-          {isAuthenticated ? (
-            <>
-              <button onClick={() => navigate('/my-posts')} className="btn-link">
-                My Posts
-              </button>
-              <button onClick={() => navigate('/favorites')} className="btn-link">
-                Favorites
-              </button>
-              <button onClick={() => navigate('/profile')} className="btn-link">
-                Profile
-              </button>
-              <button onClick={handleLogout} className="btn-secondary">
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => navigate('/login')} className="btn-link">
-                Login
-              </button>
-              <button onClick={() => navigate('/register')} className="btn-link">
-                Register
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => {
+              if (isAuthenticated) {
+                navigate('/favorites');
+              } else {
+                navigate('/login');
+              }
+            }}
+            className="btn-link"
+            title="Favorites"
+          >
+            Faves
+          </button>
+          <button
+            onClick={() => {
+              if (isAuthenticated) {
+                // Navigate to create listing page with current location context
+                const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
+                const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
+                navigate(`/${lastProvince}/${lastMunicipality}/create-listing`);
+              } else {
+                navigate('/login');
+              }
+            }}
+            className="btn-link"
+            title="Post a listing"
+          >
+            Post
+          </button>
+          <button
+            onClick={() => {
+              if (isAuthenticated) {
+                navigate('/profile');
+              } else {
+                navigate('/login');
+              }
+            }}
+            className="btn-link"
+            title="Account"
+          >
+            Acct
+          </button>
         </div>
       </div>
     </header>

@@ -155,10 +155,23 @@ class ListingViewSet(viewsets.ModelViewSet):
 
         # Filter by municipality (case-insensitive, partial match in location field)
         municipality = self.request.query_params.get('municipality')
+        province_param = self.request.query_params.get('province')
+
         if municipality:
+            from django.db.models import Q
             # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
             municipality_formatted = municipality.replace('-', ' ').title()
-            queryset = queryset.filter(location__icontains=municipality_formatted)
+
+            # Include listings for this municipality OR province-wide listings
+            # Province-wide listings have location matching province name (e.g., "Siquijor")
+            if province_param:
+                province_formatted = province_param.replace('-', ' ').title()
+                queryset = queryset.filter(
+                    Q(location__icontains=municipality_formatted) |
+                    Q(location__iexact=province_formatted)
+                )
+            else:
+                queryset = queryset.filter(location__icontains=municipality_formatted)
 
         return queryset
 
@@ -296,6 +309,22 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             queryset = queryset.exclude(
                 expiry_date__lt=timezone.now().date()
             )
+
+        # Handle province-wide announcements
+        # When filtering by municipality, also include province-wide announcements
+        municipality = self.request.query_params.get('municipality')
+        province = self.request.query_params.get('province')
+
+        if municipality and province:
+            from django.db.models import Q
+            # Get announcements for this municipality OR province-wide for this province
+            queryset = queryset.filter(
+                Q(municipality=municipality, province=province) |
+                Q(is_province_wide=True, province=province)
+            )
+        elif province and not municipality:
+            # Just filter by province (already handled by filterset_fields)
+            pass
 
         return queryset
 

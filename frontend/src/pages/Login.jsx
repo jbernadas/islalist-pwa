@@ -92,6 +92,16 @@ const Login = () => {
         </p>
 
         <p className="auth-link">
+          <button
+            onClick={() => navigate(-1)}
+            className="btn-link"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
+          >
+            🡐 Back to previous page
+          </button>
+        </p>
+
+        <p className="auth-link">
           <Link to="/">🡐 Back to Home</Link>
         </p>
       </div>

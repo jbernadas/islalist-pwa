@@ -24,6 +24,7 @@ const CreateAnnouncement = () => {
     expiry_date: '',
     province_id: '',
     municipality_id: '',
+    is_province_wide: false,
   });
 
   useEffect(() => {
@@ -82,6 +83,7 @@ const CreateAnnouncement = () => {
         announcement_type: formData.announcement_type,
         province: formData.province_id,
         municipality: formData.municipality_id,
+        is_province_wide: formData.is_province_wide,
       };
 
       if (formData.barangay) data.barangay = formData.barangay;
@@ -202,6 +204,71 @@ const CreateAnnouncement = () => {
 
         <div className="form-section">
           <h2>Location & Contact</h2>
+
+          <div className="form-group">
+            <label htmlFor="province_id">Province *</label>
+            <select
+              id="province_id"
+              name="province_id"
+              value={formData.province_id}
+              onChange={(e) => {
+                const provinceId = e.target.value;
+                setFormData(prev => ({ ...prev, province_id: provinceId, municipality_id: '' }));
+                // Fetch municipalities for selected province
+                const selectedProvince = provinces.find(p => p.id === parseInt(provinceId));
+                if (selectedProvince) {
+                  provincesAPI.getMunicipalities(selectedProvince.slug).then(response => {
+                    setMunicipalities(response.data);
+                  });
+                }
+              }}
+              required
+            >
+              <option value="">Select province</option>
+              {provinces.map(prov => (
+                <option key={prov.id} value={prov.id}>
+                  {prov.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label className="checkbox-label d-flex justify-content-between">
+              <input
+                type="checkbox"
+                name="is_province_wide"
+                checked={formData.is_province_wide}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_province_wide: e.target.checked }))}
+              />
+              <span>Province-wide announcement (show in all municipalities)</span>
+            </label>
+            <p className="help-text">
+              Check this if the announcement is relevant to the entire province, not just one municipality.
+            </p>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="municipality_id">City/Municipality *</label>
+            <select
+              id="municipality_id"
+              name="municipality_id"
+              value={formData.municipality_id}
+              onChange={handleChange}
+              required
+              disabled={formData.is_province_wide}
+            >
+              <option value="">Select municipality</option>
+              {municipalities.map(mun => (
+                <option key={mun.id} value={mun.id}>
+                  {mun.name}
+                </option>
+              ))}
+            </select>
+            <p className="help-text">
+              Auto-populated based on your current location. You can change this if needed.
+            </p>
+          </div>
 
           <div className="form-group">
             <label htmlFor="barangay">Barangay (Optional)</label>

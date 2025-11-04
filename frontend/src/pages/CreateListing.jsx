@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { categoriesAPI, listingsAPI } from '../services/api';
+import { categoriesAPI, listingsAPI, provincesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { slugify } from '../utils/slugify';
 import ImageSelectorModal from '../components/ImageSelectorModal';
 import './CreateListing.css';
 
@@ -15,6 +16,8 @@ const CreateListing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showImageModal, setShowImageModal] = useState(false);
+  const [municipalities, setMunicipalities] = useState([]);
+  const [currentMunicipalityName, setCurrentMunicipalityName] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -28,11 +31,13 @@ const CreateListing = () => {
     location: '',
     barangay: '',
     island: 'Siquijor',
+    is_province_wide: false,
   });
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+    fetchMunicipalities();
+  }, [province, municipality]);
 
   const fetchCategories = async () => {
     try {
@@ -60,9 +65,49 @@ const CreateListing = () => {
     }
   };
 
+  const fetchMunicipalities = async () => {
+    try {
+      if (!province) return;
+
+      const response = await provincesAPI.getMunicipalities(province);
+      const municipalitiesData = response.data;
+      setMunicipalities(municipalitiesData);
+
+      // Find current municipality and set location
+      const currentMunicipality = municipalitiesData.find(m => slugify(m.name) === municipality);
+      if (currentMunicipality) {
+        setCurrentMunicipalityName(currentMunicipality.name);
+        // Auto-populate location with municipality name (unless province-wide)
+        if (!formData.is_province_wide) {
+          setFormData(prev => ({ ...prev, location: currentMunicipality.name }));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching municipalities:', err);
+    }
+  };
+
+  const handleProvinceWideChange = (e) => {
+    const isProvinceWide = e.target.checked;
+    setFormData(prev => ({
+      ...prev,
+      is_province_wide: isProvinceWide,
+      // When province-wide, set location to province name (capitalize first letter)
+      location: isProvinceWide
+        ? province.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        : currentMunicipalityName
+    }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Check if current category is Real Estate
+  const isRealEstateCategory = () => {
+    const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
+    return selectedCategory?.name === 'Real Estate';
   };
 
   const handleImageSelection = ({ reusedImages: selected, newFiles }) => {
@@ -227,80 +272,112 @@ const CreateListing = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="property_type">Property Type *</label>
-              <select
-                id="property_type"
-                name="property_type"
-                value={formData.property_type}
-                onChange={handleChange}
-                required
-              >
-                <option value="house">House</option>
-                <option value="land">Land</option>
-                <option value="apartment">Apartment</option>
-                <option value="commercial">Commercial</option>
-                <option value="condo">Condominium</option>
-              </select>
-            </div>
+            {/* Property Type - Only show for Real Estate category */}
+            {isRealEstateCategory() && (
+              <div className="form-group">
+                <label htmlFor="property_type">Property Type *</label>
+                <select
+                  id="property_type"
+                  name="property_type"
+                  value={formData.property_type}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="house">House</option>
+                  <option value="land">Land</option>
+                  <option value="apartment">Apartment</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="condo">Condominium</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="form-section">
-          <h2>Property Details</h2>
+        {/* Property Details - Only show for Real Estate category */}
+        {isRealEstateCategory() && (
+          <div className="form-section">
+            <h2>Property Details</h2>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="area_sqm">Area (sq meters)</label>
-              <input
-                type="number"
-                id="area_sqm"
-                name="area_sqm"
-                value={formData.area_sqm}
-                onChange={handleChange}
-                step="0.01"
-              />
-            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="area_sqm">Area (sq meters)</label>
+                <input
+                  type="number"
+                  id="area_sqm"
+                  name="area_sqm"
+                  value={formData.area_sqm}
+                  onChange={handleChange}
+                  step="0.01"
+                />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="bedrooms">Bedrooms</label>
-              <input
-                type="number"
-                id="bedrooms"
-                name="bedrooms"
-                value={formData.bedrooms}
-                onChange={handleChange}
-              />
-            </div>
+              <div className="form-group">
+                <label htmlFor="bedrooms">Bedrooms</label>
+                <input
+                  type="number"
+                  id="bedrooms"
+                  name="bedrooms"
+                  value={formData.bedrooms}
+                  onChange={handleChange}
+                />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="bathrooms">Bathrooms</label>
-              <input
-                type="number"
-                id="bathrooms"
-                name="bathrooms"
-                value={formData.bathrooms}
-                onChange={handleChange}
-              />
+              <div className="form-group">
+                <label htmlFor="bathrooms">Bathrooms</label>
+                <input
+                  type="number"
+                  id="bathrooms"
+                  name="bathrooms"
+                  value={formData.bathrooms}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="form-section">
           <h2>Location</h2>
 
+          <div className="form-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="is_province_wide"
+                checked={formData.is_province_wide}
+                onChange={handleProvinceWideChange}
+              />
+              <span>Province-wide listing (available in all municipalities)</span>
+            </label>
+            <p className="help-text">
+              Check this if your listing serves the entire province (e.g., mobile services, delivery).
+            </p>
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="location">Location (City/Municipality) *</label>
-              <input
-                type="text"
+              <select
                 id="location"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 required
-                placeholder="e.g., San Juan, Siquijor"
-              />
+                disabled={formData.is_province_wide}
+              >
+                <option value="">Select a municipality</option>
+                {municipalities.map(mun => (
+                  <option key={mun.id} value={mun.name}>
+                    {mun.name}
+                  </option>
+                ))}
+              </select>
+              <p className="help-text">
+                {formData.is_province_wide
+                  ? `Set to province-wide: ${formData.location}`
+                  : `Currently set to: ${currentMunicipalityName || 'None'}. You can change this if needed.`}
+              </p>
             </div>
 
             <div className="form-group">
@@ -312,6 +389,7 @@ const CreateListing = () => {
                 value={formData.barangay}
                 onChange={handleChange}
                 placeholder="e.g., Poblacion"
+                disabled={formData.is_province_wide}
               />
             </div>
           </div>

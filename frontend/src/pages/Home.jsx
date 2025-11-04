@@ -17,21 +17,22 @@ const Home = () => {
   const searchRef = useRef(null);
 
   // Featured major cities across Philippines
+  // Note: City names must match exactly with database entries
   const FEATURED_CITIES = [
     { name: 'Manila', province: 'Metro Manila (NCR)' },
     { name: 'Quezon City', province: 'Metro Manila (NCR)' },
+    { name: 'Makati City', province: 'Metro Manila (NCR)' },
     { name: 'Cebu City', province: 'Cebu' },
     { name: 'Davao City', province: 'Davao del Sur' },
-    { name: 'Baguio City', province: 'Benguet' },
     { name: 'Iloilo City', province: 'Iloilo' },
-    { name: 'Cagayan de Oro', province: 'Misamis Oriental' },
-    { name: 'Bacolod', province: 'Negros Occidental' },
-    { name: 'Makati', province: 'Metro Manila (NCR)' },
-    { name: 'Zamboanga City', province: 'Zamboanga del Sur' },
-    { name: 'Puerto Princesa', province: 'Palawan' },
-    { name: 'Tagaytay', province: 'Cavite' },
-    { name: 'Vigan', province: 'Ilocos Sur' },
-    { name: 'Dumaguete', province: 'Negros Oriental' },
+    { name: 'Cagayan de Oro City', province: 'Misamis Oriental' },
+    { name: 'Bacolod City', province: 'Negros Occidental' },
+    { name: 'Puerto Princesa City', province: 'Palawan' },
+    { name: 'Tagaytay City', province: 'Cavite' },
+    { name: 'Vigan City', province: 'Ilocos Sur' },
+    { name: 'Dumaguete City', province: 'Negros Oriental' },
+    { name: 'General Santos City', province: 'South Cotabato' },
+    { name: 'Cabadbaran City', province: 'Agusan del Norte' },
   ];
 
   useEffect(() => {
@@ -54,12 +55,19 @@ const Home = () => {
     try {
       const now = Date.now();
       const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
+      const CACHE_VERSION = '1'; // Increment this to force cache refresh
 
       // Try to get provinces from cache first
       const cachedProvinces = localStorage.getItem('provinces');
       const provinceCacheTime = localStorage.getItem('provinces_cache_time');
+      const cachedVersion = localStorage.getItem('provinces_cache_version');
 
-      if (cachedProvinces && provinceCacheTime && (now - parseInt(provinceCacheTime)) < cacheExpiry) {
+      if (
+        cachedProvinces &&
+        provinceCacheTime &&
+        cachedVersion === CACHE_VERSION &&
+        (now - parseInt(provinceCacheTime)) < cacheExpiry
+      ) {
         // Use cached provinces - instant load!
         const provincesData = JSON.parse(cachedProvinces);
         setProvinces(provincesData);
@@ -70,11 +78,15 @@ const Home = () => {
       } else {
         // Fetch provinces fresh
         const provincesResponse = await api.get('/api/provinces/');
-        const provincesData = provincesResponse.data;
+        // Handle both array and paginated response formats
+        const provincesData = Array.isArray(provincesResponse.data)
+          ? provincesResponse.data
+          : (provincesResponse.data.results || provincesResponse.data);
 
         // Cache provinces
         localStorage.setItem('provinces', JSON.stringify(provincesData));
         localStorage.setItem('provinces_cache_time', now.toString());
+        localStorage.setItem('provinces_cache_version', '1');
 
         setProvinces(provincesData);
         setProvincesLoading(false);
