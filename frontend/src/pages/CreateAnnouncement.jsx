@@ -234,14 +234,15 @@ const CreateAnnouncement = () => {
           </div>
           
           <div className="form-group">
-            <label className="checkbox-label d-flex justify-content-between">
+            <label className="checkbox-label d-flex">
               <input
                 type="checkbox"
                 name="is_province_wide"
                 checked={formData.is_province_wide}
                 onChange={(e) => setFormData(prev => ({ ...prev, is_province_wide: e.target.checked }))}
+                style={{ width: 'auto', flexShrink: 0, marginRight: '0.75rem' }}
               />
-              <span>Province-wide announcement (show in all municipalities)</span>
+              <span style={{ flex: 1 , fontWeight: 'bold' }}>Province-wide announcement (show in all municipalities)</span>
             </label>
             <p className="help-text">
               Check this if the announcement is relevant to the entire province, not just one municipality.

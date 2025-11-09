@@ -341,14 +341,15 @@ const CreateListing = () => {
           <h2>Location</h2>
 
           <div className="form-group">
-            <label className="checkbox-label">
+            <label className="checkbox-label d-flex">
               <input
                 type="checkbox"
                 name="is_province_wide"
                 checked={formData.is_province_wide}
                 onChange={handleProvinceWideChange}
+                style={{ width: 'auto', flexShrink: 0, marginRight: '0.75rem' }}
               />
-              <span>Province-wide listing (available in all municipalities)</span>
+              <span style={{ flex: 1 , fontWeight: 'bold' }}>Province-wide listing (show this in all municipalities)</span>
             </label>
             <p className="help-text">
               Check this if your listing serves the entire province (e.g., mobile services, delivery).
