@@ -109,6 +109,12 @@ const CreateListing = () => {
     const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
     return selectedCategory?.name === 'Real Estate';
   };
+  
+    // Check if current category is Jobs
+  const isJobsCategory = () => {
+    const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
+    return selectedCategory?.name === 'Jobs';
+  };
 
   const handleImageSelection = ({ reusedImages: selected, newFiles }) => {
     const totalImages = reusedImages.length + images.length + selected.length + newFiles.length;
@@ -261,7 +267,7 @@ const CreateListing = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="price">Price (PHP)</label>
+              <label htmlFor="price">{ isJobsCategory() ? 'Pay (PHP)' :  'Price (PHP)' }</label>
               <input
                 type="number"
                 id="price"
