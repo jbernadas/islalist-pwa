@@ -68,9 +68,21 @@ const ListingDetail = () => {
     }
   };
 
-  const formatPrice = (price) => {
+  const formatPrice = (price, payPeriod) => {
     if (!price) return 'Contact for price';
-    return `₱${Number(price).toLocaleString()}`;
+    let priceStr = `₱${Number(price).toLocaleString()}`;
+
+    // Add pay period suffix for job listings
+    if (payPeriod && payPeriod !== 'not_applicable') {
+      const periodMap = {
+        'per_day': '/day',
+        'monthly': '/month',
+        'quarterly': '/quarter'
+      };
+      priceStr += ` ${periodMap[payPeriod] || ''}`;
+    }
+
+    return priceStr;
   };
 
   const formatDate = (dateString) => {
@@ -223,7 +235,7 @@ const ListingDetail = () => {
           <div className="price-section">
             <h1>{listing.title}</h1>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <p className="price">{formatPrice(listing.price)}</p>
+              <p className="price">{formatPrice(listing.price, listing.pay_period)}</p>
               {!isOwner && (
                 <button
                   onClick={handleToggleFavorite}

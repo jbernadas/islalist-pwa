@@ -140,6 +140,7 @@ const Listings = () => {
       if (province) {
         const provinceName = province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         params.island = provinceName; // Backend uses 'island' field for province
+        params.province = province; // Also send slug format for municipality filtering logic
       }
 
       // Add city/municipality filter from URL if not 'all'
@@ -207,9 +208,21 @@ const Listings = () => {
     setTimeout(() => fetchListings(), 0);
   };
 
-  const formatPrice = (price) => {
+  const formatPrice = (price, payPeriod) => {
     if (!price) return 'Contact for price';
-    return `₱${Number(price).toLocaleString()}`;
+    let priceStr = `₱${Number(price).toLocaleString()}`;
+
+    // Add pay period suffix for job listings
+    if (payPeriod && payPeriod !== 'not_applicable') {
+      const periodMap = {
+        'per_day': '/day',
+        'monthly': '/month',
+        'quarterly': '/quarter'
+      };
+      priceStr += ` ${periodMap[payPeriod] || ''}`;
+    }
+
+    return priceStr;
   };
 
   // Helper function to build municipality-scoped URLs
@@ -428,7 +441,7 @@ const Listings = () => {
                         {favoritingIds.has(listing.id) ? '...' : (listing.is_favorited ? '💖' : '🤍')}
                       </button>
                     </div>
-                    <p className="price">{formatPrice(listing.price)}</p>
+                    <p className="price">{formatPrice(listing.price, listing.pay_period)}</p>
                     <div className="listing-details">
                       {listing.bedrooms && (
                         <span>🛏️ {listing.bedrooms} bed</span>

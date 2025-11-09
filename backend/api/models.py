@@ -115,6 +115,13 @@ class Listing(models.Model):
         ('condo', 'Condominium'),
     ]
 
+    PAY_PERIOD_CHOICES = [
+        ('per_day', 'Per Day'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('not_applicable', 'Not Applicable'),
+    ]
+
     # Basic Information
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -142,6 +149,16 @@ class Listing(models.Model):
     )
     bedrooms = models.IntegerField(null=True, blank=True)
     bathrooms = models.IntegerField(null=True, blank=True)
+
+    # Job Specific Fields
+    pay_period = models.CharField(
+        max_length=20,
+        choices=PAY_PERIOD_CHOICES,
+        null=True,
+        blank=True,
+        default='not_applicable',
+        help_text="Pay period for job listings"
+    )
 
     # Categorization
     category = models.ForeignKey(

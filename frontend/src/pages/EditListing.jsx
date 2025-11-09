@@ -26,6 +26,7 @@ const EditListing = () => {
     area_sqm: '',
     bedrooms: '',
     bathrooms: '',
+    pay_period: 'not_applicable',
     category: '',
     location: '',
     barangay: '',
@@ -68,6 +69,7 @@ const EditListing = () => {
         area_sqm: listing.area_sqm || '',
         bedrooms: listing.bedrooms || '',
         bathrooms: listing.bathrooms || '',
+        pay_period: listing.pay_period || 'not_applicable',
         category: listing.category || '',
         location: listing.location || '',
         barangay: listing.barangay || '',
@@ -86,6 +88,18 @@ const EditListing = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Check if current category is Real Estate
+  const isRealEstateCategory = () => {
+    const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
+    return selectedCategory?.name === 'Real Estate';
+  };
+
+  // Check if current category is Jobs
+  const isJobsCategory = () => {
+    const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
+    return selectedCategory?.name === 'Jobs';
   };
 
   const handleImageSelection = ({ reusedImages: selected, newFiles }) => {
@@ -253,7 +267,7 @@ const EditListing = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="price">Price (PHP)</label>
+              <label htmlFor="price">{ isJobsCategory() ? 'Pay (PHP)' :  'Price (PHP)' }</label>
               <input
                 type="number"
                 id="price"
@@ -264,22 +278,43 @@ const EditListing = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="property_type">Property Type *</label>
-              <select
-                id="property_type"
-                name="property_type"
-                value={formData.property_type}
-                onChange={handleChange}
-                required
-              >
-                <option value="house">House</option>
-                <option value="land">Land</option>
-                <option value="apartment">Apartment</option>
-                <option value="commercial">Commercial</option>
-                <option value="condo">Condominium</option>
-              </select>
-            </div>
+            {/* Pay Period - Only show for Jobs category */}
+            {isJobsCategory() && (
+              <div className="form-group">
+                <label htmlFor="pay_period">Pay Period</label>
+                <select
+                  id="pay_period"
+                  name="pay_period"
+                  value={formData.pay_period}
+                  onChange={handleChange}
+                >
+                  <option value="per_day">Per Day</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="not_applicable">Not Applicable</option>
+                </select>
+              </div>
+            )}
+
+            {/* Property Type - Only show for Real Estate category */}
+            {isRealEstateCategory() && (
+              <div className="form-group">
+                <label htmlFor="property_type">Property Type *</label>
+                <select
+                  id="property_type"
+                  name="property_type"
+                  value={formData.property_type}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="house">House</option>
+                  <option value="land">Land</option>
+                  <option value="apartment">Apartment</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="condo">Condominium</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

@@ -27,6 +27,7 @@ const CreateListing = () => {
     area_sqm: '',
     bedrooms: '',
     bathrooms: '',
+    pay_period: 'not_applicable',
     category: '',
     location: '',
     barangay: '',
@@ -277,6 +278,24 @@ const CreateListing = () => {
                 placeholder="Leave blank for 'Contact for price'"
               />
             </div>
+
+            {/* Pay Period - Only show for Jobs category */}
+            {isJobsCategory() && (
+              <div className="form-group">
+                <label htmlFor="pay_period">Pay Period</label>
+                <select
+                  id="pay_period"
+                  name="pay_period"
+                  value={formData.pay_period}
+                  onChange={handleChange}
+                >
+                  <option value="per_day">Per Day</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="not_applicable">Not Applicable</option>
+                </select>
+              </div>
+            )}
 
             {/* Property Type - Only show for Real Estate category */}
             {isRealEstateCategory() && (
