@@ -95,7 +95,7 @@ const Login = () => {
           <button
             onClick={() => navigate(-1)}
             className="btn-link"
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'none' }}
           >
             🡐 Back to previous page
           </button>
