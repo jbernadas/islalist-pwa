@@ -420,9 +420,19 @@ const Listings = () => {
                     ) : (
                       <div className="no-image no-image-ad-listings">🏝️ IslaList</div>
                     )}
-                    {listing.property_type && (
+                    {listing.category_name === 'Real Estate' && listing.property_type && (
                       <span className="property-badge">
                         {listing.property_type}
+                      </span>
+                    )}
+                    {listing.category_name === 'Vehicles' && listing.vehicle_type && (
+                      <span className="property-badge">
+                        {listing.vehicle_type}
+                      </span>
+                    )}
+                    {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
+                      <span className="property-badge">
+                        {listing.pay_period.replace('_', ' ')}
                       </span>
                     )}
                   </div>
@@ -443,6 +453,7 @@ const Listings = () => {
                     </div>
                     <p className="price">{formatPrice(listing.price, listing.pay_period)}</p>
                     <div className="listing-details">
+                      {/* Real Estate Details */}
                       {listing.bedrooms && (
                         <span>🛏️ {listing.bedrooms} bed</span>
                       )}
@@ -451,6 +462,13 @@ const Listings = () => {
                       )}
                       {listing.area_sqm && (
                         <span>📏 {listing.area_sqm} m²</span>
+                      )}
+                      {/* Vehicle Details */}
+                      {listing.vehicle_year && (
+                        <span>📅 {listing.vehicle_year}</span>
+                      )}
+                      {listing.vehicle_make && listing.vehicle_model && (
+                        <span>🚗 {listing.vehicle_make} {listing.vehicle_model}</span>
                       )}
                     </div>
                     <p className="location">

@@ -302,6 +302,21 @@ const BulletinBoard = () => {
                   {listing.first_image ? (
                     <div className="featured-image">
                       <img src={listing.first_image} alt={listing.title} />
+                      {listing.category_name === 'Real Estate' && listing.property_type && (
+                        <span className="property-badge">
+                          {listing.property_type}
+                        </span>
+                      )}
+                      {listing.category_name === 'Vehicles' && listing.vehicle_type && (
+                        <span className="property-badge">
+                          {listing.vehicle_type}
+                        </span>
+                      )}
+                      {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
+                        <span className="property-badge">
+                          {listing.pay_period.replace('_', ' ')}
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <div className="featured-image">
@@ -313,6 +328,18 @@ const BulletinBoard = () => {
                     <p className="featured-price">{formatPrice(listing.price)}</p>
                     <p className="featured-meta">
                       <span>{listing.category_name}</span>
+                      {listing.category_name === 'Vehicles' && listing.vehicle_year && (
+                        <>
+                          <span>•</span>
+                          <span>{listing.vehicle_year}</span>
+                        </>
+                      )}
+                      {listing.category_name === 'Vehicles' && listing.vehicle_make && listing.vehicle_model && (
+                        <>
+                          <span>•</span>
+                          <span>{listing.vehicle_make} {listing.vehicle_model}</span>
+                        </>
+                      )}
                       <span>•</span>
                       <span>{getTimeAgo(listing.created_at)}</span>
                     </p>

@@ -127,7 +127,8 @@ const Favorites = () => {
                   </div>
 
                   <div className="listing-details">
-                    {listing.property_type && (
+                    {/* Real Estate Details */}
+                    {listing.category_name === 'Real Estate' && listing.property_type && (
                       <span className="detail-tag">{listing.property_type}</span>
                     )}
                     {listing.bedrooms && (
@@ -138,6 +139,20 @@ const Favorites = () => {
                     )}
                     {listing.area_sqm && (
                       <span className="detail-tag">📏 {listing.area_sqm}m²</span>
+                    )}
+                    {/* Vehicle Details */}
+                    {listing.category_name === 'Vehicles' && listing.vehicle_type && (
+                      <span className="detail-tag">{listing.vehicle_type}</span>
+                    )}
+                    {listing.vehicle_year && (
+                      <span className="detail-tag">📅 {listing.vehicle_year}</span>
+                    )}
+                    {listing.vehicle_make && listing.vehicle_model && (
+                      <span className="detail-tag">🚗 {listing.vehicle_make} {listing.vehicle_model}</span>
+                    )}
+                    {/* Jobs Details */}
+                    {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
+                      <span className="detail-tag">{listing.pay_period.replace('_', ' ')}</span>
                     )}
                   </div>
 
