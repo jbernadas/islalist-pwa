@@ -226,7 +226,7 @@ const ListingDetail = () => {
             </>
           ) : (
             <div className="no-images">
-              <p>📷 No photos available</p>
+              <p className="display-3">🏝️ IslaList</p>
             </div>
           )}
         </div>

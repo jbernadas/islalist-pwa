@@ -411,14 +411,14 @@ const Listings = () => {
               {listings.map(listing => (
                 <div
                   key={listing.id}
-                  className="listing-card"
+                  className="listing-card featured-card"
                   onClick={() => navigate(getMunicipalityPath(`/listings/${listing.id}`))}
                 >
-                  <div className="listing-image">
+                  <div className="listing-image featured-image">
                     {listing.first_image ? (
                       <img src={listing.first_image} alt={listing.title} />
                     ) : (
-                      <div className="no-image no-image-ad-listings">📷 No Photo</div>
+                      <div className="no-image no-image-ad-listings">🏝️ IslaList</div>
                     )}
                     {listing.property_type && (
                       <span className="property-badge">

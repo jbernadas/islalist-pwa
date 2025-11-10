@@ -134,14 +134,6 @@
   color: #666;
 }
 
-/* Dashboard Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
 /* Section Headers */
 .section-header {
   display: flex;
@@ -173,17 +165,16 @@
 /* Featured Listings Section */
 .featured-section,
 .announcements-section {
-  display: flex;
-  flex-direction: column;
+  margin-bottom: 2rem;
 }
 
-.featured-listings {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.featured-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
 }
 
-.featured-card.main {
+.featured-card {
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -192,7 +183,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-.featured-card.main:hover {
+.featured-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
@@ -287,26 +278,29 @@
   white-space: nowrap;
 }
 
-/* Announcements List */
-.announcements-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* Announcements Grid */
+.announcements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
 }
 
-.announcement-item {
+.announcement-card {
   background: white;
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border-left: 4px solid #667eea;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
 }
 
-.announcement-item:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+.announcement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 .announcement-header-inline {
@@ -345,8 +339,16 @@
 .announcement-preview {
   font-size: 0.875rem;
   color: #666;
-  margin: 0;
+  margin: 0 0 1rem 0;
   line-height: 1.5;
+  flex: 1;
+}
+
+.announcement-time-bottom {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0;
+  margin-top: auto;
 }
 
 /* Activity Feed */
@@ -552,8 +554,9 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+  .featured-listings-grid,
+  .announcements-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .quick-navigation {
@@ -601,8 +604,10 @@
     height: 200px;
   }
 
-  .dashboard-grid {
-    gap: 1.5rem;
+  .featured-listings-grid,
+  .announcements-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .activity-feed {

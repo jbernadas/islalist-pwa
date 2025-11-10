@@ -114,14 +114,14 @@ const BulletinBoard = () => {
       const allAnnouncementsResponse = await announcementsAPI.getAll(announcementsParams);
       const allAnnouncements = allAnnouncementsResponse.data.results || allAnnouncementsResponse.data;
 
-      // Fetch recent announcements (limit 4)
-      const announcementsResponse = await announcementsAPI.getAll({ ...announcementsParams, page_size: 4, ordering: '-created_at' });
+      // Fetch recent announcements (limit 3)
+      const announcementsResponse = await announcementsAPI.getAll({ ...announcementsParams, page_size: 3, ordering: '-created_at' });
       const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
       const announcements = Array.isArray(announcementsData) ? announcementsData : [];
 
       // Separate urgent from recent
       const urgent = announcements.filter(a => a.priority === 'urgent');
-      const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 4);
+      const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 3);
 
       setUrgentAnnouncements(urgent);
       setRecentAnnouncements(nonUrgent);
@@ -282,95 +282,93 @@ const BulletinBoard = () => {
           </div>
         )}
 
-        {/* Main Content Grid */}
-        <div className="dashboard-grid">
-          {/* Left Column - Featured Listing */}
-          <div className="featured-section">
-            <div className="section-header">
-              <h2>🏷️ Featured Listings</h2>
-              <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
-                View all {stats.listings} →
-              </Link>
-            </div>
-
-            {recentListings.length > 0 ? (
-              <div className="featured-listings">
-                {recentListings[0] && (
-                  <div
-                    className="featured-card main"
-                    onClick={() => navigate(`/${province}/${municipality}/listings/${recentListings[0].id}`)}
-                  >
-                    {recentListings[0].images && recentListings[0].images.length > 0 ? (
-                      <div className="featured-image">
-                        <img src={recentListings[0].images[0].image} alt={recentListings[0].title} />
-                      </div>
-                    ) : (
-                      <div className="featured-image placeholder">
-                        <span>🏷️</span>
-                      </div>
-                    )}
-                    <div className="featured-info">
-                      <h3>{recentListings[0].title}</h3>
-                      <p className="featured-price">{formatPrice(recentListings[0].price)}</p>
-                      <p className="featured-meta">
-                        <span>{recentListings[0].property_type}</span>
-                        <span>•</span>
-                        <span>{getTimeAgo(recentListings[0].created_at)}</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <p>No listings yet in this area</p>
-                <Link to={`/${province}/${municipality}/create-listing`} className="btn-primary">
-                  + Create First Listing
-                </Link>
-              </div>
-            )}
+        {/* Featured Listings Section */}
+        <div className="featured-section">
+          <div className="section-header">
+            <h2>🏷️ Featured Listings</h2>
+            <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
+              View all {stats.listings} →
+            </Link>
           </div>
 
-          {/* Right Column - Announcements */}
-          <div className="announcements-section">
-            <div className="section-header">
-              <h2>📢 Latest Announcements</h2>
-              <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
-                View all {stats.announcements} →
-              </Link>
-            </div>
-
-            {recentAnnouncements.length > 0 ? (
-              <div className="announcements-list">
-                {recentAnnouncements.map(announcement => (
-                  <div
-                    key={announcement.id}
-                    className="announcement-item"
-                    onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
-                  >
-                    <div className="announcement-header-inline">
-                      <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
-                      <span className="announcement-type-badge">{announcement.announcement_type}</span>
-                      <span className="announcement-time">{getTimeAgo(announcement.created_at)}</span>
+          {recentListings.length > 0 ? (
+            <div className="featured-listings-grid">
+              {recentListings.map(listing => (
+                <div
+                  key={listing.id}
+                  className="featured-card"
+                  onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
+                >
+                  {listing.first_image ? (
+                    <div className="featured-image">
+                      <img src={listing.first_image} alt={listing.title} />
                     </div>
-                    <h4 className="announcement-title">{announcement.title}</h4>
-                    <p className="announcement-preview">
-                      {announcement.description.length > 80
-                        ? `${announcement.description.substring(0, 80)}...`
-                        : announcement.description}
+                  ) : (
+                    <div className="featured-image">
+                      <span className="display-5">🏝️ IslaList</span>
+                    </div>
+                  )}
+                  <div className="featured-info">
+                    <h3>{listing.title}</h3>
+                    <p className="featured-price">{formatPrice(listing.price)}</p>
+                    <p className="featured-meta">
+                      <span>{listing.category_name}</span>
+                      <span>•</span>
+                      <span>{getTimeAgo(listing.created_at)}</span>
                     </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <p>No announcements yet</p>
-                <Link to={`/${province}/${municipality}/create-announcement`} className="btn-primary">
-                  + Create First Announcement
-                </Link>
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>No listings yet in this area</p>
+              <Link to={`/${province}/${municipality}/create-listing`} className="btn-primary">
+                + Create First Listing
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Latest Announcements Section */}
+        <div className="announcements-section">
+          <div className="section-header">
+            <h2>📢 Latest Announcements</h2>
+            <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
+              View all {stats.announcements} →
+            </Link>
           </div>
+
+          {recentAnnouncements.length > 0 ? (
+            <div className="announcements-grid">
+              {recentAnnouncements.map(announcement => (
+                <div
+                  key={announcement.id}
+                  className="announcement-card"
+                  onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                >
+                  <div className="announcement-header-inline">
+                    <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
+                    <span className="announcement-type-badge">{announcement.announcement_type}</span>
+                  </div>
+                  <h4 className="announcement-title">{announcement.title}</h4>
+                  <p className="announcement-preview">
+                    {announcement.description.length > 120
+                      ? `${announcement.description.substring(0, 120)}...`
+                      : announcement.description}
+                  </p>
+                  <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>No announcements yet</p>
+              <Link to={`/${province}/${municipality}/create-announcement`} className="btn-primary">
+                + Create First Announcement
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Activity Feed - Combined Recent Activity */}
