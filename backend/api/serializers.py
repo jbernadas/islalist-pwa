@@ -235,7 +235,10 @@ class ListingSerializer(serializers.ModelSerializer):
         model = Listing
         fields = [
             'id', 'title', 'description', 'price', 'property_type',
-            'area_sqm', 'bedrooms', 'bathrooms', 'pay_period', 'category', 'category_name',
+            'area_sqm', 'bedrooms', 'bathrooms', 'pay_period',
+            'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
+            'vehicle_mileage', 'vehicle_transmission', 'vehicle_fuel_type', 'vehicle_condition',
+            'category', 'category_name',
             'condition', 'location', 'barangay', 'island', 'seller', 'status',
             'views_count', 'featured', 'created_at', 'updated_at',
             'expires_at', 'images', 'uploaded_images', 'reused_image_ids',
@@ -341,7 +344,9 @@ class ListingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
-            'id', 'title', 'price', 'property_type', 'pay_period', 'location', 'barangay', 'island',
+            'id', 'title', 'price', 'property_type', 'pay_period',
+            'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
+            'location', 'barangay', 'island',
             'category_name', 'seller_name', 'status', 'created_at',
             'first_image', 'bedrooms', 'bathrooms', 'area_sqm',
             'is_favorited'

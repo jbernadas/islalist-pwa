@@ -28,6 +28,14 @@ const CreateListing = () => {
     bedrooms: '',
     bathrooms: '',
     pay_period: 'not_applicable',
+    vehicle_type: '',
+    vehicle_year: '',
+    vehicle_make: '',
+    vehicle_model: '',
+    vehicle_mileage: '',
+    vehicle_transmission: '',
+    vehicle_fuel_type: '',
+    vehicle_condition: '',
     category: '',
     location: '',
     barangay: '',
@@ -110,11 +118,17 @@ const CreateListing = () => {
     const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
     return selectedCategory?.name === 'Real Estate';
   };
-  
-    // Check if current category is Jobs
+
+  // Check if current category is Jobs
   const isJobsCategory = () => {
     const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
     return selectedCategory?.name === 'Jobs';
+  };
+
+  // Check if current category is Vehicles
+  const isVehicleCategory = () => {
+    const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category));
+    return selectedCategory?.name === 'Vehicles';
   };
 
   const handleImageSelection = ({ reusedImages: selected, newFiles }) => {
@@ -357,6 +371,141 @@ const CreateListing = () => {
                   value={formData.bathrooms}
                   onChange={handleChange}
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Vehicle Details - Only show for Vehicle category */}
+        {isVehicleCategory() && (
+          <div className="form-section">
+            <h2>Vehicle Details</h2>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="vehicle_type">Vehicle Type *</label>
+                <select
+                  id="vehicle_type"
+                  name="vehicle_type"
+                  value={formData.vehicle_type}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select vehicle type</option>
+                  <option value="car">Car</option>
+                  <option value="motorcycle">Motorcycle</option>
+                  <option value="truck">Truck</option>
+                  <option value="van">Van</option>
+                  <option value="suv">SUV</option>
+                  <option value="bus">Bus</option>
+                  <option value="boat">Boat</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="vehicle_year">Year</label>
+                <input
+                  type="number"
+                  id="vehicle_year"
+                  name="vehicle_year"
+                  value={formData.vehicle_year}
+                  onChange={handleChange}
+                  placeholder="e.g., 2020"
+                  min="1900"
+                  max={new Date().getFullYear() + 1}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="vehicle_condition">Condition</label>
+                <select
+                  id="vehicle_condition"
+                  name="vehicle_condition"
+                  value={formData.vehicle_condition}
+                  onChange={handleChange}
+                >
+                  <option value="">Select condition</option>
+                  <option value="brand_new">Brand New</option>
+                  <option value="like_new">Like New</option>
+                  <option value="used_excellent">Used - Excellent</option>
+                  <option value="used_good">Used - Good</option>
+                  <option value="used_fair">Used - Fair</option>
+                  <option value="for_parts">For Parts</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="vehicle_make">Make/Brand</label>
+                <input
+                  type="text"
+                  id="vehicle_make"
+                  name="vehicle_make"
+                  value={formData.vehicle_make}
+                  onChange={handleChange}
+                  placeholder="e.g., Toyota, Honda, Yamaha"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="vehicle_model">Model</label>
+                <input
+                  type="text"
+                  id="vehicle_model"
+                  name="vehicle_model"
+                  value={formData.vehicle_model}
+                  onChange={handleChange}
+                  placeholder="e.g., Vios, City, Mio"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="vehicle_mileage">Mileage (km)</label>
+                <input
+                  type="number"
+                  id="vehicle_mileage"
+                  name="vehicle_mileage"
+                  value={formData.vehicle_mileage}
+                  onChange={handleChange}
+                  placeholder="Odometer reading"
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="vehicle_transmission">Transmission</label>
+                <select
+                  id="vehicle_transmission"
+                  name="vehicle_transmission"
+                  value={formData.vehicle_transmission}
+                  onChange={handleChange}
+                >
+                  <option value="">Select transmission</option>
+                  <option value="manual">Manual</option>
+                  <option value="automatic">Automatic</option>
+                  <option value="cvt">CVT</option>
+                  <option value="not_applicable">Not Applicable</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="vehicle_fuel_type">Fuel Type</label>
+                <select
+                  id="vehicle_fuel_type"
+                  name="vehicle_fuel_type"
+                  value={formData.vehicle_fuel_type}
+                  onChange={handleChange}
+                >
+                  <option value="">Select fuel type</option>
+                  <option value="gasoline">Gasoline</option>
+                  <option value="diesel">Diesel</option>
+                  <option value="electric">Electric</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="not_applicable">Not Applicable</option>
+                </select>
               </div>
             </div>
           </div>

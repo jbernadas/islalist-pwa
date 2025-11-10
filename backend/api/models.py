@@ -122,6 +122,41 @@ class Listing(models.Model):
         ('not_applicable', 'Not Applicable'),
     ]
 
+    VEHICLE_TYPE_CHOICES = [
+        ('car', 'Car'),
+        ('motorcycle', 'Motorcycle'),
+        ('truck', 'Truck'),
+        ('van', 'Van'),
+        ('suv', 'SUV'),
+        ('bus', 'Bus'),
+        ('boat', 'Boat'),
+        ('other', 'Other'),
+    ]
+
+    TRANSMISSION_CHOICES = [
+        ('manual', 'Manual'),
+        ('automatic', 'Automatic'),
+        ('cvt', 'CVT'),
+        ('not_applicable', 'Not Applicable'),
+    ]
+
+    FUEL_TYPE_CHOICES = [
+        ('gasoline', 'Gasoline'),
+        ('diesel', 'Diesel'),
+        ('electric', 'Electric'),
+        ('hybrid', 'Hybrid'),
+        ('not_applicable', 'Not Applicable'),
+    ]
+
+    VEHICLE_CONDITION_CHOICES = [
+        ('brand_new', 'Brand New'),
+        ('like_new', 'Like New'),
+        ('used_excellent', 'Used - Excellent'),
+        ('used_good', 'Used - Good'),
+        ('used_fair', 'Used - Fair'),
+        ('for_parts', 'For Parts'),
+    ]
+
     # Basic Information
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -158,6 +193,58 @@ class Listing(models.Model):
         blank=True,
         default='not_applicable',
         help_text="Pay period for job listings"
+    )
+
+    # Vehicle Specific Fields
+    vehicle_type = models.CharField(
+        max_length=20,
+        choices=VEHICLE_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Type of vehicle"
+    )
+    vehicle_year = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Manufacturing year"
+    )
+    vehicle_make = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Vehicle make/brand (e.g., Toyota, Honda)"
+    )
+    vehicle_model = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Vehicle model (e.g., Vios, City)"
+    )
+    vehicle_mileage = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Odometer reading in kilometers"
+    )
+    vehicle_transmission = models.CharField(
+        max_length=20,
+        choices=TRANSMISSION_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Transmission type"
+    )
+    vehicle_fuel_type = models.CharField(
+        max_length=20,
+        choices=FUEL_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Fuel type"
+    )
+    vehicle_condition = models.CharField(
+        max_length=20,
+        choices=VEHICLE_CONDITION_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Vehicle condition (used when category is Vehicle)"
     )
 
     # Categorization
