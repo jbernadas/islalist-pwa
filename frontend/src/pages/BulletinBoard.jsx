@@ -282,6 +282,47 @@ const BulletinBoard = () => {
           </div>
         )}
 
+        {/* Latest Announcements Section */}
+        <div className="announcements-section">
+          <div className="section-header">
+            <h2>📢 Latest Announcements</h2>
+            <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
+              View all {stats.announcements} →
+            </Link>
+          </div>
+
+          {recentAnnouncements.length > 0 ? (
+            <div className="announcements-grid">
+              {recentAnnouncements.map(announcement => (
+                <div
+                  key={announcement.id}
+                  className="announcement-card"
+                  onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                >
+                  <div className="announcement-header-inline">
+                    <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
+                    <span className="announcement-type-badge">{announcement.announcement_type}</span>
+                  </div>
+                  <h4 className="announcement-title">{announcement.title}</h4>
+                  <p className="announcement-preview">
+                    {announcement.description.length > 120
+                      ? `${announcement.description.substring(0, 120)}...`
+                      : announcement.description}
+                  </p>
+                  <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>No announcements yet</p>
+              <Link to={`/${province}/${municipality}/create-announcement`} className="btn-primary">
+                + Create First Announcement
+              </Link>
+            </div>
+          )}
+        </div>
+        
         {/* Featured Listings Section */}
         <div className="featured-section">
           <div className="section-header">
@@ -352,47 +393,6 @@ const BulletinBoard = () => {
               <p>No listings yet in this area</p>
               <Link to={`/${province}/${municipality}/create-listing`} className="btn-primary">
                 + Create First Listing
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Latest Announcements Section */}
-        <div className="announcements-section">
-          <div className="section-header">
-            <h2>📢 Latest Announcements</h2>
-            <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
-              View all {stats.announcements} →
-            </Link>
-          </div>
-
-          {recentAnnouncements.length > 0 ? (
-            <div className="announcements-grid">
-              {recentAnnouncements.map(announcement => (
-                <div
-                  key={announcement.id}
-                  className="announcement-card"
-                  onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
-                >
-                  <div className="announcement-header-inline">
-                    <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
-                    <span className="announcement-type-badge">{announcement.announcement_type}</span>
-                  </div>
-                  <h4 className="announcement-title">{announcement.title}</h4>
-                  <p className="announcement-preview">
-                    {announcement.description.length > 120
-                      ? `${announcement.description.substring(0, 120)}...`
-                      : announcement.description}
-                  </p>
-                  <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <p>No announcements yet</p>
-              <Link to={`/${province}/${municipality}/create-announcement`} className="btn-primary">
-                + Create First Announcement
               </Link>
             </div>
           )}
