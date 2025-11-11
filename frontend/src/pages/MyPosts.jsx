@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI, announcementsAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './MyPosts.css';
 
 const MyPosts = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const [listings, setListings] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,11 +131,6 @@ const MyPosts = () => {
     return `/${provinceSlug}/${municipalitySlug}/announcements/${announcement.id}/edit`;
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   // Combine and sort posts
   const allPosts = [
     ...listings.map(l => ({ ...l, postType: 'listing', sortDate: new Date(l.created_at) })),
@@ -152,20 +146,12 @@ const MyPosts = () => {
 
   return (
     <div className="my-listings-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <button onClick={() => navigate('/')} className="btn-back">← Home</button>
-          <h1>My Posts</h1>
-          <div className="header-actions">
-            <button onClick={() => navigate('/profile')} className="btn-secondary">
-              Profile
-            </button>
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="My Posts"
+        onLogoClick={() => navigate('/')}
+        showProfileButton={true}
+        onProfileClick={() => navigate('/profile')}
+      />
 
       <div className="my-listings-content">
         <div className="filter-tabs">

@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { announcementsAPI, provincesAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './CreateListing.css';
 
 const CreateAnnouncement = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
-  const { logout } = useAuth();
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -114,24 +113,12 @@ const CreateAnnouncement = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   return (
     <div className="create-listing-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <div onClick={() => navigate(`/${province}/${municipality}`)} className="brand">
-            🏝️ IslaList
-          </div>
-          <h1>Create Announcement</h1>
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="Create Announcement"
+        onLogoClick={() => navigate(`/${province}/${municipality}`)}
+      />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}

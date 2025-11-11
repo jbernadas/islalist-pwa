@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './MyPosts.css';
 
 const Favorites = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -62,29 +61,14 @@ const Favorites = () => {
     });
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   return (
     <div className="my-listings-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <div onClick={() => navigate('/')} className="brand">
-            🏝️ IslaList
-          </div>
-          <h1>My Favorites</h1>
-          <div className="header-actions">
-            <button onClick={() => navigate('/profile')} className="btn-secondary">
-              Profile
-            </button>
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="My Favorites"
+        onLogoClick={() => navigate('/')}
+        showProfileButton={true}
+        onProfileClick={() => navigate('/profile')}
+      />
 
       <div className="my-listings-content">
         {loading ? (

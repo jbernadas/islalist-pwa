@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI, provincesAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import ImageSelectorModal from '../components/ImageSelectorModal';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './CreateListing.css';
 
 const CreateListing = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
-  const { logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
@@ -208,11 +207,6 @@ const CreateListing = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   // Helper function to build city/municipality-scoped URLs
   const getMunicipalityPath = (path = '') => {
     return `/${province}/${municipality}${path}`;
@@ -220,17 +214,10 @@ const CreateListing = () => {
 
   return (
     <div className="create-listing-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <div onClick={() => navigate(`/${province}/${municipality}`)} className="brand">
-            🏝️ IslaList
-          </div>
-          <h1>Create Listing</h1>
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="Create Listing"
+        onLogoClick={() => navigate(`/${province}/${municipality}`)}
+      />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './Profile.css';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -101,28 +102,16 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   if (!user) {
     return null;
   }
 
   return (
     <div className="profile-container">
-      <header className="profile-header">
-        <div className="header-content">
-          <div onClick={() => navigate('/')} className="brand">
-            🏝️ IslaList
-          </div>
-          <h1>My Profile</h1>
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="My Profile"
+        onLogoClick={() => navigate('/')}
+      />
 
       <div className="profile-content">
         <div className="profile-card">

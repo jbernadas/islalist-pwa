@@ -3,12 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { announcementsAPI, provincesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './CreateListing.css';
 
 const EditAnnouncement = () => {
   const { id, province, municipality } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -138,11 +139,6 @@ const EditAnnouncement = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   if (loadingAnnouncement) {
     return (
       <div className="create-listing-container">
@@ -153,17 +149,10 @@ const EditAnnouncement = () => {
 
   return (
     <div className="create-listing-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <div onClick={() => navigate('/my-posts')} className="brand">
-            🏝️ IslaList
-          </div>
-          <h1>Edit Announcement</h1>
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="Edit Announcement"
+        onLogoClick={() => navigate('/my-posts')}
+      />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}

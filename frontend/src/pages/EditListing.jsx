@@ -3,12 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ImageSelectorModal from '../components/ImageSelectorModal';
+import AuthenticatedHeader from '../components/AuthenticatedHeader';
 import './CreateListing.css';
 
 const EditListing = () => {
   const { id, province, municipality } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
@@ -207,11 +208,6 @@ const EditListing = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
   // Helper function to build city/municipality-scoped URLs
   const getMunicipalityPath = (path = '') => {
     return `/${province}/${municipality}${path}`;
@@ -227,17 +223,10 @@ const EditListing = () => {
 
   return (
     <div className="create-listing-container">
-      <header className="listings-header">
-        <div className="header-content">
-          <div onClick={() => navigate('/my-posts')} className="brand">
-            🏝️ IslaList
-          </div>
-          <h1>Edit Listing</h1>
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
-        </div>
-      </header>
+      <AuthenticatedHeader
+        title="Edit Listing"
+        onLogoClick={() => navigate('/my-posts')}
+      />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}
