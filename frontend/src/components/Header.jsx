@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
@@ -19,8 +19,28 @@ const Header = ({
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
-  const [showPostDropdown, setShowPostDropdown] = useState(false);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'post' | 'user' | null
+
+  const toggleDropdown = (dropdownName) => {
+    setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown')) {
+        setActiveDropdown(null);
+      }
+    };
+
+    if (activeDropdown) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [activeDropdown]);
 
   return (
     <header className="app-header">
@@ -135,12 +155,12 @@ const Header = ({
             <button
               className="btn-link dropdown-toggle"
               type="button"
-              onClick={() => setShowPostDropdown(!showPostDropdown)}
-              aria-expanded={showPostDropdown}
+              onClick={() => toggleDropdown('post')}
+              aria-expanded={activeDropdown === 'post'}
             >
               Post
             </button>
-            <ul className={`dropdown-menu ${showPostDropdown ? 'show' : ''}`}>
+            <ul className={`dropdown-menu ${activeDropdown === 'post' ? 'show' : ''}`}>
               <li>
                 <button
                   className="dropdown-item"
@@ -149,7 +169,7 @@ const Header = ({
                       const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
                       const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
                       navigate(`/${lastProvince}/${lastMunicipality}/create-listing`);
-                      setShowPostDropdown(false);
+                      setActiveDropdown(null);
                     } else {
                       const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
                       const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
@@ -169,7 +189,7 @@ const Header = ({
                       const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
                       const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
                       navigate(`/${lastProvince}/${lastMunicipality}/create-announcement`);
-                      setShowPostDropdown(false);
+                      setActiveDropdown(null);
                     } else {
                       const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
                       const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
@@ -188,18 +208,18 @@ const Header = ({
               <button
                 className="btn-link dropdown-toggle"
                 type="button"
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
-                aria-expanded={showUserDropdown}
+                onClick={() => toggleDropdown('user')}
+                aria-expanded={activeDropdown === 'user'}
               >
                 {user?.username || 'Account'}
               </button>
-              <ul className={`dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
+              <ul className={`dropdown-menu ${activeDropdown === 'user' ? 'show' : ''}`}>
                 <li>
                   <button
                     className="dropdown-item"
                     onClick={() => {
                       navigate('/profile');
-                      setShowUserDropdown(false);
+                      setActiveDropdown(null);
                     }}
                   >
                     👤 My Profile
@@ -210,7 +230,7 @@ const Header = ({
                     className="dropdown-item"
                     onClick={() => {
                       navigate('/my-posts');
-                      setShowUserDropdown(false);
+                      setActiveDropdown(null);
                     }}
                   >
                     📋 My Posts
@@ -221,7 +241,7 @@ const Header = ({
                     className="dropdown-item"
                     onClick={() => {
                       navigate('/favorites');
-                      setShowUserDropdown(false);
+                      setActiveDropdown(null);
                     }}
                   >
                     ⭐ My Favorites
@@ -232,7 +252,7 @@ const Header = ({
                     className="dropdown-item dropdown-item-danger"
                     onClick={async () => {
                       await logout();
-                      setShowUserDropdown(false);
+                      setActiveDropdown(null);
                       navigate('/');
                     }}
                   >
