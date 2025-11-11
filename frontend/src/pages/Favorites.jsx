@@ -71,7 +71,9 @@ const Favorites = () => {
     <div className="my-listings-container">
       <header className="listings-header">
         <div className="header-content">
-          <button onClick={() => navigate('/')} className="btn-back">← Home</button>
+          <div onClick={() => navigate('/')} className="brand">
+            🏝️ IslaList
+          </div>
           <h1>My Favorites</h1>
           <div className="header-actions">
             <button onClick={() => navigate('/profile')} className="btn-secondary">

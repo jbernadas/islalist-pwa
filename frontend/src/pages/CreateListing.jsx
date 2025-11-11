@@ -222,7 +222,9 @@ const CreateListing = () => {
     <div className="create-listing-container">
       <header className="listings-header">
         <div className="header-content">
-          <button onClick={() => navigate(-1)} className="btn-back">← Back</button>
+          <div onClick={() => navigate(`/${province}/${municipality}`)} className="brand">
+            🏝️ IslaList
+          </div>
           <h1>Create Listing</h1>
           <button onClick={handleLogout} className="btn-logout">
             Logout
@@ -639,7 +641,7 @@ const CreateListing = () => {
         />
 
         <div className="form-actions">
-          <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
+          <button type="button" onClick={() => navigate(`/${province}/${municipality}`)} className="btn-secondary">
             Cancel
           </button>
           <button type="submit" disabled={loading} className="btn-primary">

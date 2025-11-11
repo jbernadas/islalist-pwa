@@ -114,9 +114,9 @@ const Profile = () => {
     <div className="profile-container">
       <header className="profile-header">
         <div className="header-content">
-          <button onClick={() => navigate('/')} className="btn-back">
-            ← Back
-          </button>
+          <div onClick={() => navigate('/')} className="brand">
+            🏝️ IslaList
+          </div>
           <h1>My Profile</h1>
           <button onClick={handleLogout} className="btn-logout">
             Logout

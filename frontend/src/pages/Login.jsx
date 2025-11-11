@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Auth.css';
@@ -11,9 +11,35 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Check for returnUrl query parameter
+      const searchParams = new URLSearchParams(location.search);
+      const returnUrl = searchParams.get('returnUrl');
+
+      if (returnUrl && isValidReturnUrl(returnUrl)) {
+        // Redirect to the intended page
+        navigate(returnUrl, { replace: true });
+      } else {
+        // Redirect to last visited location or home
+        const lastProvince = localStorage.getItem('lastProvince');
+        const lastMunicipality = localStorage.getItem('lastMunicipality');
+
+        if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
+          navigate(`/${lastProvince}/${lastMunicipality}`, { replace: true });
+        } else if (lastProvince) {
+          navigate(`/${lastProvince}`, { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }
+    }
+  }, [isAuthenticated, navigate, location.search]);
 
   // Helper function to validate returnUrl for security
   const isValidReturnUrl = (url) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Auth.css';
@@ -16,8 +16,24 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      const lastProvince = localStorage.getItem('lastProvince');
+      const lastMunicipality = localStorage.getItem('lastMunicipality');
+
+      if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
+        navigate(`/${lastProvince}/${lastMunicipality}`, { replace: true });
+      } else if (lastProvince) {
+        navigate(`/${lastProvince}`, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     let value = e.target.value;
