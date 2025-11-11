@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Auth.css';
 
@@ -13,6 +13,14 @@ const Login = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Helper function to validate returnUrl for security
+  const isValidReturnUrl = (url) => {
+    if (!url) return false;
+    // Must start with '/' and not start with '//' (to prevent open redirects)
+    return url.startsWith('/') && !url.startsWith('//');
+  };
 
   const handleChange = (e) => {
     setCredentials({
@@ -29,16 +37,25 @@ const Login = () => {
     const result = await login(credentials);
 
     if (result.success) {
-      // Redirect to last visited location or home
-      const lastProvince = localStorage.getItem('lastProvince');
-      const lastMunicipality = localStorage.getItem('lastMunicipality');
+      // Check for returnUrl query parameter
+      const searchParams = new URLSearchParams(location.search);
+      const returnUrl = searchParams.get('returnUrl');
 
-      if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
-        navigate(`/${lastProvince}/${lastMunicipality}`);
-      } else if (lastProvince) {
-        navigate(`/${lastProvince}`);
+      if (returnUrl && isValidReturnUrl(returnUrl)) {
+        // Redirect to the intended page
+        navigate(returnUrl);
       } else {
-        navigate('/');
+        // Redirect to last visited location or home
+        const lastProvince = localStorage.getItem('lastProvince');
+        const lastMunicipality = localStorage.getItem('lastMunicipality');
+
+        if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
+          navigate(`/${lastProvince}/${lastMunicipality}`);
+        } else if (lastProvince) {
+          navigate(`/${lastProvince}`);
+        } else {
+          navigate('/');
+        }
       }
     } else {
       setError(result.error);

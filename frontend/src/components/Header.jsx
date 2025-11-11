@@ -120,7 +120,10 @@ const Header = ({
                       navigate(`/${lastProvince}/${lastMunicipality}/create-listing`);
                       setShowPostDropdown(false);
                     } else {
-                      navigate('/login');
+                      const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
+                      const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
+                      const returnUrl = `/${lastProvince}/${lastMunicipality}/create-listing`;
+                      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
                     }
                   }}
                 >
@@ -137,7 +140,10 @@ const Header = ({
                       navigate(`/${lastProvince}/${lastMunicipality}/create-announcement`);
                       setShowPostDropdown(false);
                     } else {
-                      navigate('/login');
+                      const lastProvince = localStorage.getItem('lastProvince') || 'siquijor';
+                      const lastMunicipality = localStorage.getItem('lastMunicipality') || 'san-juan';
+                      const returnUrl = `/${lastProvince}/${lastMunicipality}/create-announcement`;
+                      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
                     }
                   }}
                 >
