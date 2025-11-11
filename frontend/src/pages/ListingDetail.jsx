@@ -262,9 +262,10 @@ const ListingDetail = () => {
 
           <div className="property-info">
             <div className="info-grid">
-              {listing.property_type && (
+              {/* Real Estate Details */}
+              {listing.category_name === 'Real Estate' && listing.property_type && (
                 <div className="info-item">
-                  <span className="label">Type</span>
+                  <span className="label">Property Type</span>
                   <span className="value">{listing.property_type}</span>
                 </div>
               )}
@@ -284,6 +285,56 @@ const ListingDetail = () => {
                 <div className="info-item">
                   <span className="label">Area</span>
                   <span className="value">📏 {listing.area_sqm} m²</span>
+                </div>
+              )}
+
+              {/* Vehicle Details */}
+              {listing.category_name === 'Vehicles' && listing.vehicle_type && (
+                <div className="info-item">
+                  <span className="label">Vehicle Type</span>
+                  <span className="value">🚗 {listing.vehicle_type}</span>
+                </div>
+              )}
+              {listing.vehicle_year && (
+                <div className="info-item">
+                  <span className="label">Year</span>
+                  <span className="value">📅 {listing.vehicle_year}</span>
+                </div>
+              )}
+              {listing.vehicle_make && (
+                <div className="info-item">
+                  <span className="label">Make/Brand</span>
+                  <span className="value">{listing.vehicle_make}</span>
+                </div>
+              )}
+              {listing.vehicle_model && (
+                <div className="info-item">
+                  <span className="label">Model</span>
+                  <span className="value">{listing.vehicle_model}</span>
+                </div>
+              )}
+              {listing.vehicle_mileage && (
+                <div className="info-item">
+                  <span className="label">Mileage</span>
+                  <span className="value">🛣️ {listing.vehicle_mileage.toLocaleString()} km</span>
+                </div>
+              )}
+              {listing.vehicle_transmission && (
+                <div className="info-item">
+                  <span className="label">Transmission</span>
+                  <span className="value">⚙️ {listing.vehicle_transmission}</span>
+                </div>
+              )}
+              {listing.vehicle_fuel_type && (
+                <div className="info-item">
+                  <span className="label">Fuel Type</span>
+                  <span className="value">⛽ {listing.vehicle_fuel_type}</span>
+                </div>
+              )}
+              {listing.vehicle_condition && (
+                <div className="info-item">
+                  <span className="label">Condition</span>
+                  <span className="value">{listing.vehicle_condition.replace('_', ' ')}</span>
                 </div>
               )}
             </div>
