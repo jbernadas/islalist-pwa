@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { announcementsAPI, provincesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './CreateListing.css';
 
 const EditAnnouncement = () => {
@@ -149,10 +149,7 @@ const EditAnnouncement = () => {
 
   return (
     <div className="create-listing-container">
-      <AuthenticatedHeader
-        title="Edit Announcement"
-        onLogoClick={() => navigate('/my-posts')}
-      />
+      <Header pageTitle="Edit Announcement" />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}

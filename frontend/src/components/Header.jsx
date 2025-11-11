@@ -8,6 +8,8 @@ const Header = ({
   showProvinceSelector = false,
   showMunicipalitySelector = false,
   showTagline = false,
+  pageTitle = null,
+  breadcrumbs = null,
   province = '',
   municipality = '',
   provinces = [],
@@ -16,8 +18,9 @@ const Header = ({
   onMunicipalityChange = null
 }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [showPostDropdown, setShowPostDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   return (
     <header className="app-header">
@@ -32,6 +35,34 @@ const Header = ({
           <div className="tag-line">
             <h4>Connecting communities across the Philippine Islands</h4>
           </div>
+        )}
+
+        {pageTitle && (
+          <div className="page-title">
+            <h1>{pageTitle}</h1>
+          </div>
+        )}
+
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <nav className="breadcrumb" aria-label="Breadcrumb">
+            {breadcrumbs.map((crumb, index) => (
+              <span key={index} className="breadcrumb-item">
+                {crumb.path ? (
+                  <button
+                    onClick={() => navigate(crumb.path)}
+                    className="breadcrumb-link"
+                  >
+                    {crumb.label}
+                  </button>
+                ) : (
+                  <span className="breadcrumb-current">{crumb.label}</span>
+                )}
+                {index < breadcrumbs.length - 1 && (
+                  <span className="breadcrumb-separator"> › </span>
+                )}
+              </span>
+            ))}
+          </nav>
         )}
 
         {(showProvinceSelector || showMunicipalitySelector) && (
@@ -152,19 +183,73 @@ const Header = ({
               </li>
             </ul>
           </div>
-          <button
-            onClick={() => {
-              if (isAuthenticated) {
-                navigate('/profile');
-              } else {
-                navigate('/login');
-              }
-            }}
-            className="btn-link"
-            title="Account"
-          >
-            Acct
-          </button>
+          {isAuthenticated ? (
+            <div className="dropdown">
+              <button
+                className="btn-link dropdown-toggle"
+                type="button"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                aria-expanded={showUserDropdown}
+              >
+                {user?.username || 'Account'}
+              </button>
+              <ul className={`dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      navigate('/profile');
+                      setShowUserDropdown(false);
+                    }}
+                  >
+                    👤 My Profile
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      navigate('/my-posts');
+                      setShowUserDropdown(false);
+                    }}
+                  >
+                    📋 My Posts
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      navigate('/favorites');
+                      setShowUserDropdown(false);
+                    }}
+                  >
+                    ⭐ My Favorites
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="dropdown-item dropdown-item-danger"
+                    onClick={async () => {
+                      await logout();
+                      setShowUserDropdown(false);
+                      navigate('/');
+                    }}
+                  >
+                    🚪 Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="btn-link"
+              title="Account"
+            >
+              Acct
+            </button>
+          )}
         </div>
       </div>
     </header>

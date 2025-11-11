@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI, provincesAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
 import ImageSelectorModal from '../components/ImageSelectorModal';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './CreateListing.css';
 
 const CreateListing = () => {
@@ -214,10 +214,7 @@ const CreateListing = () => {
 
   return (
     <div className="create-listing-container">
-      <AuthenticatedHeader
-        title="Create Listing"
-        onLogoClick={() => navigate(`/${province}/${municipality}`)}
-      />
+      <Header pageTitle="Post a Listing" />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}

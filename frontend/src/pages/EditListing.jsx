@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ImageSelectorModal from '../components/ImageSelectorModal';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './CreateListing.css';
 
 const EditListing = () => {
@@ -223,10 +223,7 @@ const EditListing = () => {
 
   return (
     <div className="create-listing-container">
-      <AuthenticatedHeader
-        title="Edit Listing"
-        onLogoClick={() => navigate('/my-posts')}
-      />
+      <Header pageTitle="Edit Listing" />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}

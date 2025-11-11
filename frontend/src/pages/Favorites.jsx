@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI } from '../services/api';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './MyPosts.css';
 
 const Favorites = () => {
@@ -63,12 +63,7 @@ const Favorites = () => {
 
   return (
     <div className="my-listings-container">
-      <AuthenticatedHeader
-        title="My Favorites"
-        onLogoClick={() => navigate('/')}
-        showProfileButton={true}
-        onProfileClick={() => navigate('/profile')}
-      />
+      <Header pageTitle="My Favorites" />
 
       <div className="my-listings-content">
         {loading ? (

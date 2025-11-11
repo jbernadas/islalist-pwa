@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
 import './ListingDetail.css';
 
 const AnnouncementDetail = () => {
@@ -78,13 +79,16 @@ const AnnouncementDetail = () => {
 
   const isOwner = user && announcement.author && user.id === announcement.author.id;
 
+  // Build breadcrumbs for the header
+  const breadcrumbs = announcement ? [
+    { label: 'Announcements', path: `/${province}/${municipality}/announcements` },
+    { label: announcement.title, path: null }
+  ] : [];
+
   return (
-    <div className="listing-detail-container">
-      <header className="detail-header">
-        <button onClick={() => navigate(`/${province}/${municipality}/announcements`)} className="btn-back">
-          ← Back to Announcements
-        </button>
-      </header>
+    <>
+      <Header breadcrumbs={breadcrumbs} />
+      <div className="listing-detail-container">
 
       <div className="announcement-detail-content">
         <div className="announcement-detail-header">
@@ -135,6 +139,7 @@ const AnnouncementDetail = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

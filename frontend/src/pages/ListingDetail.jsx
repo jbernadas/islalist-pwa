@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listingsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
 import './ListingDetail.css';
 
 const ListingDetail = () => {
@@ -151,8 +152,15 @@ const ListingDetail = () => {
     return `/${province}/${municipality}${path}`;
   };
 
+  // Build breadcrumbs for the header
+  const breadcrumbs = listing ? [
+    { label: 'Listings', path: getMunicipalityPath('/listings') },
+    { label: listing.title, path: null }
+  ] : [];
+
   return (
     <>
+      <Header breadcrumbs={breadcrumbs} />
       {showLightbox && (
         <div className="lightbox-overlay" onClick={handleLightboxClick}>
           <button className="lightbox-close" onClick={closeLightbox}>×</button>
@@ -184,11 +192,6 @@ const ListingDetail = () => {
         </div>
       )}
       <div className="listing-detail-container">
-        <header className="detail-header">
-        <button onClick={() => navigate(getMunicipalityPath('/listings'))} className="btn-back">
-          🡐 Back to Listings
-        </button>
-      </header>
 
       <div className="detail-content">
         <div className="image-gallery">

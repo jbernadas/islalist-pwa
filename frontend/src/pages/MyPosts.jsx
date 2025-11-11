@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI, announcementsAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './MyPosts.css';
 
 const MyPosts = () => {
@@ -146,12 +146,7 @@ const MyPosts = () => {
 
   return (
     <div className="my-listings-container">
-      <AuthenticatedHeader
-        title="My Posts"
-        onLogoClick={() => navigate('/')}
-        showProfileButton={true}
-        onProfileClick={() => navigate('/profile')}
-      />
+      <Header pageTitle="My Posts" />
 
       <div className="my-listings-content">
         <div className="filter-tabs">

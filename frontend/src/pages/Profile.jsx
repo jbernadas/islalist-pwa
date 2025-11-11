@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './Profile.css';
 
 const Profile = () => {
@@ -108,10 +108,7 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
-      <AuthenticatedHeader
-        title="My Profile"
-        onLogoClick={() => navigate('/')}
-      />
+      <Header pageTitle="My Profile" />
 
       <div className="profile-content">
         <div className="profile-card">

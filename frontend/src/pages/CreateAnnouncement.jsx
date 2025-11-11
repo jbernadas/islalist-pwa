@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { announcementsAPI, provincesAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
-import AuthenticatedHeader from '../components/AuthenticatedHeader';
+import Header from '../components/Header';
 import './CreateListing.css';
 
 const CreateAnnouncement = () => {
@@ -115,10 +115,7 @@ const CreateAnnouncement = () => {
 
   return (
     <div className="create-listing-container">
-      <AuthenticatedHeader
-        title="Create Announcement"
-        onLogoClick={() => navigate(`/${province}/${municipality}`)}
-      />
+      <Header pageTitle="Post an Announcement" />
 
       <form onSubmit={handleSubmit} className="listing-form">
         {error && <div className="error-message">{error}</div>}
