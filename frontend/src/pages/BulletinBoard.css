@@ -284,12 +284,10 @@
 .section-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
   margin: 0;
 }
 
 .view-all-link {
-  color: white;
   text-decoration: none;
   font-size: 0.875rem;
   opacity: 0.9;
@@ -331,7 +329,7 @@
   width: 100%;
   height: 250px;
   overflow: hidden;
-  background: #f0f0f0;
+  background: #c5c4c4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -477,7 +475,7 @@
 
 .announcement-preview {
   font-size: 0.875rem;
-  color: #666;
+  color: #FFFFFF;
   margin: 0 0 1rem 0;
   line-height: 1.5;
   flex: 1;
