@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { provincesAPI, listingsAPI, announcementsAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './BulletinBoard.css';
@@ -8,6 +9,7 @@ import './BulletinBoard.css';
 const BulletinBoard = () => {
   const { province, municipality } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -282,16 +284,48 @@ const BulletinBoard = () => {
           </div>
         )}
 
-        {/* Latest Announcements Section */}
-        <div className="announcements-section">
-          <div className="section-header">
-            <h2>📢 Latest Announcements</h2>
-            <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
-              View all {stats.announcements} →
-            </Link>
+        {/* Welcome Hero for Completely Empty Municipality */}
+        {stats.listings === 0 && stats.announcements === 0 && (
+          <div className="welcome-hero">
+            <div className="hero-content">
+              <div className="hero-icon">🏝️</div>
+              <h2>Welcome to {displayMunicipality}!</h2>
+              <p className="hero-description">
+                This community is just getting started. Be a pioneer and help build this local hub!
+              </p>
+              {isAuthenticated ? (
+                <div className="hero-actions">
+                  <Link
+                    to={`/${province}/${municipality}/create-listing`}
+                    className="btn-hero btn-hero-primary"
+                  >
+                    📝 Post First Listing
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/create-announcement`}
+                    className="btn-hero btn-hero-secondary"
+                  >
+                    📢 Post First Announcement
+                  </Link>
+                </div>
+              ) : (
+                <p className="hero-hint">
+                  <Link to="/login" className="hero-link">Sign in</Link> to start contributing to your community
+                </p>
+              )}
+            </div>
           </div>
+        )}
 
-          {recentAnnouncements.length > 0 ? (
+        {/* Latest Announcements Section - Only show if announcements exist */}
+        {recentAnnouncements.length > 0 && (
+          <div className="announcements-section">
+            <div className="section-header">
+              <h2>📢 Latest Announcements</h2>
+              <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
+                View all {stats.announcements} →
+              </Link>
+            </div>
             <div className="announcements-grid">
               {recentAnnouncements.map(announcement => (
                 <div
@@ -313,26 +347,18 @@ const BulletinBoard = () => {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="empty-state">
-              <p>No announcements yet</p>
-              <Link to={`/${province}/${municipality}/create-announcement`} className="btn-primary">
-                + Create First Announcement
+          </div>
+        )}
+
+        {/* Featured Listings Section - Only show if listings exist */}
+        {recentListings.length > 0 && (
+          <div className="featured-section">
+            <div className="section-header">
+              <h2>🏷️ Featured Listings</h2>
+              <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
+                View all {stats.listings} →
               </Link>
             </div>
-          )}
-        </div>
-        
-        {/* Featured Listings Section */}
-        <div className="featured-section">
-          <div className="section-header">
-            <h2>🏷️ Featured Listings</h2>
-            <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
-              View all {stats.listings} →
-            </Link>
-          </div>
-
-          {recentListings.length > 0 ? (
             <div className="featured-listings-grid">
               {recentListings.map(listing => (
                 <div
@@ -388,15 +414,8 @@ const BulletinBoard = () => {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="empty-state">
-              <p>No listings yet in this area</p>
-              <Link to={`/${province}/${municipality}/create-listing`} className="btn-primary">
-                + Create First Listing
-              </Link>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Activity Feed - Combined Recent Activity */}
         <div className="activity-feed">
