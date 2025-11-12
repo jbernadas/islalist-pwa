@@ -101,49 +101,47 @@
 
 .municipalities-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
 
 .municipality-card {
   background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
 }
 
 .municipality-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
   border-color: #667eea;
 }
 
-.municipality-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
 .municipality-name {
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.municipality-tagline {
-  color: #6c757d;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
+  margin: 0;
+  flex: 1;
 }
 
 .municipality-arrow {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: #667eea;
   font-weight: 700;
+  margin-left: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.municipality-card:hover .municipality-arrow {
+  transform: translateX(4px);
 }
 
 /* Features Section */
@@ -302,6 +300,10 @@
   .section-subheading {
     font-size: 1.1rem;
   }
+
+  .municipalities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
@@ -406,8 +408,21 @@
     font-size: 1.5rem;
   }
 
+  .municipalities-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
   .municipality-card {
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .municipality-name {
+    font-size: 1rem;
+  }
+
+  .municipality-arrow {
+    font-size: 1rem;
   }
 
   .feature-card {

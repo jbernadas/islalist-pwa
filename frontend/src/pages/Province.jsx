@@ -173,9 +173,7 @@ const Province = () => {
                   className="municipality-card"
                   onClick={() => handleMunicipalityClick(municipality)}
                 >
-                  <div className="municipality-icon">📍</div>
                   <h3 className="municipality-name">{municipality}</h3>
-                  <p className="municipality-tagline">Explore community</p>
                   <div className="municipality-arrow">→</div>
                 </div>
               ))}
