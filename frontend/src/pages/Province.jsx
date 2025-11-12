@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { provincesAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
@@ -97,11 +97,6 @@ const Province = () => {
     }
   };
 
-  const handleMunicipalityClick = (municipality) => {
-    const municipalitySlug = slugify(municipality);
-    navigate(`/${province}/${municipalitySlug}`);
-  };
-
   const handleMunicipalityChange = (e) => {
     const selectedMunicipality = e.target.value;
     if (selectedMunicipality && selectedMunicipality !== 'all') {
@@ -144,7 +139,7 @@ const Province = () => {
         onMunicipalityChange={handleMunicipalityChange}
       />
 
-      {/* Hero Section */}
+      {/* Hero Section with Integrated Sticky Municipality Nav */}
       <div className="province-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
@@ -158,28 +153,28 @@ const Province = () => {
         </div>
       </div>
 
-      <div className="province-content">
-
-        {/* Explore Section */}
-        <div className="explore-section">
-          <h2 className="section-heading">Explore by Municipality</h2>
-          <p className="section-subheading">Choose your city or town to see local listings and community updates</p>
-
-          {municipalityNames.length > 0 && (
-            <div className="municipalities-grid">
-              {municipalityNames.map((municipality) => (
-                <div
-                  key={municipality}
-                  className="municipality-card"
-                  onClick={() => handleMunicipalityClick(municipality)}
+      {/* Sticky Municipality Navigation - Visually Part of Hero */}
+      {municipalityNames.length > 0 && (
+        <nav className="municipalities-nav-hero">
+          <div className="municipalities-nav-content">
+            {municipalityNames.map((municipality, index) => (
+              <Fragment key={municipality}>
+                <Link
+                  to={`/${province}/${slugify(municipality)}`}
+                  className="municipality-nav-link"
                 >
-                  <h3 className="municipality-name">{municipality}</h3>
-                  <div className="municipality-arrow">→</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                  {municipality}
+                </Link>
+                {index < municipalityNames.length - 1 && (
+                  <span className="municipality-nav-separator">•</span>
+                )}
+              </Fragment>
+            ))}
+          </div>
+        </nav>
+      )}
+
+      <div className="province-content">
 
         {/* What's Available Section */}
         <div className="features-section">
