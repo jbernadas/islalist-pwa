@@ -149,32 +149,16 @@ const Province = () => {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">Welcome to {provinceName}</h1>
-          <p className="hero-subtitle">Discover the Island Paradise of the Philippines</p>
+          <p className="hero-subtitle">
+            {municipalities.length} {municipalities.length === 1 ? 'municipality' : 'municipalities'}, one island community
+          </p>
           <p className="hero-description">
-            Explore local listings, community announcements, and connect with your island community
+            Your local marketplace for buying, selling, and staying connected
           </p>
         </div>
       </div>
 
       <div className="province-content">
-        {/* Quick Stats */}
-        <div className="stats-section">
-          <div className="stat-card">
-            <div className="stat-icon">🏘️</div>
-            <div className="stat-number">{municipalities.length}</div>
-            <div className="stat-label">Municipalities</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">🏝️</div>
-            <div className="stat-number">1</div>
-            <div className="stat-label">Beautiful Island</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">🌊</div>
-            <div className="stat-number">∞</div>
-            <div className="stat-label">Opportunities</div>
-          </div>
-        </div>
 
         {/* Explore Section */}
         <div className="explore-section">
