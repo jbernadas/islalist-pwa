@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { categoriesAPI, listingsAPI } from '../services/api';
+import { categoriesAPI, listingsAPI, provincesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ImageSelectorModal from '../components/ImageSelectorModal';
 import Header from '../components/Header';
@@ -11,6 +11,8 @@ const EditListing = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [categories, setCategories] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [municipalities, setMunicipalities] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -40,12 +42,22 @@ const EditListing = () => {
     location: '',
     barangay: '',
     island: 'Siquijor',
+    province_id: '',
   });
 
   useEffect(() => {
-    fetchCategories();
-    fetchListing();
-  }, [id]);
+    const loadData = async () => {
+      await fetchCategories();
+      await fetchProvinces();
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (provinces.length > 0) {
+      fetchListing();
+    }
+  }, [id, provinces]);
 
   const fetchCategories = async () => {
     try {
@@ -54,6 +66,34 @@ const EditListing = () => {
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (err) {
       console.error('Error fetching categories:', err);
+    }
+  };
+
+  const fetchProvinces = async () => {
+    try {
+      const cachedProvinces = localStorage.getItem('provinces');
+      let provincesData;
+
+      if (cachedProvinces) {
+        provincesData = JSON.parse(cachedProvinces);
+      } else {
+        const response = await provincesAPI.getAll();
+        provincesData = response.data.results || response.data;
+        localStorage.setItem('provinces', JSON.stringify(provincesData));
+      }
+
+      setProvinces(provincesData);
+    } catch (err) {
+      console.error('Error fetching provinces:', err);
+    }
+  };
+
+  const fetchMunicipalities = async (provinceSlug) => {
+    try {
+      const response = await provincesAPI.getMunicipalities(provinceSlug);
+      setMunicipalities(response.data);
+    } catch (err) {
+      console.error('Error fetching municipalities:', err);
     }
   };
 
@@ -67,6 +107,13 @@ const EditListing = () => {
         setError('You can only edit your own listings');
         setTimeout(() => navigate('/my-posts'), 2000);
         return;
+      }
+
+      // Find province_id from island name
+      const currentProvince = provinces.find(p => p.name === listing.island);
+      if (currentProvince) {
+        // Fetch municipalities for this province
+        await fetchMunicipalities(currentProvince.slug);
       }
 
       // Populate form with existing data
@@ -91,6 +138,7 @@ const EditListing = () => {
         location: listing.location || '',
         barangay: listing.barangay || '',
         island: listing.island || 'Siquijor',
+        province_id: currentProvince?.id || '',
       });
 
       setExistingImages(listing.images || []);
@@ -511,18 +559,56 @@ const EditListing = () => {
 
           <div className="form-row">
             <div className="form-group">
+              <label htmlFor="province_id">Province *</label>
+              <select
+                id="province_id"
+                name="province_id"
+                value={formData.province_id}
+                onChange={(e) => {
+                  const provinceId = e.target.value;
+                  const selectedProvince = provinces.find(p => p.id === parseInt(provinceId));
+                  setFormData(prev => ({
+                    ...prev,
+                    province_id: provinceId,
+                    island: selectedProvince ? selectedProvince.name : '',
+                    location: ''
+                  }));
+                  // Fetch municipalities for selected province
+                  if (selectedProvince) {
+                    fetchMunicipalities(selectedProvince.slug);
+                  }
+                }}
+                required
+              >
+                <option value="">Select province</option>
+                {provinces.map(prov => (
+                  <option key={prov.id} value={prov.id}>
+                    {prov.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
               <label htmlFor="location">Location (City/Municipality) *</label>
-              <input
-                type="text"
+              <select
                 id="location"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 required
-                placeholder="e.g., San Juan, Siquijor"
-              />
+              >
+                <option value="">Select a municipality</option>
+                {municipalities.map(mun => (
+                  <option key={mun.id} value={mun.name}>
+                    {mun.name}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
 
+          <div className="form-row">
             <div className="form-group">
               <label htmlFor="barangay">Barangay (Optional)</label>
               <input
@@ -532,21 +618,6 @@ const EditListing = () => {
                 value={formData.barangay}
                 onChange={handleChange}
                 placeholder="e.g., Poblacion"
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="island">Province *</label>
-              <input
-                type="text"
-                id="island"
-                name="island"
-                value={formData.island}
-                onChange={handleChange}
-                required
-                placeholder="e.g., Siquijor"
               />
             </div>
           </div>

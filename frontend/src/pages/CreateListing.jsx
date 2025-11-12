@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI, provincesAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import ImageSelectorModal from '../components/ImageSelectorModal';
 import Header from '../components/Header';
@@ -10,6 +11,7 @@ const CreateListing = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
   const [categories, setCategories] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,11 +41,13 @@ const CreateListing = () => {
     location: '',
     barangay: '',
     island: 'Siquijor',
+    province_id: '',
     is_province_wide: false,
   });
 
   useEffect(() => {
     fetchCategories();
+    fetchProvinces();
     fetchMunicipalities();
   }, [province, municipality]);
 
@@ -70,6 +74,35 @@ const CreateListing = () => {
       }
     } catch (err) {
       console.error('Error fetching categories:', err);
+    }
+  };
+
+  const fetchProvinces = async () => {
+    try {
+      const cachedProvinces = localStorage.getItem('provinces');
+      let provincesData;
+
+      if (cachedProvinces) {
+        provincesData = JSON.parse(cachedProvinces);
+      } else {
+        const response = await provincesAPI.getAll();
+        provincesData = response.data.results || response.data;
+        localStorage.setItem('provinces', JSON.stringify(provincesData));
+      }
+
+      setProvinces(provincesData);
+
+      // Find current province and set it
+      const currentProvince = provincesData.find(p => p.slug === province);
+      if (currentProvince) {
+        setFormData(prev => ({
+          ...prev,
+          province_id: currentProvince.id,
+          island: currentProvince.name
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching provinces:', err);
     }
   };
 
@@ -518,6 +551,40 @@ const CreateListing = () => {
 
           <div className="form-row">
             <div className="form-group">
+              <label htmlFor="province_id">Province *</label>
+              <select
+                id="province_id"
+                name="province_id"
+                value={formData.province_id}
+                onChange={(e) => {
+                  const provinceId = e.target.value;
+                  const selectedProvince = provinces.find(p => p.id === parseInt(provinceId));
+                  setFormData(prev => ({
+                    ...prev,
+                    province_id: provinceId,
+                    island: selectedProvince ? selectedProvince.name : '',
+                    location: '',
+                    is_province_wide: false
+                  }));
+                  // Fetch municipalities for selected province
+                  if (selectedProvince) {
+                    provincesAPI.getMunicipalities(selectedProvince.slug).then(response => {
+                      setMunicipalities(response.data);
+                    });
+                  }
+                }}
+                required
+              >
+                <option value="">Select province</option>
+                {provinces.map(prov => (
+                  <option key={prov.id} value={prov.id}>
+                    {prov.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
               <label htmlFor="location">Location (City/Municipality) *</label>
               <select
                 id="location"
@@ -537,37 +604,22 @@ const CreateListing = () => {
               <p className="help-text">
                 {formData.is_province_wide
                   ? `Set to province-wide: ${formData.location}`
-                  : `Currently set to: ${currentMunicipalityName || 'None'}. You can change this if needed.`}
+                  : ``}
               </p>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="barangay">Barangay (Optional)</label>
-              <input
-                type="text"
-                id="barangay"
-                name="barangay"
-                value={formData.barangay}
-                onChange={handleChange}
-                placeholder="e.g., Poblacion"
-                disabled={formData.is_province_wide}
-              />
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="island">Province *</label>
-              <input
-                type="text"
-                id="island"
-                name="island"
-                value={formData.island}
-                onChange={handleChange}
-                required
-                placeholder="e.g., Siquijor"
-              />
-            </div>
+          <div className="form-group">
+            <label htmlFor="barangay">Barangay (Optional)</label>
+            <input
+              type="text"
+              id="barangay"
+              name="barangay"
+              value={formData.barangay}
+              onChange={handleChange}
+              placeholder="e.g., Poblacion"
+              disabled={formData.is_province_wide}
+            />
           </div>
         </div>
 
