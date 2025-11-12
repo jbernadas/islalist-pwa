@@ -242,27 +242,31 @@ const BulletinBoard = () => {
         onMunicipalityChange={handleMunicipalityChange}
       />
 
-      <div className="bulletin-board-content">
-        {/* Header Section */}
-        <div className="page-header">
-          <div className="header-info">
-            <h1>{displayMunicipality}</h1>
-            <p className="subtitle">
+      {/* Hero Section */}
+      <div className="bulletin-hero">
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <div className="hero-info">
+            <h1 className="hero-title">{displayMunicipality}</h1>
+            <p className="hero-subtitle">
               {displayMunicipality !== "All Cities/Municipalities" ? "Community Hub" :
                (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
             </p>
           </div>
-          <div className="quick-stats">
-            <div className="stat-item">
-              <span className="stat-number">{stats.listings}</span>
-              <span className="stat-label">Listings</span>
+          <div className="hero-stats">
+            <div className="hero-stat-item">
+              <span className="hero-stat-number">{stats.listings}</span>
+              <span className="hero-stat-label">Listings</span>
             </div>
-            <div className="stat-item">
-              <span className="stat-number">{stats.announcements}</span>
-              <span className="stat-label">Announcements</span>
+            <div className="hero-stat-item">
+              <span className="hero-stat-number">{stats.announcements}</span>
+              <span className="hero-stat-label">Announcements</span>
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="bulletin-board-content">
 
         {/* Urgent Alerts Banner */}
         {urgentAnnouncements.length > 0 && (
@@ -287,10 +291,10 @@ const BulletinBoard = () => {
         {/* Welcome Hero for Completely Empty Municipality */}
         {stats.listings === 0 && stats.announcements === 0 && (
           <div className="welcome-hero">
-            <div className="hero-content">
+            <div className="welcome-content">
               <div className="hero-icon">🏝️</div>
               <h2>Welcome to {displayMunicipality}!</h2>
-              <p className="hero-description">
+              <p className="welcome-description">
                 This community is just getting started. Be a pioneer and help build this local hub!
               </p>
               {isAuthenticated ? (
