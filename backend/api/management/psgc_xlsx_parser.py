@@ -37,12 +37,14 @@ def parse_psgc_to_json():
     # Process each row
     for _, row in df.iterrows():
         geo_level = row['Geographic Level']
-        name = row['Name']
-        psgc_code = row['10-digit PSGC']
 
         # Skip if name is NaN
-        if pd.isna(name):
+        if pd.isna(row['Name']):
             continue
+
+        # Strip whitespace from name
+        name = str(row['Name']).strip()
+        psgc_code = row['10-digit PSGC']
 
         # Skip regions - we don't need them
         if geo_level == 'Reg':
