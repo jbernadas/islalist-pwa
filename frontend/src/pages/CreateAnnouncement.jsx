@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { announcementsAPI, provincesAPI } from '../services/api';
+import { announcementsAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './CreateListing.css';
@@ -10,6 +10,7 @@ const CreateAnnouncement = () => {
   const { province, municipality } = useParams();
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
+  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,6 +58,8 @@ const CreateAnnouncement = () => {
         const currentMunicipality = municipalitiesData.find(m => slugify(m.name) === municipality);
         if (currentMunicipality) {
           setFormData(prev => ({ ...prev, municipality_id: currentMunicipality.id }));
+          // Fetch barangays for this municipality
+          fetchBarangays(currentMunicipality.id);
         }
       }
     } catch (err) {
@@ -64,9 +67,33 @@ const CreateAnnouncement = () => {
     }
   };
 
+  const fetchBarangays = async (municipalityId) => {
+    if (!municipalityId) {
+      setBarangays([]);
+      return;
+    }
+    try {
+      const response = await barangaysAPI.getAll({ municipality: municipalityId });
+      const barangaysData = response.data.results || response.data;
+      setBarangays(Array.isArray(barangaysData) ? barangaysData : []);
+    } catch (err) {
+      console.error('Error fetching barangays:', err);
+      setBarangays([]);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Fetch barangays when municipality changes
+    if (name === 'municipality_id' && value) {
+      fetchBarangays(value);
+      setFormData(prev => ({ ...prev, barangay: '' })); // Clear old barangay selection
+    } else if (name === 'municipality_id' && !value) {
+      setBarangays([]);
+      setFormData(prev => ({ ...prev, barangay: '' }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -256,14 +283,20 @@ const CreateAnnouncement = () => {
 
           <div className="form-group">
             <label htmlFor="barangay">Barangay (Optional)</label>
-            <input
-              type="text"
+            <select
               id="barangay"
               name="barangay"
               value={formData.barangay}
               onChange={handleChange}
-              placeholder="e.g., Poblacion"
-            />
+              disabled={barangays.length === 0}
+            >
+              <option value="">Select your barangay</option>
+              {barangays.map(barangay => (
+                <option key={barangay.id} value={barangay.name}>
+                  {barangay.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">

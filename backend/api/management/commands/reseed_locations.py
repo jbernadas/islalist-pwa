@@ -1,11 +1,11 @@
 import json
 import os
 from django.core.management.base import BaseCommand
-from api.models import Province, Municipality
+from api.models import Province, Municipality, Barangay
 
 
 class Command(BaseCommand):
-    help = 'Reseed database with Philippine provinces and cities/municipalities'
+    help = 'Reseed database with Philippine provinces, cities/municipalities, and barangays'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -20,17 +20,19 @@ class Command(BaseCommand):
         # Show current counts
         province_count = Province.objects.count()
         municipality_count = Municipality.objects.count()
+        barangay_count = Barangay.objects.count()
 
         self.stdout.write('='*50)
         self.stdout.write(self.style.WARNING('DATABASE RESEED'))
         self.stdout.write('='*50)
         self.stdout.write(f'Current provinces: {province_count}')
         self.stdout.write(f'Current cities/municipalities: {municipality_count}')
+        self.stdout.write(f'Current barangays: {barangay_count}')
         self.stdout.write('')
 
         # Confirmation
         if not no_input:
-            confirm = input('This will DELETE all provinces and cities/municipalities. Continue? (yes/no): ')
+            confirm = input('This will DELETE all provinces, cities/municipalities, and barangays. Continue? (yes/no): ')
             if confirm.lower() != 'yes':
                 self.stdout.write(self.style.ERROR('Operation cancelled.'))
                 return
@@ -39,6 +41,7 @@ class Command(BaseCommand):
         self.stdout.write('')
         self.stdout.write('Deleting existing data...')
 
+        deleted_barangays = Barangay.objects.all().delete()
         deleted_municipalities = Municipality.objects.all().delete()
         deleted_provinces = Province.objects.all().delete()
 
@@ -48,10 +51,13 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f'  Deleted {deleted_municipalities[0]} cities/municipalities')
         )
+        self.stdout.write(
+            self.style.SUCCESS(f'  Deleted {deleted_barangays[0]} barangays')
+        )
 
         # Reseed data
         self.stdout.write('')
-        self.stdout.write('Reseeding provinces and cities/municipalities...')
+        self.stdout.write('Reseeding provinces, cities/municipalities, and barangays...')
 
         # Load Province and Municipality data from JSON file
         json_path = os.path.join(
@@ -62,7 +68,7 @@ class Command(BaseCommand):
         try:
             with open(json_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                provinces_data = data['provinces_data']
+                provinces_data = data['provinces']
         except FileNotFoundError:
             self.stdout.write(
                 self.style.ERROR(
@@ -78,8 +84,12 @@ class Command(BaseCommand):
 
         created_provinces = 0
         created_municipalities = 0
+        created_barangays = 0
 
-        for province_name, municipalities in provinces_data.items():
+        for province_data in provinces_data:
+            province_name = province_data['name']
+            province_code = province_data.get('code', '')
+
             # Create province
             province = Province.objects.create(
                 name=province_name,
@@ -91,8 +101,9 @@ class Command(BaseCommand):
             )
 
             # Create cities/municipalities for this province
-            for municipality_name in municipalities:
-                Municipality.objects.create(
+            for city_mun in province_data['cities_municipalities']:
+                municipality_name = city_mun['name']
+                municipality = Municipality.objects.create(
                     name=municipality_name,
                     province=province,
                     active=True
@@ -104,17 +115,43 @@ class Command(BaseCommand):
                     )
                 )
 
+                # Create barangays for this city/municipality
+                for barangay_data in city_mun.get('barangays', []):
+                    barangay_name = barangay_data['name']
+                    barangay_code = barangay_data.get('code', '')
+                    Barangay.objects.create(
+                        name=barangay_name,
+                        psgc_code=str(barangay_code) if barangay_code else None,
+                        municipality=municipality,
+                        active=True
+                    )
+                    created_barangays += 1
+
+                # Show barangay count for this municipality
+                barangay_count = len(city_mun.get('barangays', []))
+                if barangay_count > 0:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'      Created {barangay_count} barangays'
+                        )
+                    )
+
         # Summary
         self.stdout.write('')
         self.stdout.write('='*50)
         self.stdout.write(self.style.SUCCESS('RESEED COMPLETE!'))
         self.stdout.write(f'Provinces created: {created_provinces}')
         self.stdout.write(f'Cities/Municipalities created: {created_municipalities}')
+        self.stdout.write(f'Barangays created: {created_barangays}')
         self.stdout.write(
             f'Total active provinces: {Province.objects.filter(active=True).count()}'
         )
         self.stdout.write(
             f'Total active cities/municipalities: '
             f'{Municipality.objects.filter(active=True).count()}'
+        )
+        self.stdout.write(
+            f'Total active barangays: '
+            f'{Barangay.objects.filter(active=True).count()}'
         )
         self.stdout.write('='*50)

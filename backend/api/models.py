@@ -58,6 +58,53 @@ class Municipality(models.Model):
         return f"{self.name}, {self.province.name}"
 
 
+class Barangay(models.Model):
+    """Barangays within cities/municipalities"""
+    name = models.CharField(max_length=100, help_text="Barangay name")
+    slug = models.SlugField(help_text="URL-friendly version", max_length=150)
+    psgc_code = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="10-digit PSGC code"
+    )
+    municipality = models.ForeignKey(
+        Municipality,
+        on_delete=models.CASCADE,
+        related_name='barangays',
+        help_text="Parent city/municipality"
+    )
+    active = models.BooleanField(default=True, help_text="Show in barangay listings")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Barangay"
+        verbose_name_plural = "Barangays"
+        # Removed unique_together constraint to allow duplicate barangay names
+        # within same municipality (as exists in official PSGC data)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # Create unique slug by combining name and checking for duplicates
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            while Barangay.objects.filter(
+                municipality=self.municipality,
+                slug=slug
+            ).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name}, {self.municipality.name}"
+
+
 class Category(models.Model):
     """Categories for marketplace listings"""
     name = models.CharField(max_length=100)

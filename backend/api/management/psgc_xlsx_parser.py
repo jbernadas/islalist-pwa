@@ -15,7 +15,10 @@ def parse_psgc_to_json():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     excel_file = os.path.join(script_dir,
                               'psgc-1q-2025-publication-datafile.xlsx')
-    output_file = os.path.join(script_dir, 'prov_mun_bgy.json')
+
+    # Output to provinces_data.json in commands directory
+    commands_dir = os.path.join(script_dir, 'commands')
+    output_file = os.path.join(commands_dir, 'provinces_data.json')
 
     # Read the PSGC sheet
     print("Reading PSGC data...")
@@ -106,4 +109,22 @@ def parse_psgc_to_json():
 
 
 if __name__ == '__main__':
-    parse_psgc_to_json()
+    # Confirmation prompt
+    print("="*60)
+    print("WARNING: This will overwrite provinces_data.json!")
+    print("="*60)
+    print("\nThis script will:")
+    print("  1. Read psgc-1q-2025-publication-datafile.xlsx")
+    print("  2. Generate Province -> City/Municipality -> Barangay hierarchy")
+    print("  3. OVERWRITE api/management/commands/provinces_data.json")
+    print("\nAre you sure you want to continue?")
+    print("="*60)
+
+    response = input("Type 'yes' to continue: ").strip().lower()
+
+    if response == 'yes':
+        print("\nProceeding with PSGC data parsing...\n")
+        parse_psgc_to_json()
+    else:
+        print("\nOperation cancelled. No files were modified.")
+        print("Exiting...")

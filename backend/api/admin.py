@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Province, Municipality, Category, Listing, ListingImage, UserProfile, Announcement
+from .models import Province, Municipality, Barangay, Category, Listing, ListingImage, UserProfile, Announcement
 
 
 @admin.register(Province)
@@ -20,6 +20,15 @@ class MunicipalityAdmin(admin.ModelAdmin):
     list_filter = ['active', 'province']
     search_fields = ['name', 'province__name']
     prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(Barangay)
+class BarangayAdmin(admin.ModelAdmin):
+    list_display = ['name', 'municipality', 'psgc_code', 'slug', 'active']
+    list_filter = ['active', 'municipality__province']
+    search_fields = ['name', 'municipality__name', 'psgc_code']
+    prepopulated_fields = {'slug': ('name',)}
+    list_select_related = ['municipality', 'municipality__province']
 
 
 @admin.register(Category)

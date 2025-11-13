@@ -7,11 +7,12 @@ from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import (
-    Province, Municipality, Category, Listing,
+    Province, Municipality, Barangay, Category, Listing,
     ListingImage, Favorite, Announcement
 )
 from .serializers import (
     ProvinceSerializer, ProvinceListSerializer, MunicipalitySerializer,
+    BarangaySerializer,
     UserSerializer, UserRegistrationSerializer,
     UserProfileUpdateSerializer,
     CategorySerializer, ListingSerializer, ListingListSerializer,
@@ -116,6 +117,17 @@ class MunicipalityViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None  # Disable pagination - need all municipalities for dropdown
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['province']
+
+
+class BarangayViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint for viewing barangays"""
+    queryset = Barangay.objects.filter(active=True).select_related('municipality')
+    serializer_class = BarangaySerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+    pagination_class = None  # Disable pagination - need all barangays for dropdown
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['municipality']
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):

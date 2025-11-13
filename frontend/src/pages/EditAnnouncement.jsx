@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { announcementsAPI, provincesAPI } from '../services/api';
+import { announcementsAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
@@ -12,6 +12,7 @@ const EditAnnouncement = () => {
   const { user } = useAuth();
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
+  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingAnnouncement, setLoadingAnnouncement] = useState(true);
   const [error, setError] = useState('');
@@ -59,6 +60,21 @@ const EditAnnouncement = () => {
     }
   };
 
+  const fetchBarangays = async (municipalityId) => {
+    if (!municipalityId) {
+      setBarangays([]);
+      return;
+    }
+    try {
+      const response = await barangaysAPI.getAll({ municipality: municipalityId });
+      const barangaysData = response.data.results || response.data;
+      setBarangays(Array.isArray(barangaysData) ? barangaysData : []);
+    } catch (err) {
+      console.error('Error fetching barangays:', err);
+      setBarangays([]);
+    }
+  };
+
   const fetchAnnouncement = async () => {
     try {
       const response = await announcementsAPI.getById(id);
@@ -83,6 +99,11 @@ const EditAnnouncement = () => {
         province_id: announcement.province || '',
         municipality_id: announcement.municipality || '',
       });
+
+      // Fetch barangays for the announcement's municipality if it exists
+      if (announcement.municipality) {
+        await fetchBarangays(announcement.municipality);
+      }
     } catch (err) {
       console.error('Error fetching announcement:', err);
       setError('Failed to load announcement');
@@ -227,14 +248,20 @@ const EditAnnouncement = () => {
 
           <div className="form-group">
             <label htmlFor="barangay">Barangay (Optional)</label>
-            <input
-              type="text"
+            <select
               id="barangay"
               name="barangay"
               value={formData.barangay}
               onChange={handleChange}
-              placeholder="e.g., Poblacion"
-            />
+              disabled={barangays.length === 0}
+            >
+              <option value="">Select your barangay</option>
+              {barangays.map(barangay => (
+                <option key={barangay.id} value={barangay.name}>
+                  {barangay.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">

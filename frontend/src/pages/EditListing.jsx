@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { categoriesAPI, listingsAPI, provincesAPI } from '../services/api';
+import { categoriesAPI, listingsAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ImageSelectorModal from '../components/ImageSelectorModal';
 import Header from '../components/Header';
@@ -13,6 +13,7 @@ const EditListing = () => {
   const [categories, setCategories] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
+  const [barangays, setBarangays] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -97,6 +98,21 @@ const EditListing = () => {
     }
   };
 
+  const fetchBarangays = async (municipalityId) => {
+    if (!municipalityId) {
+      setBarangays([]);
+      return;
+    }
+    try {
+      const response = await barangaysAPI.getAll({ municipality: municipalityId });
+      const barangaysData = response.data.results || response.data;
+      setBarangays(Array.isArray(barangaysData) ? barangaysData : []);
+    } catch (err) {
+      console.error('Error fetching barangays:', err);
+      setBarangays([]);
+    }
+  };
+
   const fetchListing = async () => {
     try {
       const response = await listingsAPI.getById(id);
@@ -142,6 +158,14 @@ const EditListing = () => {
       });
 
       setExistingImages(listing.images || []);
+
+      // Fetch barangays for the listing's municipality if it exists
+      if (listing.location) {
+        const currentMunicipality = municipalities.find(m => m.name === listing.location);
+        if (currentMunicipality) {
+          await fetchBarangays(currentMunicipality.id);
+        }
+      }
     } catch (err) {
       console.error('Error fetching listing:', err);
       setError('Failed to load listing');
@@ -153,6 +177,20 @@ const EditListing = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // If location (municipality) changes, fetch barangays for that municipality
+    if (name === 'location' && value) {
+      const selectedMunicipality = municipalities.find(m => m.name === value);
+      if (selectedMunicipality) {
+        fetchBarangays(selectedMunicipality.id);
+        // Clear barangay selection when municipality changes
+        setFormData(prev => ({ ...prev, barangay: '' }));
+      }
+    } else if (name === 'location' && !value) {
+      // Clear barangays if location is cleared
+      setBarangays([]);
+      setFormData(prev => ({ ...prev, barangay: '' }));
+    }
   };
 
   // Check if current category is Real Estate
@@ -611,14 +649,20 @@ const EditListing = () => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="barangay">Barangay (Optional)</label>
-              <input
-                type="text"
+              <select
                 id="barangay"
                 name="barangay"
                 value={formData.barangay}
                 onChange={handleChange}
-                placeholder="e.g., Poblacion"
-              />
+                disabled={barangays.length === 0}
+              >
+                <option value="">Select your barangay</option>
+                {barangays.map(barangay => (
+                  <option key={barangay.id} value={barangay.name}>
+                    {barangay.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

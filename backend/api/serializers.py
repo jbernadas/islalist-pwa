@@ -1,9 +1,19 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Province, Municipality, Category, Listing,
+    Province, Municipality, Barangay, Category, Listing,
     ListingImage, UserProfile, Favorite, Announcement
 )
+
+
+class BarangaySerializer(serializers.ModelSerializer):
+    """Serializer for Barangay model"""
+    municipality_name = serializers.CharField(source='municipality.name', read_only=True)
+
+    class Meta:
+        model = Barangay
+        fields = ['id', 'name', 'slug', 'psgc_code', 'municipality', 'municipality_name', 'active']
+        read_only_fields = ['id', 'slug']
 
 
 class MunicipalitySerializer(serializers.ModelSerializer):

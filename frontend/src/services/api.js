@@ -87,6 +87,12 @@ export const municipalitiesAPI = {
   getBySlug: (slug) => api.get(`/api/municipalities/${slug}/`),
 };
 
+// Barangays API
+export const barangaysAPI = {
+  getAll: (params) => api.get('/api/barangays/', { params }),
+  getBySlug: (slug) => api.get(`/api/barangays/${slug}/`),
+};
+
 // Categories API
 export const categoriesAPI = {
   getAll: () => api.get('/api/categories/'),
