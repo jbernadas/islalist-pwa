@@ -143,7 +143,8 @@ class ListingViewSet(viewsets.ModelViewSet):
     queryset = Listing.objects.filter(status='active')
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'property_type', 'island', 'location', 'barangay', 'status']
+    # Removed 'island' from filterset_fields to handle it with case-insensitive matching in get_queryset()
+    filterset_fields = ['category', 'property_type', 'location', 'barangay', 'status']
     search_fields = ['title', 'description', 'location', 'barangay']
     ordering_fields = ['created_at', 'price', 'views_count']
     ordering = ['-created_at']
@@ -155,6 +156,11 @@ class ListingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        # Filter by island/province (case-insensitive exact match)
+        island = self.request.query_params.get('island')
+        if island:
+            queryset = queryset.filter(island__iexact=island)
 
         # Filter by price range
         min_price = self.request.query_params.get('min_price')
