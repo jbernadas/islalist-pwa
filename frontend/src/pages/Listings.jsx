@@ -99,16 +99,16 @@ const Listings = () => {
   useEffect(() => {
     fetchCategories();
     fetchListings();
-    // Pre-populate province filter from URL
+    // Pre-populate province filter from URL using actual province name from API data
     if (province) {
-      // Convert slug to display name: "camarines-norte" -> "Camarines Norte"
-      const provinceName = province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      const provinceObj = provinces.find(p => p.slug === province);
+      const provinceName = provinceObj ? provinceObj.name : province;
       setFilters(prev => ({
         ...prev,
         province: provinceName
       }));
     }
-  }, [province, municipality]);
+  }, [province, municipality, provinces]);
 
   const fetchCategories = async () => {
     try {
@@ -136,9 +136,10 @@ const Listings = () => {
       if (filters.max_price) params.max_price = filters.max_price;
       if (filters.barangay) params.barangay = filters.barangay;
 
-      // ALWAYS filter by province from URL (convert slug to display name)
+      // ALWAYS filter by province from URL (use actual province name from API data)
       if (province) {
-        const provinceName = province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        const provinceObj = provinces.find(p => p.slug === province);
+        const provinceName = provinceObj ? provinceObj.name : province;
         params.island = provinceName; // Backend uses 'island' field for province
         params.province = province; // Also send slug format for municipality filtering logic
       }
@@ -194,8 +195,9 @@ const Listings = () => {
   };
 
   const clearFilters = () => {
-    // Convert slug to display name: "camarines-norte" -> "Camarines Norte"
-    const provinceName = province ? province.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : '';
+    // Use actual province name from API data
+    const provinceObj = provinces.find(p => p.slug === province);
+    const provinceName = provinceObj ? provinceObj.name : (province || '');
     setFilters({
       search: '',
       category: '',
