@@ -97,16 +97,24 @@ const Listings = () => {
   const currentMunicipalities = municipalities.map(m => m.name);
 
   useEffect(() => {
+    // Always fetch categories (doesn't depend on provinces)
     fetchCategories();
-    fetchListings();
-    // Pre-populate province filter from URL using actual province name from API data
-    if (province) {
-      const provinceObj = provinces.find(p => p.slug === province);
-      const provinceName = provinceObj ? provinceObj.name : province;
-      setFilters(prev => ({
-        ...prev,
-        province: provinceName
-      }));
+
+    // Only fetch listings if:
+    // 1. No province in URL (will show all listings), OR
+    // 2. Provinces have been loaded (to avoid race condition)
+    if (!province || provinces.length > 0) {
+      fetchListings();
+
+      // Pre-populate province filter from URL using actual province name from API data
+      if (province) {
+        const provinceObj = provinces.find(p => p.slug === province);
+        const provinceName = provinceObj ? provinceObj.name : province;
+        setFilters(prev => ({
+          ...prev,
+          province: provinceName
+        }));
+      }
     }
   }, [province, municipality, provinces]);
 
@@ -388,9 +396,9 @@ const Listings = () => {
             <span className="nav-separator">❯</span>
             <span className="breadcrumb">Goods, Jobs & Services</span>
           </div>
-          {loading ? (
+          {loading || loadingLocations ? (
             <div className="loading">
-              <p>Loading listings...</p>
+              <p>{loadingLocations ? 'Loading location data...' : 'Loading listings...'}</p>
             </div>
           ) : listings.length === 0 ? (
             <div className="no-listings">

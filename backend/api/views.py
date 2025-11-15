@@ -155,12 +155,28 @@ class ListingViewSet(viewsets.ModelViewSet):
         return ListingSerializer
 
     def get_queryset(self):
+        from django.db.models import Q
         queryset = super().get_queryset()
 
-        # Filter by island/province (case-insensitive exact match)
+        # Filter by island/province (accepts both name and slug format)
         island = self.request.query_params.get('island')
         if island:
-            queryset = queryset.filter(island__iexact=island)
+            # Try to match by province name first (case-insensitive)
+            # If the parameter looks like a slug (contains hyphens), also try to find the province by slug
+            if '-' in island:
+                # Looks like a slug format (e.g., "davao-del-norte")
+                # Try to get the actual province name from the Province model
+                try:
+                    from api.models import Province
+                    province = Province.objects.get(slug__iexact=island)
+                    # Use the actual province name for filtering
+                    queryset = queryset.filter(island__iexact=province.name)
+                except Province.DoesNotExist:
+                    # Slug not found, fall back to direct matching
+                    queryset = queryset.filter(island__iexact=island)
+            else:
+                # Looks like a province name (e.g., "Davao del Norte")
+                queryset = queryset.filter(island__iexact=island)
 
         # Filter by price range
         min_price = self.request.query_params.get('min_price')
@@ -176,7 +192,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         province_param = self.request.query_params.get('province')
 
         if municipality:
-            from django.db.models import Q
             # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
             municipality_formatted = municipality.replace('-', ' ').title()
 
