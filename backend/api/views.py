@@ -321,7 +321,8 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     queryset = Announcement.objects.filter(is_active=True)
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['priority', 'announcement_type', 'province', 'municipality', 'barangay']
+    # Note: province and municipality are handled manually in get_queryset() to support province-wide announcements
+    filterset_fields = ['priority', 'announcement_type', 'barangay']
     search_fields = ['title', 'description', 'barangay']
     ordering_fields = ['created_at', 'priority', 'expiry_date']
     ordering = ['-priority', '-created_at']
@@ -343,8 +344,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
                 expiry_date__lt=timezone.now().date()
             )
 
-        # Handle province-wide announcements
-        # When filtering by municipality, also include province-wide announcements
+        # Handle province and municipality filtering with province-wide announcement support
         municipality = self.request.query_params.get('municipality')
         province = self.request.query_params.get('province')
 
@@ -355,9 +355,12 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
                 Q(municipality=municipality, province=province) |
                 Q(is_province_wide=True, province=province)
             )
+        elif municipality and not province:
+            # Filter by municipality only
+            queryset = queryset.filter(municipality=municipality)
         elif province and not municipality:
-            # Just filter by province (already handled by filterset_fields)
-            pass
+            # Filter by province only
+            queryset = queryset.filter(province=province)
 
         return queryset
 
