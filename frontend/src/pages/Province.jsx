@@ -201,13 +201,6 @@ const Province = () => {
             </div>
 
             <div className="feature-card disabled">
-              <div className="feature-icon">📅</div>
-              <h3>Local Events</h3>
-              <p>Discover festivals, gatherings, and activities happening around the island</p>
-              <span className="feature-link coming-soon">Coming Soon</span>
-            </div>
-
-            <div className="feature-card disabled">
               <div className="feature-icon">🏪</div>
               <h3>Business Directory</h3>
               <p>Find local businesses, services, and support your island economy</p>

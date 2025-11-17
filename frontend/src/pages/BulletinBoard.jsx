@@ -462,10 +462,6 @@ const BulletinBoard = () => {
             <span className="nav-icon">📢</span>
             <span className="nav-label">Browse All Announcements</span>
           </Link>
-          <div className="nav-card events disabled">
-            <span className="nav-icon">📅</span>
-            <span className="nav-label">Events (Coming Soon)</span>
-          </div>
         </div>
 
         <div className="back-link">
