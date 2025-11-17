@@ -139,7 +139,7 @@
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
 }
 
@@ -172,6 +172,7 @@
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 .feature-card p {
@@ -188,6 +189,7 @@
   font-size: 1.1rem;
   transition: color 0.3s ease;
   display: inline-block;
+  text-align: center;
 }
 
 .feature-link:not(.coming-soon):hover {
