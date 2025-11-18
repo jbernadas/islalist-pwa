@@ -70,7 +70,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        disableDevLogs: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^http:\/\/localhost:8000\/api\/.*/i,
@@ -90,7 +92,9 @@ export default defineConfig({
       },
       devOptions: {
         enabled: true,
-        type: 'module'
+        type: 'module',
+        // Suppress Workbox logging in development
+        suppressWarnings: true
       }
     })
   ],
