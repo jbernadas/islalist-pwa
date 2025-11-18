@@ -31,10 +31,12 @@ const Province = () => {
         // Try to get from cache first (24 hour cache)
         const cachedProvinces = localStorage.getItem('provinces');
         const cacheTime = localStorage.getItem('provinces_cache_time');
+        const cachedVersion = localStorage.getItem('provinces_cache_version');
         const now = Date.now();
         const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
+        const CACHE_VERSION = '2'; // Must match Home.jsx version
 
-        if (cachedProvinces && cacheTime && (now - parseInt(cacheTime)) < cacheExpiry) {
+        if (cachedProvinces && cacheTime && cachedVersion === CACHE_VERSION && (now - parseInt(cacheTime)) < cacheExpiry) {
           // Use cached data
           const provincesData = JSON.parse(cachedProvinces);
           setProvinces(provincesData);
@@ -54,6 +56,7 @@ const Province = () => {
           // Cache the data
           localStorage.setItem('provinces', JSON.stringify(provincesData));
           localStorage.setItem('provinces_cache_time', now.toString());
+          localStorage.setItem('provinces_cache_version', CACHE_VERSION);
 
           // Fetch cities/municipalities for current province
           if (province) {

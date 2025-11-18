@@ -104,6 +104,9 @@ class Command(BaseCommand):
             for city_mun in province_data['cities_municipalities']:
                 municipality_name = city_mun['name']
                 municipality_type = city_mun.get('type', 'Mun')
+                # Map SubMun to Mun since our field only supports 'City' or 'Mun'
+                if municipality_type == 'SubMun':
+                    municipality_type = 'Mun'
                 municipality = Municipality.objects.create(
                     name=municipality_name,
                     province=province,

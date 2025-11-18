@@ -40,12 +40,14 @@ const BarangayBulletinBoard = () => {
         // Try to get from cache first (24 hour cache)
         const cachedProvinces = localStorage.getItem('provinces');
         const cacheTime = localStorage.getItem('provinces_cache_time');
+        const cachedVersion = localStorage.getItem('provinces_cache_version');
         const now = Date.now();
         const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
+        const CACHE_VERSION = '2'; // Must match Home.jsx version
 
         let provincesData = [];
 
-        if (cachedProvinces && cacheTime && (now - parseInt(cacheTime)) < cacheExpiry) {
+        if (cachedProvinces && cacheTime && cachedVersion === CACHE_VERSION && (now - parseInt(cacheTime)) < cacheExpiry) {
           provincesData = JSON.parse(cachedProvinces);
           setProvinces(provincesData);
         } else {
@@ -55,6 +57,7 @@ const BarangayBulletinBoard = () => {
 
           localStorage.setItem('provinces', JSON.stringify(provincesData));
           localStorage.setItem('provinces_cache_time', now.toString());
+          localStorage.setItem('provinces_cache_version', CACHE_VERSION);
         }
 
         const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
@@ -280,7 +283,7 @@ const BarangayBulletinBoard = () => {
         <div className="hero-content">
           <div className="hero-info">
             <h1 className="hero-title">{displayBarangay}</h1>
-            <p className="hero-subtitle">Barangay Hub - {displayMunicipality}</p>
+            <p className="hero-subtitle">Barangay Hub</p>
           </div>
           <div className="hero-stats">
             <div className="hero-stat-item">

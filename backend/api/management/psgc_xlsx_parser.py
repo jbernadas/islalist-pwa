@@ -46,7 +46,19 @@ def parse_psgc_to_json():
         name = str(row['Name']).strip()
         psgc_code = row['10-digit PSGC']
 
-        # Skip regions - we don't need them
+        # Special case: NCR (National Capital Region) should be treated as a province
+        if geo_level == 'Reg' and 'NCR' in name.upper():
+            current_province = {
+                'name': 'Metro Manila (NCR)',
+                'code': psgc_code,
+                'cities_municipalities': []
+            }
+            provinces.append(current_province)
+            current_city_mun = None
+            print(f"Processing special region as province: Metro Manila (NCR)")
+            continue
+
+        # Skip other regions - we don't need them
         if geo_level == 'Reg':
             continue
 

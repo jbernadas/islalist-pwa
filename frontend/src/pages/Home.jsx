@@ -70,7 +70,7 @@ const Home = () => {
     try {
       const now = Date.now();
       const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-      const CACHE_VERSION = '1'; // Increment this to force cache refresh
+      const CACHE_VERSION = '2'; // Increment this to force cache refresh (v2: added NCR)
 
       // Try to get provinces from cache first
       const cachedProvinces = localStorage.getItem('provinces');
@@ -101,7 +101,7 @@ const Home = () => {
         // Cache provinces
         localStorage.setItem('provinces', JSON.stringify(provincesData));
         localStorage.setItem('provinces_cache_time', now.toString());
-        localStorage.setItem('provinces_cache_version', '1');
+        localStorage.setItem('provinces_cache_version', CACHE_VERSION);
 
         setProvinces(provincesData);
         setProvincesLoading(false);
