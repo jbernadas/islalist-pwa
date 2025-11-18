@@ -4,9 +4,9 @@ import { provincesAPI, listingsAPI, announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
-import './BulletinBoard.css';
+import './CityMunBulletinBoard.css';
 
-const BulletinBoard = () => {
+const CityMunBulletinBoard = () => {
   const { province, municipality } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -249,8 +249,9 @@ const BulletinBoard = () => {
           <div className="hero-info">
             <h1 className="hero-title">{displayMunicipality}</h1>
             <p className="hero-subtitle">
-              {displayMunicipality !== "All Cities/Municipalities" ? "Community Hub" :
-               (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
+              {displayMunicipality !== "All Cities/Municipalities"
+                ? (currentMunicipalityObj?.type === 'City' ? "City Hub" : "Municipality Hub")
+                : (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
             </p>
           </div>
           <div className="hero-stats">
@@ -474,4 +475,4 @@ const BulletinBoard = () => {
   );
 };
 
-export default BulletinBoard;
+export default CityMunBulletinBoard;

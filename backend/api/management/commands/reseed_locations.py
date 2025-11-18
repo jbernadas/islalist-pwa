@@ -103,9 +103,11 @@ class Command(BaseCommand):
             # Create cities/municipalities for this province
             for city_mun in province_data['cities_municipalities']:
                 municipality_name = city_mun['name']
+                municipality_type = city_mun.get('type', 'Mun')
                 municipality = Municipality.objects.create(
                     name=municipality_name,
                     province=province,
+                    type=municipality_type,
                     active=True
                 )
                 created_municipalities += 1

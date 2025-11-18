@@ -5,7 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import Province from './pages/Province';
-import BulletinBoard from './pages/BulletinBoard';
+import CityMunBulletinBoard from './pages/CityMunBulletinBoard';
 import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Listings from './pages/Listings';
@@ -93,7 +93,7 @@ function App() {
           />
           <Route path="/:province/:municipality/announcements" element={<Announcements />} />
 
-          <Route path="/:province/:municipality" element={<BulletinBoard />} />
+          <Route path="/:province/:municipality" element={<CityMunBulletinBoard />} />
 
           {/* Province page - shows cities/municipalities */}
           <Route path="/:province" element={<Province />} />

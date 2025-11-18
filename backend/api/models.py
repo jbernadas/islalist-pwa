@@ -39,6 +39,12 @@ class Municipality(models.Model):
         related_name='municipalities',
         help_text="Parent province"
     )
+    type = models.CharField(
+        max_length=4,
+        choices=[('City', 'City'), ('Mun', 'Municipality')],
+        default='Mun',
+        help_text="Designation: City or Municipality"
+    )
     active = models.BooleanField(default=True, help_text="Show in city/municipality listings")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
