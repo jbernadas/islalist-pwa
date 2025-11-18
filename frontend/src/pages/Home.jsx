@@ -24,7 +24,7 @@ const Home = () => {
     { name: 'Makati City', province: 'Metro Manila (NCR)' },
     { name: 'Cebu City', province: 'Cebu' },
     { name: 'Davao City', province: 'Davao del Sur' },
-    { name: 'Iloilo City', province: 'Iloilo' },
+    { name: 'City of Iloilo', province: 'Iloilo' },
     { name: 'Cagayan de Oro City', province: 'Misamis Oriental' },
     { name: 'Bacolod City', province: 'Negros Occidental' },
     { name: 'Puerto Princesa City', province: 'Palawan' },
