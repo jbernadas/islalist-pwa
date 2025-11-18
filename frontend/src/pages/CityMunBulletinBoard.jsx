@@ -264,13 +264,23 @@ const CityMunBulletinBoard = () => {
       <div className="bulletin-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <div className="hero-info">
-            <h1 className="hero-title">{displayMunicipality}</h1>
-            <p className="hero-subtitle">
-              {displayMunicipality !== "All Cities/Municipalities"
-                ? (currentMunicipalityObj?.type === 'City' ? "City Hub" : "Municipality Hub")
-                : (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
-            </p>
+          <div className="d-flex justify-content-between flex-column">
+            {/* Breadcrumb Navigation */}
+            <div className="hero-breadcrumb">
+              <Link to={`/${province}`} className="breadcrumb-link">{displayProvince}</Link>
+              <span className="breadcrumb-separator"> / </span>
+              <span className="breadcrumb-current">{displayMunicipality}</span>
+            </div>
+            <div className="hero-main">
+              <div className="hero-info">
+                <h1 className="hero-title">{displayMunicipality}</h1>
+                <p className="hero-subtitle">
+                  {displayMunicipality !== "All Cities/Municipalities"
+                    ? (currentMunicipalityObj?.type === 'City' ? "City Hub" : "Municipality Hub")
+                    : (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
+                </p>
+              </div>
+            </div>
           </div>
           <div className="hero-stats">
             <div className="hero-stat-item">

@@ -268,33 +268,36 @@ const BarangayBulletinBoard = () => {
         onMunicipalityChange={handleMunicipalityChange}
       />
 
-      {/* Breadcrumb Navigation */}
-      <div className="breadcrumb-nav">
-        <Link to={`/${province}`} className="breadcrumb-link">{displayProvince}</Link>
-        <span className="breadcrumb-separator"> / </span>
-        <Link to={`/${province}/${municipality}`} className="breadcrumb-link">{displayMunicipality}</Link>
-        <span className="breadcrumb-separator"> / </span>
-        <span className="breadcrumb-current">{displayBarangay}</span>
-      </div>
-
       {/* Hero Section */}
       <div className="bulletin-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <div className="hero-info">
-            <h1 className="hero-title">{displayBarangay}</h1>
-            <p className="hero-subtitle">Barangay Hub</p>
+          <div className="d-flex align-items-start flex-column">
+            {/* Breadcrumb Navigation */}
+            <div className="hero-breadcrumb">
+              <Link to={`/${province}`} className="breadcrumb-link">{displayProvince}</Link>
+              <span className="breadcrumb-separator"> / </span>
+              <Link to={`/${province}/${municipality}`} className="breadcrumb-link">{displayMunicipality}</Link>
+              <span className="breadcrumb-separator"> / </span>
+              <span className="breadcrumb-current">{displayBarangay}</span>
+            </div>
+            <div className="hero-main">
+              <div className="hero-info">
+                <h1 className="hero-title">{displayBarangay}</h1>
+                <p className="hero-subtitle">Barangay Hub</p>
+              </div>
+            </div>
           </div>
           <div className="hero-stats">
-            <div className="hero-stat-item">
-              <span className="hero-stat-number">{stats.listings}</span>
-              <span className="hero-stat-label">Listings</span>
+              <div className="hero-stat-item">
+                <span className="hero-stat-number">{stats.listings}</span>
+                <span className="hero-stat-label">Listings</span>
+              </div>
+              <div className="hero-stat-item">
+                <span className="hero-stat-number">{stats.announcements}</span>
+                <span className="hero-stat-label">Announcements</span>
+              </div>
             </div>
-            <div className="hero-stat-item">
-              <span className="hero-stat-number">{stats.announcements}</span>
-              <span className="hero-stat-label">Announcements</span>
-            </div>
-          </div>
         </div>
       </div>
 

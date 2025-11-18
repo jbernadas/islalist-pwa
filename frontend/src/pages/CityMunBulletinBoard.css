@@ -3,34 +3,37 @@
   background: #f8f9fa;
 }
 
-/* Breadcrumb Navigation */
-.breadcrumb-nav {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1rem 2rem 0;
-  font-size: 0.9rem;
-  color: #666;
+/* Hero Breadcrumb Navigation */
+.hero-breadcrumb {
+  width: 100%;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: left;
 }
 
-.breadcrumb-link {
-  color: #667eea;
+.hero-breadcrumb .breadcrumb-link {
+  color: rgba(255, 255, 255, 0.95);
   text-decoration: none;
-  transition: color 0.2s;
-}
-
-.breadcrumb-link:hover {
-  color: #764ba2;
-  text-decoration: underline;
-}
-
-.breadcrumb-separator {
-  margin: 0 0.5rem;
-  color: #999;
-}
-
-.breadcrumb-current {
-  color: #333;
+  transition: all 0.2s;
   font-weight: 500;
+}
+
+.hero-breadcrumb .breadcrumb-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hero-breadcrumb .breadcrumb-separator {
+  margin: 0 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hero-breadcrumb .breadcrumb-current {
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Scope Badges */
@@ -93,7 +96,15 @@
   color: white;
   width: 100%;
   max-width: 1400px;
-  padding: 2rem;
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bulletin-hero .hero-main {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
