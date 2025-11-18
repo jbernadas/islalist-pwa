@@ -72,6 +72,20 @@ export const authAPI = {
   updateProfile: (userData) => api.patch('/api/auth/profile/', userData),
   refreshToken: (refreshToken) => api.post('/api/auth/refresh/', { refresh: refreshToken }),
   verifyToken: (token) => api.post('/api/auth/verify/', { token }),
+
+  // Email verification
+  verifyEmail: (key) => api.post('/api/auth/registration/verify-email/', { key }),
+  resendVerificationEmail: (email) => api.post('/api/auth/registration/resend-email/', { email }),
+
+  // Password reset
+  requestPasswordReset: (email) => api.post('/api/auth/password/reset/', { email }),
+  confirmPasswordReset: (uid, token, new_password1, new_password2) =>
+    api.post('/api/auth/password/reset/confirm/', {
+      uid,
+      token,
+      new_password1,
+      new_password2
+    }),
 };
 
 // Provinces API

@@ -15,6 +15,8 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -97,23 +99,51 @@ const Register = () => {
     const result = await register(formData);
 
     if (result.success) {
-      // Redirect to last visited location or home
-      const lastProvince = localStorage.getItem('lastProvince');
-      const lastMunicipality = localStorage.getItem('lastMunicipality');
-
-      if (lastProvince && lastMunicipality && lastMunicipality !== 'all') {
-        navigate(`/${lastProvince}/${lastMunicipality}`);
-      } else if (lastProvince) {
-        navigate(`/${lastProvince}`);
-      } else {
-        navigate('/');
-      }
+      // Show email verification message instead of logging in
+      setRegistrationSuccess(true);
+      setRegisteredEmail(formData.email);
     } else {
       setErrors(result.error);
     }
 
     setLoading(false);
   };
+
+  // Show success message after registration
+  if (registrationSuccess) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>🏝️ IslaList</h1>
+          <h2>Check Your Email</h2>
+
+          <div className="success-message">
+            <p>✅ Registration successful!</p>
+            <p style={{ marginTop: '15px', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              We've sent a verification email to <strong>{registeredEmail}</strong>.
+            </p>
+            <p style={{ marginTop: '15px', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              Please check your email and click the verification link to activate your account.
+              Once verified, you'll be able to post listings and announcements.
+            </p>
+            <p style={{ marginTop: '15px', fontSize: '0.9rem', color: '#666' }}>
+              The verification link will expire in 24 hours.
+            </p>
+          </div>
+
+          <div style={{ marginTop: '30px' }}>
+            <Link to="/login" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none', width: '100%', textAlign: 'center' }}>
+              Go to Login
+            </Link>
+          </div>
+
+          <p className="auth-link" style={{ marginTop: '20px' }}>
+            <Link to="/">🡐 Back to Home</Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from dj_rest_auth.registration.serializers import RegisterSerializer
 from .models import (
     Province, Municipality, Barangay, Category, Listing,
     ListingImage, UserProfile, Favorite, Announcement
@@ -78,6 +79,71 @@ class UserSerializer(serializers.ModelSerializer):
             email=obj.email,
             verified=True
         ).exists()
+
+
+class CustomRegisterSerializer(RegisterSerializer):
+    """Custom registration serializer for dj-rest-auth with additional fields"""
+    first_name = serializers.CharField(required=True, max_length=150)
+    last_name = serializers.CharField(required=True, max_length=150)
+    phone_number = serializers.CharField(required=False, allow_blank=True, max_length=20)
+
+    def __init__(self, *args, **kwargs):
+        """Map password fields before initialization"""
+        if 'data' in kwargs:
+            data = kwargs['data'].copy() if hasattr(kwargs['data'], 'copy') else dict(kwargs['data'])
+            # Map frontend field names to dj-rest-auth expected names
+            if 'password' in data:
+                data['password1'] = data.get('password')
+            if 'password_confirm' in data:
+                data['password2'] = data.get('password_confirm')
+            kwargs['data'] = data
+        super().__init__(*args, **kwargs)
+
+    def validate_phone_number(self, value):
+        """Validate and format Philippine phone numbers"""
+        if not value:
+            return value
+
+        # Remove spaces, dashes, and other common separators
+        cleaned = ''.join(filter(str.isdigit, value))
+
+        # Convert international format (63) to local format (0)
+        if cleaned.startswith('63') and len(cleaned) == 12:
+            cleaned = '0' + cleaned[2:]
+
+        # Validate format: must be 11 digits starting with 0
+        if cleaned and (len(cleaned) != 11 or not cleaned.startswith('0')):
+            raise serializers.ValidationError(
+                "Phone number must be 11 digits starting with 0 (e.g., 09681234567)"
+            )
+
+        return cleaned
+
+    def get_cleaned_data(self):
+        """Override to include custom fields in cleaned data"""
+        data = super().get_cleaned_data()
+        data['first_name'] = self.validated_data.get('first_name', '')
+        data['last_name'] = self.validated_data.get('last_name', '')
+        data['phone_number'] = self.validated_data.get('phone_number', '')
+        return data
+
+    def custom_signup(self, request, user):
+        """Called after user is created to set additional fields"""
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"custom_signup called for user: {user.username}")
+
+        user.first_name = self.validated_data.get('first_name', '')
+        user.last_name = self.validated_data.get('last_name', '')
+        user.save()
+
+        # Create user profile with phone number
+        phone_number = self.validated_data.get('phone_number', '')
+        UserProfile.objects.get_or_create(
+            user=user,
+            defaults={'phone_number': phone_number}
+        )
+        logger.info(f"User profile created with phone: {phone_number}")
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

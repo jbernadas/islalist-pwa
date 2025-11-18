@@ -63,15 +63,27 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { tokens, user: newUser } = response.data;
 
-      localStorage.setItem('accessToken', tokens.access);
-      localStorage.setItem('refreshToken', tokens.refresh);
+      // With email verification enabled, tokens may not be returned
+      // User needs to verify email before logging in
+      const { access_token, refresh_token, access, refresh } = response.data;
 
-      setUser(newUser);
-      setIsAuthenticated(true);
+      // Check if tokens are present (they won't be if email verification is required)
+      const accessToken = access_token || access;
+      const refreshToken = refresh_token || refresh;
 
-      return { success: true };
+      if (accessToken && refreshToken) {
+        // Auto-login (only happens if email verification is disabled)
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+
+        const profileResponse = await authAPI.getProfile();
+        setUser(profileResponse.data);
+        setIsAuthenticated(true);
+      }
+
+      // Return success regardless - frontend will show verification message
+      return { success: true, requiresVerification: !accessToken };
     } catch (error) {
       console.error('Registration failed:', error);
       return {

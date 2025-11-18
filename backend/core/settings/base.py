@@ -206,9 +206,9 @@ SIMPLE_JWT = {
 SITE_ID = 1
 
 # Django Allauth Configuration
-ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Use email for authentication
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow both username and email
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False  # Don't require username, just email
+ACCOUNT_USERNAME_REQUIRED = True  # Require username (we use it)
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Verify on GET request
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1  # 24 hours token expiry
@@ -216,6 +216,10 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False  # Don't auto-login after verificati
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'  # We still use username internally
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes
+ACCOUNT_USER_DISPLAY = lambda user: user.username  # Display username
+ACCOUNT_PRESERVE_USERNAME_CASING = False  # Normalize username to lowercase
 
 # Password reset token expiry (1 hour)
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
@@ -227,10 +231,14 @@ REST_AUTH = {
     'JWT_AUTH_REFRESH_COOKIE': None,
     'JWT_AUTH_HTTPONLY': False,
     'USER_DETAILS_SERIALIZER': 'api.serializers.UserSerializer',
-    'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
+    'REGISTER_SERIALIZER': 'api.serializers.CustomRegisterSerializer',
+    'TOKEN_MODEL': None,  # Don't use token model, use JWT
+    'SESSION_LOGIN': False,  # Don't use session authentication
 }
 
 # Email configuration for allauth
-ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
+ACCOUNT_ADAPTER = 'api.adapters.CustomAccountAdapter'
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = None  # Frontend handles redirect
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = None  # Frontend handles redirect
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[IslaList] '
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Use http for development
