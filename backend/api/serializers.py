@@ -62,14 +62,22 @@ class UserSerializer(serializers.ModelSerializer):
         read_only=True,
         allow_null=True
     )
+    email_verified = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'first_name',
-            'last_name', 'phone_number'
+            'last_name', 'phone_number', 'email_verified'
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'email_verified']
+
+    def get_email_verified(self, obj):
+        """Check if user's email is verified via allauth"""
+        return obj.emailaddress_set.filter(
+            email=obj.email,
+            verified=True
+        ).exists()
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

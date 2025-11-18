@@ -18,6 +18,7 @@ from .serializers import (
     CategorySerializer, ListingSerializer, ListingListSerializer,
     AnnouncementSerializer, AnnouncementListSerializer
 )
+from .permissions import IsEmailVerified
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -148,6 +149,14 @@ class ListingViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', 'location', 'barangay']
     ordering_fields = ['created_at', 'price', 'views_count']
     ordering = ['-created_at']
+
+    def get_permissions(self):
+        """
+        Require email verification for create and update actions
+        """
+        if self.action in ['create', 'update', 'partial_update']:
+            return [IsAuthenticated(), IsEmailVerified()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['list', 'my_listings', 'favorites']:
@@ -340,6 +349,14 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', 'barangay']
     ordering_fields = ['created_at', 'priority', 'expiry_date']
     ordering = ['-priority', '-created_at']
+
+    def get_permissions(self):
+        """
+        Require email verification for create and update actions
+        """
+        if self.action in ['create', 'update', 'partial_update']:
+            return [IsAuthenticated(), IsEmailVerified()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['list', 'my_announcements']:

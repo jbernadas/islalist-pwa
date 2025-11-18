@@ -60,13 +60,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Required for allauth
     # Django REST Framework
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'rest_framework.authtoken',  # Required for dj-rest-auth
     # Third-party apps
     'corsheaders',
     'django_filters',
+    # Authentication apps
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',  # Optional: for social auth later
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     # Project apps
     'api',
 ]
@@ -80,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Required for allauth
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -192,3 +201,36 @@ SIMPLE_JWT = {
 
     'JTI_CLAIM': 'jti',
 }
+
+# Django Sites Framework (required for allauth)
+SITE_ID = 1
+
+# Django Allauth Configuration
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Use email for authentication
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False  # Don't require username, just email
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Verify on GET request
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1  # 24 hours token expiry
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False  # Don't auto-login after verification
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'  # We still use username internally
+ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+
+# Password reset token expiry (1 hour)
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
+
+# dj-rest-auth Configuration
+REST_AUTH = {
+    'USE_JWT': True,  # Use JWT tokens
+    'JWT_AUTH_COOKIE': None,  # Don't use cookies, use Authorization header
+    'JWT_AUTH_REFRESH_COOKIE': None,
+    'JWT_AUTH_HTTPONLY': False,
+    'USER_DETAILS_SERIALIZER': 'api.serializers.UserSerializer',
+    'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
+}
+
+# Email configuration for allauth
+ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = None  # Frontend handles redirect
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = None  # Frontend handles redirect

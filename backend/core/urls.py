@@ -23,6 +23,10 @@ urlpatterns = [
     path('api/auth/verify/', TokenVerifyView.as_view(),
          name='token_verify'),
 
+    # dj-rest-auth endpoints (registration, email verification, password reset)
+    path('api/auth/', include('dj_rest_auth.urls')),  # login, logout, password reset, password change
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),  # registration, email verification
+
     # API endpoints
     path('api/', include('api.urls')),
 ]
