@@ -206,11 +206,8 @@ SIMPLE_JWT = {
 SITE_ID = 1
 
 # Django Allauth Configuration
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow both username and email
-ACCOUNT_SIGNUP_FIELDS = {
-    'username': {'required': True},
-    'email': {'required': True},
-}
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}  # Allow both username and email login
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Verify on GET request
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1  # 24 hours token expiry
@@ -218,8 +215,9 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False  # Don't auto-login after verificati
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'  # We still use username internally
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/5m',  # 5 attempts per 5 minutes
+}
 ACCOUNT_USER_DISPLAY = lambda user: user.username  # Display username
 ACCOUNT_PRESERVE_USERNAME_CASING = False  # Normalize username to lowercase
 
