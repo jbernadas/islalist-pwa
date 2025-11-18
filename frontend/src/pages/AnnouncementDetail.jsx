@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './ListingDetail.css';
 
@@ -79,17 +80,84 @@ const AnnouncementDetail = () => {
 
   const isOwner = user && announcement.author && user.id === announcement.author.id;
 
+  // Helper function to truncate title
+  const truncateTitle = (title, maxLength = 32) => {
+    if (!title) return '';
+    if (title.length <= maxLength) return title;
+    return title.substring(0, maxLength) + '...';
+  };
+
+  // Helper function to format display names
+  const formatDisplayName = (slug) => {
+    if (!slug) return '';
+    return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  // Build breadcrumb array
+  const buildBreadcrumbs = () => {
+    if (!announcement) return [];
+
+    const breadcrumbs = [
+      { label: formatDisplayName(province), path: `/${province}` },
+      { label: formatDisplayName(municipality), path: `/${province}/${municipality}` }
+    ];
+
+    // Add barangay if it exists
+    if (announcement.barangay) {
+      breadcrumbs.push({
+        label: announcement.barangay,
+        path: `/${province}/${municipality}/${slugify(announcement.barangay)}`
+      });
+    }
+
+    // Add content type
+    breadcrumbs.push({
+      label: 'Announcements',
+      path: `/${province}/${municipality}/announcements`
+    });
+
+    // Add truncated title (non-clickable)
+    breadcrumbs.push({
+      label: truncateTitle(announcement.title, window.innerWidth < 768 ? 32 : 50),
+      path: null
+    });
+
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = buildBreadcrumbs();
+
   return (
     <>
       <Header />
       <div className="listing-detail-container">
-        {announcement && (
+        {announcement && breadcrumbs.length > 0 && (
           <nav className="breadcrumb-navigation" aria-label="Breadcrumb">
-            <button onClick={() => navigate(`/${province}/${municipality}/announcements`)} className="breadcrumb-link">
-              Announcements
-            </button>
-            <span className="breadcrumb-separator"> › </span>
-            <span className="breadcrumb-current">{announcement.title}</span>
+            {breadcrumbs.map((crumb, index) => (
+              <span key={index}>
+                {crumb.path ? (
+                  <Link to={crumb.path} className="breadcrumb-link">
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span className="breadcrumb-current">{crumb.label}</span>
+                )}
+                {index < breadcrumbs.length - 1 && (
+                  <span className="breadcrumb-separator"> / </span>
+                )}
+              </span>
+            ))}
+            {/* Show scope badges if applicable */}
+            {announcement.is_province_wide && (
+              <span className="scope-badge province-wide" style={{ marginLeft: '0.75rem' }}>
+                Province-Wide
+              </span>
+            )}
+            {announcement.is_municipality_wide && (
+              <span className="scope-badge municipality-wide" style={{ marginLeft: '0.75rem' }}>
+                Municipality-Wide
+              </span>
+            )}
           </nav>
         )}
 

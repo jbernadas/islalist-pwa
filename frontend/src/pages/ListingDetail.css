@@ -46,6 +46,29 @@
   user-select: none;
 }
 
+/* Scope Badges */
+.breadcrumb-navigation .scope-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.breadcrumb-navigation .scope-badge.province-wide {
+  background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+.breadcrumb-navigation .scope-badge.municipality-wide {
+  background: linear-gradient(135deg, #ff922b 0%, #e67700 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 146, 43, 0.3);
+}
+
 .detail-header {
   background: white;
   padding: 20px;
@@ -361,6 +384,20 @@ h3 {
 }
 
 @media (max-width: 768px) {
+  .breadcrumb-navigation {
+    padding: 15px 15px 0 15px;
+    flex-wrap: wrap;
+  }
+
+  .breadcrumb-navigation .breadcrumb-current {
+    max-width: 200px;
+  }
+
+  .breadcrumb-navigation .scope-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+  }
+
   .detail-content {
     margin: 20px auto;
   }
