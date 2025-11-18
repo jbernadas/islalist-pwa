@@ -152,15 +152,9 @@ const ListingDetail = () => {
     return `/${province}/${municipality}${path}`;
   };
 
-  // Build breadcrumbs for the header
-  const breadcrumbs = listing ? [
-    { label: 'Listings', path: getMunicipalityPath('/listings') },
-    { label: listing.title, path: null }
-  ] : [];
-
   return (
     <>
-      <Header breadcrumbs={breadcrumbs} />
+      <Header />
       {showLightbox && (
         <div className="lightbox-overlay" onClick={handleLightboxClick}>
           <button className="lightbox-close" onClick={closeLightbox}>×</button>
@@ -192,6 +186,15 @@ const ListingDetail = () => {
         </div>
       )}
       <div className="listing-detail-container">
+        {listing && (
+          <nav className="breadcrumb-navigation" aria-label="Breadcrumb">
+            <button onClick={() => navigate(getMunicipalityPath('/listings'))} className="breadcrumb-link">
+              Listings
+            </button>
+            <span className="breadcrumb-separator"> › </span>
+            <span className="breadcrumb-current">{listing.title}</span>
+          </nav>
+        )}
 
       <div className="detail-content">
         <div className="image-gallery">

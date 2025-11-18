@@ -9,7 +9,6 @@ const Header = ({
   showMunicipalitySelector = false,
   showTagline = false,
   pageTitle = null,
-  breadcrumbs = null,
   province = '',
   municipality = '',
   provinces = [],
@@ -61,28 +60,6 @@ const Header = ({
           <div className="page-title">
             <h1>{pageTitle}</h1>
           </div>
-        )}
-
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav className="breadcrumb" aria-label="Breadcrumb">
-            {breadcrumbs.map((crumb, index) => (
-              <span key={index} className="breadcrumb-item">
-                {crumb.path ? (
-                  <button
-                    onClick={() => navigate(crumb.path)}
-                    className="breadcrumb-link"
-                  >
-                    {crumb.label}
-                  </button>
-                ) : (
-                  <span className="breadcrumb-current">{crumb.label}</span>
-                )}
-                {index < breadcrumbs.length - 1 && (
-                  <span className="breadcrumb-separator"> › </span>
-                )}
-              </span>
-            ))}
-          </nav>
         )}
 
         {(showProvinceSelector || showMunicipalitySelector) && (

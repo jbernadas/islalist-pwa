@@ -79,16 +79,19 @@ const AnnouncementDetail = () => {
 
   const isOwner = user && announcement.author && user.id === announcement.author.id;
 
-  // Build breadcrumbs for the header
-  const breadcrumbs = announcement ? [
-    { label: 'Announcements', path: `/${province}/${municipality}/announcements` },
-    { label: announcement.title, path: null }
-  ] : [];
-
   return (
     <>
-      <Header breadcrumbs={breadcrumbs} />
+      <Header />
       <div className="listing-detail-container">
+        {announcement && (
+          <nav className="breadcrumb-navigation" aria-label="Breadcrumb">
+            <button onClick={() => navigate(`/${province}/${municipality}/announcements`)} className="breadcrumb-link">
+              Announcements
+            </button>
+            <span className="breadcrumb-separator"> › </span>
+            <span className="breadcrumb-current">{announcement.title}</span>
+          </nav>
+        )}
 
       <div className="announcement-detail-content">
         <div className="announcement-detail-header">
