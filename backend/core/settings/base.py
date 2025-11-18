@@ -207,8 +207,10 @@ SITE_ID = 1
 
 # Django Allauth Configuration
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow both username and email
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True  # Require username (we use it)
+ACCOUNT_SIGNUP_FIELDS = {
+    'username': {'required': True},
+    'email': {'required': True},
+}
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Verify on GET request
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1  # 24 hours token expiry
