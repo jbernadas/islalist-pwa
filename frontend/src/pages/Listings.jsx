@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { listingsAPI, categoriesAPI, provincesAPI } from '../services/api';
+import { listingsAPI, categoriesAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
@@ -14,8 +14,10 @@ const Listings = () => {
   const [categories, setCategories] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [municipalities, setMunicipalities] = useState([]);
+  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingLocations, setLoadingLocations] = useState(true);
+  const [loadingBarangays, setLoadingBarangays] = useState(false);
   const [favoritingIds, setFavoritingIds] = useState(new Set());
   const [filters, setFilters] = useState({
     search: '',
@@ -89,6 +91,41 @@ const Listings = () => {
 
     fetchLocations();
   }, [province]);
+
+  // Fetch barangays for current municipality
+  useEffect(() => {
+    const fetchBarangays = async () => {
+      // Only fetch if we have both province and municipality, and municipality is not 'all'
+      if (!province || !municipality || municipality.toLowerCase() === 'all') {
+        setBarangays([]);
+        // Clear barangay filter when viewing all municipalities
+        setFilters(prev => ({ ...prev, barangay: '' }));
+        return;
+      }
+
+      // Find the municipality object to get its ID
+      const currentMun = municipalities.find(m => slugify(m.name) === municipality);
+      if (!currentMun) {
+        console.log('Municipality not found in municipalities array');
+        return;
+      }
+
+      try {
+        setLoadingBarangays(true);
+        const response = await barangaysAPI.getAll({ municipality: currentMun.id });
+        setBarangays(response.data || []);
+      } catch (error) {
+        console.error('Error fetching barangays:', error);
+        setBarangays([]);
+      } finally {
+        setLoadingBarangays(false);
+      }
+    };
+
+    fetchBarangays();
+    // Clear barangay filter when municipality changes
+    setFilters(prev => ({ ...prev, barangay: '' }));
+  }, [province, municipality, municipalities]);
 
   // Derive province names for dropdown (from API data)
   const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
@@ -343,16 +380,24 @@ const Listings = () => {
               </select>
             </div>
 
-            <div className="filter-group">
-              <label>Barangay</label>
-              <input
-                type="text"
-                name="barangay"
-                value={filters.barangay}
-                onChange={handleFilterChange}
-                placeholder="e.g., Poblacion"
-              />
-            </div>
+            {municipality && municipality.toLowerCase() !== 'all' && (
+              <div className="filter-group">
+                <label>Barangay</label>
+                <select
+                  name="barangay"
+                  value={filters.barangay}
+                  onChange={handleFilterChange}
+                  disabled={loadingBarangays}
+                >
+                  <option value="">All Barangays</option>
+                  {barangays.map(brgy => (
+                    <option key={brgy.id} value={brgy.name}>
+                      {brgy.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="filter-group">
               <label>Price Range</label>
