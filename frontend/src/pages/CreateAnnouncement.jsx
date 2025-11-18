@@ -25,6 +25,7 @@ const CreateAnnouncement = () => {
     province_id: '',
     municipality_id: '',
     is_province_wide: false,
+    is_municipality_wide: false,
   });
 
   useEffect(() => {
@@ -110,6 +111,7 @@ const CreateAnnouncement = () => {
         province: formData.province_id,
         municipality: formData.municipality_id,
         is_province_wide: formData.is_province_wide,
+        is_municipality_wide: formData.is_municipality_wide,
       };
 
       if (formData.barangay) data.barangay = formData.barangay;
@@ -224,13 +226,38 @@ const CreateAnnouncement = () => {
                 type="checkbox"
                 name="is_province_wide"
                 checked={formData.is_province_wide}
-                onChange={(e) => setFormData(prev => ({ ...prev, is_province_wide: e.target.checked }))}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  is_province_wide: e.target.checked,
+                  is_municipality_wide: e.target.checked ? false : prev.is_municipality_wide
+                }))}
                 style={{ width: 'auto', flexShrink: 0, marginRight: '0.75rem' }}
               />
               <span style={{ flex: 1 , fontWeight: 'bold' }}>Province-wide announcement (show in all municipalities)</span>
             </label>
             <p className="help-text">
               Check this if the announcement is relevant to the entire province, not just one municipality.
+            </p>
+          </div>
+
+          <div className="form-group">
+            <label className="checkbox-label d-flex">
+              <input
+                type="checkbox"
+                name="is_municipality_wide"
+                checked={formData.is_municipality_wide}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  is_municipality_wide: e.target.checked,
+                  is_province_wide: e.target.checked ? false : prev.is_province_wide
+                }))}
+                disabled={formData.is_province_wide}
+                style={{ width: 'auto', flexShrink: 0, marginRight: '0.75rem' }}
+              />
+              <span style={{ flex: 1, fontWeight: 'bold' }}>Municipality-wide announcement (show in all barangays)</span>
+            </label>
+            <p className="help-text">
+              Check this if the announcement is relevant to all barangays in the municipality.
             </p>
           </div>
           <div className="form-row">
@@ -288,15 +315,24 @@ const CreateAnnouncement = () => {
               name="barangay"
               value={formData.barangay}
               onChange={handleChange}
-              disabled={barangays.length === 0}
+              disabled={barangays.length === 0 || formData.is_province_wide || formData.is_municipality_wide}
             >
-              <option value="">Select your barangay</option>
+              <option value="">
+                {formData.is_municipality_wide
+                  ? 'Disabled - Municipality-wide announcement'
+                  : 'Select your barangay'}
+              </option>
               {barangays.map(barangay => (
                 <option key={barangay.id} value={barangay.name}>
                   {barangay.name}
                 </option>
               ))}
             </select>
+            {(formData.is_province_wide || formData.is_municipality_wide) && (
+              <p className="help-text">
+                Barangay selection is disabled for province-wide and municipality-wide announcements.
+              </p>
+            )}
           </div>
 
           <div className="form-group">

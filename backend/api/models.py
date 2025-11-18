@@ -469,6 +469,10 @@ class Announcement(models.Model):
         default=False,
         help_text="Show this announcement in all municipalities within the province"
     )
+    is_municipality_wide = models.BooleanField(
+        default=False,
+        help_text="Show this announcement in all barangays within the municipality"
+    )
 
     # Author and Contact
     author = models.ForeignKey(

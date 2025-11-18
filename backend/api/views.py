@@ -187,11 +187,25 @@ class ListingViewSet(viewsets.ModelViewSet):
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
 
-        # Filter by municipality (case-insensitive, partial match in location field)
+        # Filter by municipality and barangay (case-insensitive, partial match in location field)
         municipality = self.request.query_params.get('municipality')
         province_param = self.request.query_params.get('province')
+        barangay = self.request.query_params.get('barangay')
 
-        if municipality:
+        if barangay and municipality and province_param:
+            # Priority-based cascade filtering for barangay level:
+            # For listings, we show ALL listings in the barangay since listings don't have priority
+            # This includes: barangay-specific OR municipality-level OR province-wide
+            barangay_formatted = barangay.replace('-', ' ').title()
+            municipality_formatted = municipality.replace('-', ' ').title()
+            province_formatted = province_param.replace('-', ' ').title()
+
+            queryset = queryset.filter(
+                Q(barangay__iexact=barangay_formatted) |
+                Q(barangay='', location__icontains=municipality_formatted) |
+                Q(is_province_wide=True, island__iexact=province_formatted)
+            )
+        elif municipality:
             # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
             municipality_formatted = municipality.replace('-', ' ').title()
 
@@ -344,11 +358,24 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
                 expiry_date__lt=timezone.now().date()
             )
 
-        # Handle province and municipality filtering with province-wide announcement support
+        # Handle province, municipality, and barangay filtering with cascade support
         municipality = self.request.query_params.get('municipality')
         province = self.request.query_params.get('province')
+        barangay = self.request.query_params.get('barangay')
 
-        if municipality and province:
+        if barangay and municipality and province:
+            from django.db.models import Q
+            # Priority-based cascade filtering for barangay level:
+            # 1. Direct barangay match
+            # 2. Municipality-wide with High/Urgent priority
+            # 3. Province-wide with Urgent priority only
+            queryset = queryset.filter(
+                Q(barangay__iexact=barangay, municipality=municipality, province=province) |
+                Q(is_municipality_wide=True, municipality=municipality, province=province,
+                  priority__in=['high', 'urgent']) |
+                Q(is_province_wide=True, province=province, priority='urgent')
+            )
+        elif municipality and province:
             from django.db.models import Q
             # Get announcements for this municipality OR province-wide for this province
             queryset = queryset.filter(

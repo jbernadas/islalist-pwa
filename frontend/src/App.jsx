@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Province from './pages/Province';
 import CityMunBulletinBoard from './pages/CityMunBulletinBoard';
+import BarangayBulletinBoard from './pages/BarangayBulletinBoard';
 import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Listings from './pages/Listings';
@@ -53,8 +54,11 @@ function App() {
             }
           />
 
-          {/* Province/City/Municipality routes (new structure) */}
-          {/* More specific routes first */}
+          {/* Province/City/Municipality/Barangay routes (new structure) */}
+          {/* More specific routes first - barangay routes */}
+          <Route path="/:province/:municipality/:barangay" element={<BarangayBulletinBoard />} />
+
+          {/* Municipality routes */}
           <Route path="/:province/:municipality/listings/:id" element={<ListingDetail />} />
           <Route
             path="/:province/:municipality/create-listing"

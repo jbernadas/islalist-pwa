@@ -3,6 +3,67 @@
   background: #f8f9fa;
 }
 
+/* Breadcrumb Navigation */
+.breadcrumb-nav {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.breadcrumb-link {
+  color: #667eea;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 0.5rem;
+  color: #999;
+}
+
+.breadcrumb-current {
+  color: #333;
+  font-weight: 500;
+}
+
+/* Scope Badges */
+.scope-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 0.5rem;
+}
+
+.scope-badge.province-wide {
+  background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+.scope-badge.municipality-wide {
+  background: linear-gradient(135deg, #ff922b 0%, #e67700 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 146, 43, 0.3);
+}
+
+.urgent-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
 /* Hero Section */
 .bulletin-hero {
   position: relative;
@@ -486,6 +547,79 @@
   color: #999;
   margin: 0;
   margin-top: auto;
+}
+
+/* Barangays Section */
+.barangays-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.barangays-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.barangay-count {
+  font-size: 0.875rem;
+  color: #666;
+  background: #f0f0f0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.barangays-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.barangay-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.barangay-card:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.barangay-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.barangay-name {
+  flex: 1;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.barangay-arrow {
+  font-size: 1rem;
+  opacity: 0.6;
+  transition: transform 0.3s ease;
+}
+
+.barangay-card:hover .barangay-arrow {
+  transform: translateX(4px);
+  opacity: 1;
 }
 
 /* Activity Feed */

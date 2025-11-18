@@ -6,8 +6,8 @@ import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './CityMunBulletinBoard.css';
 
-const CityMunBulletinBoard = () => {
-  const { province, municipality } = useParams();
+const BarangayBulletinBoard = () => {
+  const { province, municipality, barangay } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [provinces, setProvinces] = useState([]);
@@ -19,24 +19,19 @@ const CityMunBulletinBoard = () => {
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
 
-  // Fetch provinces and municipalities
+  // Fetch provinces, municipalities, and barangays
   useEffect(() => {
-    if (!province) {
-      navigate('/siquijor');
-      return;
-    }
-
-    // Redirect "all" municipality to province page
-    if (municipality === 'all') {
-      navigate(`/${province}`, { replace: true });
+    if (!province || !municipality || !barangay) {
+      if (!province) navigate('/siquijor');
+      else if (!municipality) navigate(`/${province}`);
+      else if (!barangay) navigate(`/${province}/${municipality}`);
       return;
     }
 
     // Save current location to localStorage
     localStorage.setItem('lastProvince', province);
-    if (municipality) {
-      localStorage.setItem('lastMunicipality', municipality);
-    }
+    localStorage.setItem('lastMunicipality', municipality);
+    localStorage.setItem('lastBarangay', barangay);
 
     const fetchLocations = async () => {
       try {
@@ -48,40 +43,31 @@ const CityMunBulletinBoard = () => {
         const now = Date.now();
         const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
 
+        let provincesData = [];
+
         if (cachedProvinces && cacheTime && (now - parseInt(cacheTime)) < cacheExpiry) {
-          const provincesData = JSON.parse(cachedProvinces);
+          provincesData = JSON.parse(cachedProvinces);
           setProvinces(provincesData);
-
-          const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
-          if (currentProv) {
-            const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
-            setMunicipalities(munResponse.data);
-
-            // Fetch barangays for the current municipality
-            const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
-            if (currentMun) {
-              const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
-              setBarangays(barResponse.data || []);
-            }
-          }
         } else {
           const response = await provincesAPI.getAll();
-          const provincesData = response.data.results || response.data;
+          provincesData = response.data.results || response.data;
           setProvinces(Array.isArray(provincesData) ? provincesData : []);
 
           localStorage.setItem('provinces', JSON.stringify(provincesData));
           localStorage.setItem('provinces_cache_time', now.toString());
+        }
 
-          if (province) {
-            const munResponse = await provincesAPI.getMunicipalities(province.toLowerCase());
-            setMunicipalities(munResponse.data);
+        const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
+        if (currentProv) {
+          // Fetch municipalities
+          const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
+          setMunicipalities(munResponse.data);
 
-            // Fetch barangays for the current municipality
-            const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
-            if (currentMun) {
-              const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
-              setBarangays(barResponse.data || []);
-            }
+          // Fetch barangays for this municipality
+          const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
+          if (currentMun) {
+            const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
+            setBarangays(barResponse.data || []);
           }
         }
       } catch (error) {
@@ -92,34 +78,40 @@ const CityMunBulletinBoard = () => {
     };
 
     fetchLocations();
-  }, [province, municipality, navigate]);
+  }, [province, municipality, barangay, navigate]);
 
   // Fetch recent content
   useEffect(() => {
-    if (provinces.length > 0 && municipalities.length > 0) {
+    if (provinces.length > 0 && municipalities.length > 0 && barangays.length > 0) {
       fetchRecentContent();
     }
-  }, [province, municipality, provinces, municipalities]);
+  }, [province, municipality, barangay, provinces, municipalities, barangays]);
 
   const fetchRecentContent = async () => {
     try {
       const currentProvince = provinces.find(p => p.slug === province);
       const currentMunicipality = municipalities.find(m => slugify(m.name) === municipality);
+      const currentBarangay = barangays.find(b => slugify(b.name) === barangay);
 
-      if (!currentProvince || !currentMunicipality) return;
+      if (!currentProvince || !currentMunicipality || !currentBarangay) return;
 
-      // Listings use municipality slug for text search in location field
-      // Also pass province to include province-wide listings
+      // Format barangay name for search (title case)
+      const barangayName = currentBarangay.name;
+
+      // Listings use barangay name for filtering
+      // Backend will include: barangay-specific + municipality-wide + province-wide
       const listingsParams = {
         municipality: municipality,
         province: province,
+        barangay: barangay, // Send slug format, backend will format
       };
 
-      // Announcements use province and municipality IDs (foreign keys)
-      // Backend will automatically include province-wide announcements
+      // Announcements use IDs and barangay name
+      // Backend will include: barangay-specific + municipality-wide (high/urgent) + province-wide (urgent)
       const announcementsParams = {
         province: currentProvince.id,
         municipality: currentMunicipality.id,
+        barangay: barangayName, // Use actual name
       };
 
       // Fetch recent listings (limit 3)
@@ -173,6 +165,7 @@ const CityMunBulletinBoard = () => {
       // "All Provinces" selected - clear saved location and go to home page
       localStorage.removeItem('lastProvince');
       localStorage.removeItem('lastMunicipality');
+      localStorage.removeItem('lastBarangay');
       navigate('/');
     }
   };
@@ -196,12 +189,16 @@ const CityMunBulletinBoard = () => {
     .join(' ');
 
   const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
-  const displayMunicipality = municipality === 'all'
-    ? 'All Cities/Municipalities'
-    : currentMunicipalityObj?.name || municipality
-        ?.split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+  const displayMunicipality = currentMunicipalityObj?.name || municipality
+    ?.split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  const currentBarangayObj = barangays.find(b => slugify(b.name) === barangay);
+  const displayBarangay = currentBarangayObj?.name || barangay
+    ?.split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-PH', {
@@ -233,6 +230,17 @@ const CityMunBulletinBoard = () => {
     }
   };
 
+  const getScopeLabel = (announcement) => {
+    // Check if this announcement is from broader scope
+    if (announcement.is_province_wide) {
+      return <span className="scope-badge province-wide">Province-Wide</span>;
+    }
+    if (announcement.is_municipality_wide || !announcement.barangay || announcement.barangay === '') {
+      return <span className="scope-badge municipality-wide">Municipality-Wide</span>;
+    }
+    return null;
+  };
+
   if (loading) {
     return (
       <div>
@@ -257,17 +265,22 @@ const CityMunBulletinBoard = () => {
         onMunicipalityChange={handleMunicipalityChange}
       />
 
+      {/* Breadcrumb Navigation */}
+      <div className="breadcrumb-nav">
+        <Link to={`/${province}`} className="breadcrumb-link">{displayProvince}</Link>
+        <span className="breadcrumb-separator"> / </span>
+        <Link to={`/${province}/${municipality}`} className="breadcrumb-link">{displayMunicipality}</Link>
+        <span className="breadcrumb-separator"> / </span>
+        <span className="breadcrumb-current">{displayBarangay}</span>
+      </div>
+
       {/* Hero Section */}
       <div className="bulletin-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <div className="hero-info">
-            <h1 className="hero-title">{displayMunicipality}</h1>
-            <p className="hero-subtitle">
-              {displayMunicipality !== "All Cities/Municipalities"
-                ? (currentMunicipalityObj?.type === 'City' ? "City Hub" : "Municipality Hub")
-                : (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
-            </p>
+            <h1 className="hero-title">{displayBarangay}</h1>
+            <p className="hero-subtitle">Barangay Hub - {displayMunicipality}</p>
           </div>
           <div className="hero-stats">
             <div className="hero-stat-item">
@@ -297,21 +310,24 @@ const CityMunBulletinBoard = () => {
                 className="urgent-item"
                 onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
               >
-                <span className="urgent-title">{announcement.title}</span>
+                <div className="urgent-content">
+                  <span className="urgent-title">{announcement.title}</span>
+                  {getScopeLabel(announcement)}
+                </div>
                 <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Welcome Hero for Completely Empty Municipality */}
+        {/* Welcome Hero for Completely Empty Barangay */}
         {stats.listings === 0 && stats.announcements === 0 && (
           <div className="welcome-hero">
             <div className="welcome-content">
-              <div className="hero-icon">🏝️</div>
-              <h2>Welcome to {displayMunicipality}!</h2>
+              <div className="hero-icon">🏘️</div>
+              <h2>Welcome to {displayBarangay}!</h2>
               <p className="welcome-description">
-                This community is just getting started. Be a pioneer and help build this local hub!
+                This barangay is just getting started. Be a pioneer and help build this local hub!
               </p>
               {isAuthenticated ? (
                 <div className="hero-actions">
@@ -337,12 +353,12 @@ const CityMunBulletinBoard = () => {
           </div>
         )}
 
-        {/* Latest Announcements Section - Only show if announcements exist */}
+        {/* Latest Announcements Section */}
         {recentAnnouncements.length > 0 && (
           <div className="announcements-section">
             <div className="section-header">
               <h2>📢 Latest Announcements</h2>
-              <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
+              <Link to={`/${province}/${municipality}/announcements?barangay=${barangay}`} className="view-all-link">
                 View all {stats.announcements} →
               </Link>
             </div>
@@ -356,6 +372,7 @@ const CityMunBulletinBoard = () => {
                   <div className="announcement-header-inline">
                     <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
                     <span className="announcement-type-badge">{announcement.announcement_type}</span>
+                    {getScopeLabel(announcement)}
                   </div>
                   <h4 className="announcement-title">{announcement.title}</h4>
                   <p className="announcement-preview">
@@ -363,73 +380,13 @@ const CityMunBulletinBoard = () => {
                       ? `${announcement.description.substring(0, 120)}...`
                       : announcement.description}
                   </p>
-                  <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Featured Listings Section - Only show if listings exist */}
-        {recentListings.length > 0 && (
-          <div className="featured-section">
-            <div className="section-header">
-              <h2>🏷️ Featured Listings</h2>
-              <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
-                View all {stats.listings} →
-              </Link>
-            </div>
-            <div className="featured-listings-grid">
-              {recentListings.map(listing => (
-                <div
-                  key={listing.id}
-                  className="featured-card"
-                  onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
-                >
-                  {listing.first_image ? (
-                    <div className="featured-image">
-                      <img src={listing.first_image} alt={listing.title} />
-                      {listing.category_name === 'Real Estate' && listing.property_type && (
-                        <span className="property-badge">
-                          {listing.property_type}
-                        </span>
-                      )}
-                      {listing.category_name === 'Vehicles' && listing.vehicle_type && (
-                        <span className="property-badge">
-                          {listing.vehicle_type}
-                        </span>
-                      )}
-                      {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
-                        <span className="property-badge">
-                          {listing.pay_period.replace('_', ' ')}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="featured-image">
-                      <span className="display-5">🏝️ IslaList</span>
-                    </div>
-                  )}
-                  <div className="featured-info">
-                    <h3>{listing.title}</h3>
-                    <p className="featured-price">{formatPrice(listing.price)}</p>
-                    <p className="featured-meta">
-                      <span>{listing.category_name}</span>
-                      {listing.category_name === 'Vehicles' && listing.vehicle_year && (
-                        <>
-                          <span>•</span>
-                          <span>{listing.vehicle_year}</span>
-                        </>
-                      )}
-                      {listing.category_name === 'Vehicles' && listing.vehicle_make && listing.vehicle_model && (
-                        <>
-                          <span>•</span>
-                          <span>{listing.vehicle_make} {listing.vehicle_model}</span>
-                        </>
-                      )}
-                      <span>•</span>
-                      <span>{getTimeAgo(listing.created_at)}</span>
-                    </p>
+                  <div className="announcement-meta">
+                    <span className="announcement-time">{getTimeAgo(announcement.created_at)}</span>
+                    {announcement.expiry_date && (
+                      <span className="announcement-expiry">
+                        Expires: {new Date(announcement.expiry_date).toLocaleDateString()}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -437,80 +394,98 @@ const CityMunBulletinBoard = () => {
           </div>
         )}
 
-        {/* Activity Feed - Combined Recent Activity */}
-        <div className="activity-feed">
-          <h2>⚡ Recent Activity</h2>
-          <div className="activity-list">
-            {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
-              ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
-              .sort((a, b) => new Date(b.time) - new Date(a.time))
-              .slice(0, 8)
-              .map((item) => (
-                <div
-                  key={`${item.type}-${item.id}`}
-                  className={`activity-item ${item.type}`}
-                  onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
-                >
-                  <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
-                  <span className="activity-text">
-                    {item.type === 'listing'
-                      ? `${item.title} - ${formatPrice(item.price)}`
-                      : item.title}
-                  </span>
-                  <span className="activity-time">{getTimeAgo(item.time)}</span>
-                </div>
-              ))}
-            {recentListings.length === 0 && recentAnnouncements.length === 0 && (
-              <div className="activity-empty">
-                <p>No recent activity in this area</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Barangays Navigation */}
-        {barangays.length > 0 && (
-          <div className="barangays-section">
+        {/* Latest Listings Section */}
+        {recentListings.length > 0 && (
+          <div className="listings-section">
             <div className="section-header">
-              <h2>🏘️ Barangays in {displayMunicipality}</h2>
-              <span className="barangay-count">{barangays.length} barangays</span>
+              <h2>🛒 Latest Listings</h2>
+              <Link to={`/${province}/${municipality}/listings?barangay=${barangay}`} className="view-all-link">
+                View all {stats.listings} →
+              </Link>
             </div>
-            <div className="barangays-grid">
-              {barangays.map(barangay => (
-                <Link
-                  key={barangay.id}
-                  to={`/${province}/${municipality}/${slugify(barangay.name)}`}
-                  className="barangay-card"
+            <div className="listings-grid">
+              {recentListings.map(listing => (
+                <div
+                  key={listing.id}
+                  className="listing-card"
+                  onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
                 >
-                  <span className="barangay-icon">📍</span>
-                  <span className="barangay-name">{barangay.name}</span>
-                  <span className="barangay-arrow">→</span>
-                </Link>
+                  {listing.images && listing.images.length > 0 && (
+                    <div className="listing-image-container">
+                      <img
+                        src={listing.images[0].image_url}
+                        alt={listing.title}
+                        className="listing-image"
+                      />
+                    </div>
+                  )}
+                  <div className="listing-content">
+                    <div className="listing-header">
+                      <span className="listing-category">{listing.category_name}</span>
+                      {listing.status === 'sold' && (
+                        <span className="listing-sold-badge">Sold</span>
+                      )}
+                    </div>
+                    <h4 className="listing-title">{listing.title}</h4>
+                    <div className="listing-price">{formatPrice(listing.price)}</div>
+                    <div className="listing-meta">
+                      <span>{listing.location}</span>
+                      {listing.barangay && <span> • {listing.barangay}</span>}
+                    </div>
+                    <div className="listing-footer">
+                      <span className="listing-time">{getTimeAgo(listing.created_at)}</span>
+                      <span className="listing-views">👁 {listing.views_count}</span>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Quick Navigation */}
-        <div className="quick-navigation">
-          <Link to={`/${province}/${municipality}/listings`} className="nav-card listings">
-            <span className="nav-icon">🏷️</span>
-            <span className="nav-label">Browse All Listings</span>
-          </Link>
-          <Link to={`/${province}/${municipality}/announcements`} className="nav-card announcements">
-            <span className="nav-icon">📢</span>
-            <span className="nav-label">Browse All Announcements</span>
-          </Link>
-        </div>
-
-        <div className="back-link">
-          <Link to={`/${province}`}>
-            ← Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
-          </Link>
-        </div>
+        {/* Quick Actions */}
+        {isAuthenticated && (
+          <div className="quick-actions">
+            <h3>Quick Actions</h3>
+            <div className="actions-grid">
+              <Link
+                to={`/${province}/${municipality}/create-listing`}
+                className="action-card"
+              >
+                <span className="action-icon">📝</span>
+                <span className="action-title">Post a Listing</span>
+                <span className="action-description">Sell or rent items in {displayBarangay}</span>
+              </Link>
+              <Link
+                to={`/${province}/${municipality}/create-announcement`}
+                className="action-card"
+              >
+                <span className="action-icon">📢</span>
+                <span className="action-title">Make an Announcement</span>
+                <span className="action-description">Share news with the barangay</span>
+              </Link>
+              <Link
+                to={`/${province}/${municipality}/listings?barangay=${barangay}`}
+                className="action-card"
+              >
+                <span className="action-icon">🔍</span>
+                <span className="action-title">Browse Listings</span>
+                <span className="action-description">View all listings in {displayBarangay}</span>
+              </Link>
+              <Link
+                to={`/${province}/${municipality}/announcements?barangay=${barangay}`}
+                className="action-card"
+              >
+                <span className="action-icon">📋</span>
+                <span className="action-title">View Announcements</span>
+                <span className="action-description">See all announcements</span>
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default CityMunBulletinBoard;
+export default BarangayBulletinBoard;
