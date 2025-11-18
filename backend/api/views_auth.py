@@ -18,20 +18,17 @@ class CustomRegisterView(RegisterView):
     """
 
     def create(self, request, *args, **kwargs):
-        """Override to add logging"""
-        logger.info(f"Registration request data: {request.data}")
+        """Override to handle errors gracefully"""
         try:
             return super().create(request, *args, **kwargs)
         except Exception as e:
-            logger.error(f"Registration error: {str(e)}")
-            logger.error(f"Error type: {type(e)}")
+            logger.error(f"Registration error: {type(e).__name__}")
             raise
 
     def perform_create(self, serializer):
         """
         Override to ensure EmailAddress is created and verification email is sent
         """
-        logger.info("perform_create called")
         user = serializer.save(self.request)  # Don't call super() which tries to login
 
         # Create EmailAddress object for allauth
@@ -41,18 +38,14 @@ class CustomRegisterView(RegisterView):
             defaults={'primary': True, 'verified': False}
         )
 
-        if created:
-            logger.info(f"Created EmailAddress for {user.email}")
-
         # If email verification is mandatory, set user as inactive
         if allauth_settings.EMAIL_VERIFICATION == allauth_settings.EmailVerificationMethod.MANDATORY:
             user.is_active = False
             user.save()
-            logger.info(f"Set user {user.username} as inactive (email verification required)")
+            logger.info(f"New user registered (ID: {user.pk}), email verification required")
 
             # Send verification email
             email_address.send_confirmation(self.request, signup=True)
-            logger.info(f"Sent verification email to {user.email}")
 
         return user
 
@@ -77,11 +70,11 @@ class CustomVerifyEmailView(VerifyEmailView):
             if not user.is_active:
                 user.is_active = True
                 user.save()
-                logger.info(f"Activated user {user.username} after email verification")
+                logger.info(f"Email verified and user activated (ID: {user.pk})")
 
             return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Email verification error: {str(e)}")
+            logger.error(f"Email verification error: {type(e).__name__}")
             return Response(
                 {'detail': _('Invalid or expired verification link.')},
                 status=status.HTTP_400_BAD_REQUEST

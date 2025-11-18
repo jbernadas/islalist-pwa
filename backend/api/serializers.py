@@ -129,10 +129,6 @@ class CustomRegisterSerializer(RegisterSerializer):
 
     def custom_signup(self, request, user):
         """Called after user is created to set additional fields"""
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"custom_signup called for user: {user.username}")
-
         user.first_name = self.validated_data.get('first_name', '')
         user.last_name = self.validated_data.get('last_name', '')
         user.save()
@@ -143,7 +139,6 @@ class CustomRegisterSerializer(RegisterSerializer):
             user=user,
             defaults={'phone_number': phone_number}
         )
-        logger.info(f"User profile created with phone: {phone_number}")
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

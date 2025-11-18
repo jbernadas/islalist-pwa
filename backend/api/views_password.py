@@ -23,8 +23,6 @@ class CustomPasswordResetConfirmView(APIView):
 
     def post(self, request, *args, **kwargs):
         """Handle password reset confirmation"""
-        logger.info(f"Password reset confirm request data: {request.data}")
-
         uid = request.data.get('uid')
         token = request.data.get('token')
         new_password1 = request.data.get('new_password1')
@@ -47,11 +45,8 @@ class CustomPasswordResetConfirmView(APIView):
         # Decode uid and get user
         try:
             user_id = force_str(urlsafe_base64_decode(uid))
-            logger.info(f"Decoded uid: {user_id}")
             user = User.objects.get(pk=user_id)
-            logger.info(f"Found user: {user.username}")
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
-            logger.error(f"Invalid uid: {e}")
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response(
                 {'detail': _('Invalid reset link')},
                 status=status.HTTP_400_BAD_REQUEST
@@ -59,7 +54,6 @@ class CustomPasswordResetConfirmView(APIView):
 
         # Validate token
         if not default_token_generator.check_token(user, token):
-            logger.error(f"Invalid token for user {user.username}")
             return Response(
                 {'detail': _('Invalid or expired reset link')},
                 status=status.HTTP_400_BAD_REQUEST
@@ -69,13 +63,13 @@ class CustomPasswordResetConfirmView(APIView):
         try:
             user.set_password(new_password1)
             user.save()
-            logger.info(f"Password reset successful for user {user.username}")
+            logger.info(f"Password reset successful for user ID {user.pk}")
             return Response(
                 {'detail': _('Password has been reset successfully')},
                 status=status.HTTP_200_OK
             )
         except Exception as e:
-            logger.error(f"Error setting password: {e}")
+            logger.error(f"Error setting password: {str(e)}")
             return Response(
                 {'detail': _('Failed to reset password')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

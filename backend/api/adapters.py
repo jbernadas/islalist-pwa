@@ -46,16 +46,13 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         # For API usage, redirect to frontend with the key
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
         url = f"{frontend_url}/verify-email/{emailconfirmation.key}"
-        logger.info(f"Generated email confirmation URL: {url}")
         return url
 
     def send_confirmation_mail(self, request, emailconfirmation, signup):
         """
-        Override to add logging for debugging
+        Override to send confirmation email via frontend URL
         """
-        logger.info(f"Sending confirmation email to {emailconfirmation.email_address.email}")
         super().send_confirmation_mail(request, emailconfirmation, signup)
-        logger.info(f"Confirmation email sent successfully")
 
     def get_password_reset_url(self, request, user, temp_key):
         """
@@ -68,5 +65,4 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         url = f"{frontend_url}/reset-password/{uid}/{temp_key}"
-        logger.info(f"Generated password reset URL: {url}")
         return url
