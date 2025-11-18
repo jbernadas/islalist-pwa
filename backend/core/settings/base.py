@@ -232,6 +232,7 @@ REST_AUTH = {
     'JWT_AUTH_HTTPONLY': False,
     'USER_DETAILS_SERIALIZER': 'api.serializers.UserSerializer',
     'REGISTER_SERIALIZER': 'api.serializers.CustomRegisterSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'api.serializers_auth.CustomPasswordResetSerializer',
     'TOKEN_MODEL': None,  # Don't use token model, use JWT
     'SESSION_LOGIN': False,  # Don't use session authentication
 }

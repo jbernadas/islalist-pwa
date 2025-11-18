@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from api.views_auth import CustomRegisterView, CustomVerifyEmailView
+from api.views_password import CustomPasswordResetConfirmView
 
 urlpatterns = [
     # Django Admin
@@ -27,6 +28,7 @@ urlpatterns = [
     # Custom registration and email verification endpoints
     path('api/auth/register/', CustomRegisterView.as_view(), name='rest_register'),
     path('api/auth/registration/verify-email/', CustomVerifyEmailView.as_view(), name='rest_verify_email'),
+    path('api/auth/password/reset/confirm/', CustomPasswordResetConfirmView.as_view(), name='rest_password_reset_confirm'),
 
     # dj-rest-auth endpoints (password reset, etc.)
     path('api/auth/', include('dj_rest_auth.urls')),  # login, logout, password reset, password change
