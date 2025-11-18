@@ -60,6 +60,16 @@ const EditListing = () => {
     }
   }, [id, provinces]);
 
+  // Fetch barangays when municipalities are loaded and location is set
+  useEffect(() => {
+    if (formData.location && municipalities.length > 0) {
+      const currentMunicipality = municipalities.find(m => m.name === formData.location);
+      if (currentMunicipality) {
+        fetchBarangays(currentMunicipality.id);
+      }
+    }
+  }, [formData.location, municipalities]);
+
   const fetchCategories = async () => {
     try {
       const response = await categoriesAPI.getAll();
@@ -158,14 +168,6 @@ const EditListing = () => {
       });
 
       setExistingImages(listing.images || []);
-
-      // Fetch barangays for the listing's municipality if it exists
-      if (listing.location) {
-        const currentMunicipality = municipalities.find(m => m.name === listing.location);
-        if (currentMunicipality) {
-          await fetchBarangays(currentMunicipality.id);
-        }
-      }
     } catch (err) {
       console.error('Error fetching listing:', err);
       setError('Failed to load listing');
