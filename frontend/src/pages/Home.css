@@ -121,7 +121,6 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 1.5rem;
@@ -172,7 +171,6 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 1.5rem;
