@@ -259,6 +259,21 @@ const BarangayBulletinBoard = () => {
     return null;
   };
 
+  const getListingScope = (listing) => {
+    // Check if listing has barangay field populated (now barangay is ID, use barangay_name for display)
+    if (listing.barangay && listing.barangay_name) {
+      return { label: `Barangay: ${listing.barangay_name}`, className: 'scope-barangay' };
+    }
+    // Check if location matches province (province-wide)
+    else if (listing.island === displayProvince) {
+      return { label: 'Province-wide', className: 'scope-province' };
+    }
+    // Otherwise it's municipality-wide
+    else {
+      return { label: 'Municipality-wide', className: 'scope-municipality' };
+    }
+  };
+
   if (loading) {
     return (
       <div>
@@ -454,49 +469,56 @@ const BarangayBulletinBoard = () => {
 
         {/* Latest Listings Section */}
         {recentListings.length > 0 && (
-          <div className="listings-section">
+          <div className="featured-section">
             <div className="section-header">
-              <h2>🛒 Latest Listings</h2>
+              <h2>🛒 Featured Listings</h2>
               <Link to={`/${province}/${municipality}/listings?barangay=${barangay}`} className="view-all-link">
                 View all {stats.listings} →
               </Link>
             </div>
-            <div className="listings-grid">
-              {recentListings.map(listing => (
-                <div
-                  key={listing.id}
-                  className="listing-card"
-                  onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
-                >
-                  {listing.images && listing.images.length > 0 && (
-                    <div className="listing-image-container">
-                      <img
-                        src={listing.images[0].image_url}
-                        alt={listing.title}
-                        className="listing-image"
-                      />
-                    </div>
-                  )}
-                  <div className="listing-content">
-                    <div className="listing-header">
-                      <span className="listing-category">{listing.category_name}</span>
-                      {listing.status === 'sold' && (
-                        <span className="listing-sold-badge">Sold</span>
-                      )}
-                    </div>
-                    <h4 className="listing-title">{listing.title}</h4>
-                    <div className="listing-price">{formatPrice(listing.price)}</div>
-                    <div className="listing-meta">
-                      <span>{listing.location}</span>
-                      {listing.barangay && <span> • {listing.barangay}</span>}
-                    </div>
-                    <div className="listing-footer">
-                      <span className="listing-time">{getTimeAgo(listing.created_at)}</span>
-                      <span className="listing-views">👁 {listing.views_count}</span>
+            <div className="featured-listings-grid">
+              {recentListings.map(listing => {
+                const scope = getListingScope(listing);
+                return (
+                  <div
+                    key={listing.id}
+                    className="featured-card"
+                    onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
+                  >
+                    {listing.first_image ? (
+                      <div className="featured-image">
+                        <img
+                          src={listing.first_image}
+                          alt={listing.title}
+                        />
+                        {listing.category_name && (
+                          <div className="featured-badge">
+                            {listing.category_name === 'Real Estate' && '🏡'}
+                            {listing.category_name === 'Vehicles' && '🚗'}
+                            {listing.category_name === 'For Sale' && '🏷️'}
+                            {listing.category_name === 'Jobs' && '💼'}
+                            {listing.category_name === 'Services' && '🔧'}
+                            {!['Real Estate', 'Vehicles', 'For Sale', 'Jobs', 'Services'].includes(listing.category_name) && '📦'}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="featured-image">
+                        <span className="display-5">🏝️ IslaList</span>
+                      </div>
+                    )}
+                    <div className="featured-info">
+                      <h3>{listing.title}</h3>
+                      <span className={`scope-badge ${scope.className}`}>{scope.label}</span>
+                      <p className="featured-price">{formatPrice(listing.price)}</p>
+                      <p className="featured-meta">
+                        <span>📍 {listing.barangay_name || listing.location}</span>
+                        <span>👁 {listing.views_count} views</span>
+                      </p>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
