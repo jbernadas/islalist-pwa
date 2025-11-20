@@ -370,7 +370,7 @@ const EditAnnouncement = () => {
                   : 'Select your barangay'}
               </option>
               {barangays.map(barangay => (
-                <option key={barangay.id} value={barangay.name}>
+                <option key={barangay.id} value={barangay.id}>
                   {barangay.name}
                 </option>
               ))}

@@ -391,7 +391,7 @@ const Listings = () => {
                 >
                   <option value="">All Barangays</option>
                   {barangays.map(brgy => (
-                    <option key={brgy.id} value={brgy.name}>
+                    <option key={brgy.id} value={brgy.id}>
                       {brgy.name}
                     </option>
                   ))}
@@ -527,7 +527,7 @@ const Listings = () => {
                       )}
                     </div>
                     <p className="location">
-                      📍 {listing.barangay ? `${listing.barangay}, ` : ''}{listing.location}, {listing.island}
+                      📍 {listing.barangay_name ? `${listing.barangay_name}, ` : ''}{listing.location}, {listing.island}
                     </p>
                     <p className="seller">👤 {listing.seller_name}</p>
                   </div>

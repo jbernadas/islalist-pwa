@@ -314,7 +314,14 @@ class Listing(models.Model):
 
     # Location
     location = models.CharField(max_length=200, help_text="City/Municipality/Barangay")
-    barangay = models.CharField(max_length=100, blank=True, help_text="Barangay (optional)")
+    barangay = models.ForeignKey(
+        'Barangay',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='listings',
+        help_text="Barangay (optional)"
+    )
     island = models.CharField(max_length=100, default='Siquijor')
 
     # User and Status
@@ -460,9 +467,12 @@ class Announcement(models.Model):
         on_delete=models.CASCADE,
         related_name='announcements'
     )
-    barangay = models.CharField(
-        max_length=100,
+    barangay = models.ForeignKey(
+        'Barangay',
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        related_name='announcements',
         help_text="Barangay (optional)"
     )
     is_province_wide = models.BooleanField(

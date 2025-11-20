@@ -291,7 +291,7 @@ const Announcements = () => {
                 >
                   <option value="">All Barangays</option>
                   {barangays.map(brgy => (
-                    <option key={brgy.id} value={brgy.name}>
+                    <option key={brgy.id} value={brgy.id}>
                       {brgy.name}
                     </option>
                   ))}
@@ -355,7 +355,7 @@ const Announcements = () => {
                   </p>
                   <div className="announcement-meta">
                     <p className="location">
-                      📍 {announcement.barangay ? `${announcement.barangay}, ` : ''}
+                      📍 {announcement.barangay_name ? `${announcement.barangay_name}, ` : ''}
                       {announcement.municipality_name}, {announcement.province_name}
                     </p>
                   </div>

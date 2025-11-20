@@ -145,8 +145,9 @@ class ListingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     # Removed 'island' from filterset_fields to handle it with case-insensitive matching in get_queryset()
-    filterset_fields = ['category', 'property_type', 'location', 'barangay', 'status']
-    search_fields = ['title', 'description', 'location', 'barangay']
+    # barangay is now a ForeignKey, so we filter by ID in get_queryset()
+    filterset_fields = ['category', 'property_type', 'location', 'status']
+    search_fields = ['title', 'description', 'location', 'barangay__name']
     ordering_fields = ['created_at', 'price', 'views_count']
     ordering = ['-created_at']
 
@@ -205,15 +206,23 @@ class ListingViewSet(viewsets.ModelViewSet):
             # Priority-based cascade filtering for barangay level:
             # For listings, we show ALL listings in the barangay since listings don't have priority
             # This includes: barangay-specific OR municipality-level OR province-wide
-            barangay_formatted = barangay.replace('-', ' ').title()
+            # barangay parameter is now expected to be an ID
             municipality_formatted = municipality.replace('-', ' ').title()
             province_formatted = province_param.replace('-', ' ').title()
 
-            queryset = queryset.filter(
-                Q(barangay__iexact=barangay_formatted) |
-                Q(barangay='', location__icontains=municipality_formatted) |
-                Q(is_province_wide=True, island__iexact=province_formatted)
-            )
+            try:
+                barangay_id = int(barangay)
+                queryset = queryset.filter(
+                    Q(barangay_id=barangay_id) |
+                    Q(barangay__isnull=True, location__icontains=municipality_formatted) |
+                    Q(is_province_wide=True, island__iexact=province_formatted)
+                )
+            except (ValueError, TypeError):
+                # If barangay is not a valid ID, filter only municipality and province-wide
+                queryset = queryset.filter(
+                    Q(barangay__isnull=True, location__icontains=municipality_formatted) |
+                    Q(is_province_wide=True, island__iexact=province_formatted)
+                )
         elif municipality:
             # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
             municipality_formatted = municipality.replace('-', ' ').title()
@@ -228,19 +237,18 @@ class ListingViewSet(viewsets.ModelViewSet):
 
                 # Get all barangays for this municipality to include barangay-specific listings
                 try:
-                    from api.models import Municipality as MunicipalityModel, Barangay as BarangayModel
+                    from api.models import Municipality as MunicipalityModel
                     municipality_obj = MunicipalityModel.objects.get(slug=municipality)
-                    barangay_names = list(municipality_obj.barangays.values_list('name', flat=True))
 
                     # Build query: municipality-wide OR any barangay in this municipality OR province-wide
-                    query = Q(location__icontains=municipality_formatted, barangay='')
+                    # With FK, we can filter by municipality relationship directly
+                    query = Q(location__icontains=municipality_formatted, barangay__isnull=True)
 
-                    # Add each barangay to the query
-                    for barangay_name in barangay_names:
-                        query |= Q(barangay__iexact=barangay_name)
+                    # Add all barangays in this municipality
+                    query |= Q(barangay__municipality=municipality_obj)
 
                     # Add province-wide listings
-                    query |= Q(location__iexact=province_formatted, barangay='')
+                    query |= Q(location__iexact=province_formatted, barangay__isnull=True)
 
                     queryset = queryset.filter(query)
                 except MunicipalityModel.DoesNotExist:
@@ -368,8 +376,9 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     # Note: province and municipality are handled manually in get_queryset() to support province-wide announcements
-    filterset_fields = ['priority', 'announcement_type', 'barangay']
-    search_fields = ['title', 'description', 'barangay']
+    # barangay is now a ForeignKey, so we filter by ID in get_queryset()
+    filterset_fields = ['priority', 'announcement_type']
+    search_fields = ['title', 'description', 'barangay__name']
     ordering_fields = ['created_at', 'priority', 'expiry_date']
     ordering = ['-priority', '-created_at']
 
@@ -406,15 +415,25 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         if barangay and municipality and province:
             from django.db.models import Q
             # Priority-based cascade filtering for barangay level:
-            # 1. Direct barangay match
+            # 1. Direct barangay match (by ID)
             # 2. Municipality-wide with High/Urgent priority
             # 3. Province-wide with Urgent priority only
-            queryset = queryset.filter(
-                Q(barangay__iexact=barangay, municipality=municipality, province=province) |
-                Q(is_municipality_wide=True, municipality=municipality, province=province,
-                  priority__in=['high', 'urgent']) |
-                Q(is_province_wide=True, province=province, priority='urgent')
-            )
+            # barangay parameter is now expected to be an ID
+            try:
+                barangay_id = int(barangay)
+                queryset = queryset.filter(
+                    Q(barangay_id=barangay_id, municipality=municipality, province=province) |
+                    Q(is_municipality_wide=True, municipality=municipality, province=province,
+                      priority__in=['high', 'urgent']) |
+                    Q(is_province_wide=True, province=province, priority='urgent')
+                )
+            except (ValueError, TypeError):
+                # If barangay is not a valid ID, show only municipality and province-wide
+                queryset = queryset.filter(
+                    Q(is_municipality_wide=True, municipality=municipality, province=province,
+                      priority__in=['high', 'urgent']) |
+                    Q(is_province_wide=True, province=province, priority='urgent')
+                )
         elif municipality and province:
             from django.db.models import Q
             # HIERARCHICAL VISIBILITY: Municipality view shows:

@@ -297,6 +297,7 @@ class ListingSerializer(serializers.ModelSerializer):
         source='category.name',
         read_only=True
     )
+    barangay_details = BarangaySerializer(source='barangay', read_only=True)
     images = ListingImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(),
@@ -318,14 +319,14 @@ class ListingSerializer(serializers.ModelSerializer):
             'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
             'vehicle_mileage', 'vehicle_transmission', 'vehicle_fuel_type', 'vehicle_condition',
             'category', 'category_name',
-            'condition', 'location', 'barangay', 'island', 'seller', 'status',
+            'condition', 'location', 'barangay', 'barangay_details', 'island', 'seller', 'status',
             'views_count', 'featured', 'created_at', 'updated_at',
             'expires_at', 'images', 'uploaded_images', 'reused_image_ids',
             'is_favorited'
         ]
         read_only_fields = [
             'id', 'seller', 'views_count', 'created_at',
-            'updated_at', 'is_favorited'
+            'updated_at', 'is_favorited', 'barangay_details'
         ]
 
     def get_is_favorited(self, obj):
@@ -417,6 +418,11 @@ class ListingListSerializer(serializers.ModelSerializer):
         source='category.name',
         read_only=True
     )
+    barangay_name = serializers.CharField(
+        source='barangay.name',
+        read_only=True,
+        allow_null=True
+    )
     first_image = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
 
@@ -425,7 +431,7 @@ class ListingListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'price', 'property_type', 'pay_period',
             'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
-            'location', 'barangay', 'island',
+            'location', 'barangay', 'barangay_name', 'island',
             'category_name', 'seller_name', 'status', 'created_at',
             'first_image', 'bedrooms', 'bathrooms', 'area_sqm',
             'is_favorited'
@@ -461,6 +467,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         source='municipality.name',
         read_only=True
     )
+    barangay_details = BarangaySerializer(source='barangay', read_only=True)
     is_expired = serializers.SerializerMethodField()
 
     class Meta:
@@ -468,10 +475,10 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'priority', 'announcement_type',
             'province', 'province_name', 'municipality', 'municipality_name',
-            'barangay', 'is_province_wide', 'is_municipality_wide', 'author', 'contact_info', 'created_at', 'updated_at',
+            'barangay', 'barangay_details', 'is_province_wide', 'is_municipality_wide', 'author', 'contact_info', 'created_at', 'updated_at',
             'expiry_date', 'is_active', 'is_expired'
         ]
-        read_only_fields = ['id', 'author', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'barangay_details']
 
     def get_is_expired(self, obj):
         """Check if announcement has expired"""
@@ -492,13 +499,18 @@ class AnnouncementListSerializer(serializers.ModelSerializer):
         source='municipality.name',
         read_only=True
     )
+    barangay_name = serializers.CharField(
+        source='barangay.name',
+        read_only=True,
+        allow_null=True
+    )
     is_expired = serializers.SerializerMethodField()
 
     class Meta:
         model = Announcement
         fields = [
             'id', 'title', 'description', 'priority', 'announcement_type',
-            'province_name', 'municipality_name', 'barangay',
+            'province_name', 'municipality_name', 'barangay', 'barangay_name',
             'is_province_wide', 'is_municipality_wide',
             'author_name', 'contact_info', 'created_at', 'expiry_date',
             'is_active', 'is_expired'

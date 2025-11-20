@@ -436,7 +436,7 @@ const CityMunBulletinBoard = () => {
                     </div>
                   ) : (
                     <p className="hero-hint">
-                      <Link to="/login" className="hero-link">Sign in</Link> to start contributing to your community
+                      <Link to="/register" className="hero-link">Register</Link> to post first listing or announcement
                     </p>
                   )}
                 </div>
@@ -550,18 +550,6 @@ const CityMunBulletinBoard = () => {
                 </div>
               </div>
             )}
-
-            {/* Quick Navigation */}
-            <div className="quick-navigation">
-              <Link to={`/${province}/${municipality}/listings`} className="nav-card listings">
-                <span className="nav-icon">🏷️</span>
-                <span className="nav-label">Browse All Listings</span>
-              </Link>
-              <Link to={`/${province}/${municipality}/announcements`} className="nav-card announcements">
-                <span className="nav-icon">📢</span>
-                <span className="nav-label">Browse All Announcements</span>
-              </Link>
-            </div>
 
             <div className="back-link">
               <Link to={`/${province}`}>
