@@ -141,9 +141,15 @@ const CityMunBulletinBoard = () => {
       const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
       const announcements = Array.isArray(announcementsData) ? announcementsData : [];
 
+      console.log('Fetched announcements:', announcements);
+      console.log('Announcements params:', announcementsParams);
+
       // Separate urgent from recent
       const urgent = announcements.filter(a => a.priority === 'urgent');
       const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 3);
+
+      console.log('Urgent announcements:', urgent);
+      console.log('Non-urgent announcements:', nonUrgent);
 
       setUrgentAnnouncements(urgent);
       setRecentAnnouncements(nonUrgent);
@@ -235,6 +241,31 @@ const CityMunBulletinBoard = () => {
       case 'medium': return '🟡';
       case 'low': return '🟢';
       default: return '📢';
+    }
+  };
+
+  const getAnnouncementScope = (announcement) => {
+    if (announcement.is_province_wide) {
+      return { label: 'Province-wide', className: 'scope-province' };
+    } else if (announcement.is_municipality_wide || !announcement.barangay) {
+      return { label: 'Municipality-wide', className: 'scope-municipality' };
+    } else {
+      return { label: `Barangay: ${announcement.barangay}`, className: 'scope-barangay' };
+    }
+  };
+
+  const getListingScope = (listing) => {
+    // Check if listing has barangay field populated
+    if (listing.barangay && listing.barangay.trim() !== '') {
+      return { label: `Barangay: ${listing.barangay}`, className: 'scope-barangay' };
+    }
+    // Check if location matches province (province-wide)
+    else if (listing.location === displayProvince) {
+      return { label: 'Province-wide', className: 'scope-province' };
+    }
+    // Otherwise it's municipality-wide
+    else {
+      return { label: 'Municipality-wide', className: 'scope-municipality' };
     }
   };
 
@@ -422,25 +453,29 @@ const CityMunBulletinBoard = () => {
                   </Link>
                 </div>
                 <div className="announcements-grid">
-                  {recentAnnouncements.map(announcement => (
-                    <div
-                      key={announcement.id}
-                      className="announcement-card"
-                      onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
-                    >
-                      <div className="announcement-header-inline">
-                        <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
-                        <span className="announcement-type-badge">{announcement.announcement_type}</span>
+                  {recentAnnouncements.map(announcement => {
+                    const scope = getAnnouncementScope(announcement);
+                    return (
+                      <div
+                        key={announcement.id}
+                        className="announcement-card"
+                        onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                      >
+                        <div className="announcement-header-inline">
+                          <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
+                          <span className="announcement-type-badge">{announcement.announcement_type}</span>
+                        </div>
+                        <h4 className="announcement-title">{announcement.title}</h4>
+                        <span className={`scope-badge ${scope.className}`}>{scope.label}</span>
+                        <p className="announcement-preview">
+                          {announcement.description.length > 120
+                            ? `${announcement.description.substring(0, 120)}...`
+                            : announcement.description}
+                        </p>
+                        <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
                       </div>
-                      <h4 className="announcement-title">{announcement.title}</h4>
-                      <p className="announcement-preview">
-                        {announcement.description.length > 120
-                          ? `${announcement.description.substring(0, 120)}...`
-                          : announcement.description}
-                      </p>
-                      <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -455,59 +490,63 @@ const CityMunBulletinBoard = () => {
                   </Link>
                 </div>
                 <div className="featured-listings-grid">
-                  {recentListings.map(listing => (
-                    <div
-                      key={listing.id}
-                      className="featured-card"
-                      onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
-                    >
-                      {listing.first_image ? (
-                        <div className="featured-image">
-                          <img src={listing.first_image} alt={listing.title} />
-                          {listing.category_name === 'Real Estate' && listing.property_type && (
-                            <span className="property-badge">
-                              {listing.property_type}
-                            </span>
-                          )}
-                          {listing.category_name === 'Vehicles' && listing.vehicle_type && (
-                            <span className="property-badge">
-                              {listing.vehicle_type}
-                            </span>
-                          )}
-                          {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
-                            <span className="property-badge">
-                              {listing.pay_period.replace('_', ' ')}
-                            </span>
-                          )}
+                  {recentListings.map(listing => {
+                    const scope = getListingScope(listing);
+                    return (
+                      <div
+                        key={listing.id}
+                        className="featured-card"
+                        onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
+                      >
+                        {listing.first_image ? (
+                          <div className="featured-image">
+                            <img src={listing.first_image} alt={listing.title} />
+                            {listing.category_name === 'Real Estate' && listing.property_type && (
+                              <span className="property-badge">
+                                {listing.property_type}
+                              </span>
+                            )}
+                            {listing.category_name === 'Vehicles' && listing.vehicle_type && (
+                              <span className="property-badge">
+                                {listing.vehicle_type}
+                              </span>
+                            )}
+                            {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
+                              <span className="property-badge">
+                                {listing.pay_period.replace('_', ' ')}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="featured-image">
+                            <span className="display-5">🏝️ IslaList</span>
+                          </div>
+                        )}
+                        <div className="featured-info">
+                          <h3>{listing.title}</h3>
+                          <span className={`scope-badge ${scope.className}`}>{scope.label}</span>
+                          <p className="featured-price">{formatPrice(listing.price)}</p>
+                          <p className="featured-meta">
+                            <span>{listing.category_name}</span>
+                            {listing.category_name === 'Vehicles' && listing.vehicle_year && (
+                              <>
+                                <span>•</span>
+                                <span>{listing.vehicle_year}</span>
+                              </>
+                            )}
+                            {listing.category_name === 'Vehicles' && listing.vehicle_make && listing.vehicle_model && (
+                              <>
+                                <span>•</span>
+                                <span>{listing.vehicle_make} {listing.vehicle_model}</span>
+                              </>
+                            )}
+                            <span>•</span>
+                            <span>{getTimeAgo(listing.created_at)}</span>
+                          </p>
                         </div>
-                      ) : (
-                        <div className="featured-image">
-                          <span className="display-5">🏝️ IslaList</span>
-                        </div>
-                      )}
-                      <div className="featured-info">
-                        <h3>{listing.title}</h3>
-                        <p className="featured-price">{formatPrice(listing.price)}</p>
-                        <p className="featured-meta">
-                          <span>{listing.category_name}</span>
-                          {listing.category_name === 'Vehicles' && listing.vehicle_year && (
-                            <>
-                              <span>•</span>
-                              <span>{listing.vehicle_year}</span>
-                            </>
-                          )}
-                          {listing.category_name === 'Vehicles' && listing.vehicle_make && listing.vehicle_model && (
-                            <>
-                              <span>•</span>
-                              <span>{listing.vehicle_make} {listing.vehicle_model}</span>
-                            </>
-                          )}
-                          <span>•</span>
-                          <span>{getTimeAgo(listing.created_at)}</span>
-                        </p>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

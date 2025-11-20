@@ -499,6 +499,7 @@ class AnnouncementListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'priority', 'announcement_type',
             'province_name', 'municipality_name', 'barangay',
+            'is_province_wide', 'is_municipality_wide',
             'author_name', 'contact_info', 'created_at', 'expiry_date',
             'is_active', 'is_expired'
         ]

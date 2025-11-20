@@ -218,14 +218,37 @@ class ListingViewSet(viewsets.ModelViewSet):
             # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
             municipality_formatted = municipality.replace('-', ' ').title()
 
-            # Include listings for this municipality OR province-wide listings
-            # Province-wide listings have location matching province name (e.g., "Siquijor")
+            # HIERARCHICAL VISIBILITY: Municipality view shows:
+            # 1. Listings with location matching municipality (municipality-wide)
+            # 2. Listings with barangay field set (barangay-specific within this municipality)
+            # 3. Province-wide listings (location matching province name)
+
             if province_param:
                 province_formatted = province_param.replace('-', ' ').title()
-                queryset = queryset.filter(
-                    Q(location__icontains=municipality_formatted) |
-                    Q(location__iexact=province_formatted)
-                )
+
+                # Get all barangays for this municipality to include barangay-specific listings
+                try:
+                    from api.models import Municipality as MunicipalityModel, Barangay as BarangayModel
+                    municipality_obj = MunicipalityModel.objects.get(slug=municipality)
+                    barangay_names = list(municipality_obj.barangays.values_list('name', flat=True))
+
+                    # Build query: municipality-wide OR any barangay in this municipality OR province-wide
+                    query = Q(location__icontains=municipality_formatted, barangay='')
+
+                    # Add each barangay to the query
+                    for barangay_name in barangay_names:
+                        query |= Q(barangay__iexact=barangay_name)
+
+                    # Add province-wide listings
+                    query |= Q(location__iexact=province_formatted, barangay='')
+
+                    queryset = queryset.filter(query)
+                except MunicipalityModel.DoesNotExist:
+                    # Fallback to old behavior if municipality not found
+                    queryset = queryset.filter(
+                        Q(location__icontains=municipality_formatted) |
+                        Q(location__iexact=province_formatted)
+                    )
             else:
                 queryset = queryset.filter(location__icontains=municipality_formatted)
 
@@ -394,7 +417,11 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             )
         elif municipality and province:
             from django.db.models import Q
-            # Get announcements for this municipality OR province-wide for this province
+            # HIERARCHICAL VISIBILITY: Municipality view shows:
+            # 1. Municipality-wide announcements (municipality FK matches, barangay='')
+            # 2. ALL barangay-specific announcements in this municipality (municipality FK matches, barangay set)
+            # 3. Province-wide announcements (is_province_wide=True)
+            # This naturally includes all barangays because we filter by municipality FK
             queryset = queryset.filter(
                 Q(municipality=municipality, province=province) |
                 Q(is_province_wide=True, province=province)
