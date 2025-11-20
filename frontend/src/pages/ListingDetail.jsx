@@ -171,10 +171,10 @@ const ListingDetail = () => {
     ];
 
     // Add barangay if it exists
-    if (listing.barangay) {
+    if (listing.barangay && listing.barangay_details) {
       breadcrumbs.push({
-        label: listing.barangay,
-        path: `/${province}/${municipality}/${slugify(listing.barangay)}`
+        label: listing.barangay_details.name,
+        path: `/${province}/${municipality}/${slugify(listing.barangay_details.name)}`
       });
     }
 
@@ -401,7 +401,7 @@ const ListingDetail = () => {
           <div className="location-section">
             <h3>Location</h3>
             <div className="location-card">
-              <p>📍 {listing.barangay ? `${listing.barangay}, ` : ''}{listing.location}, {listing.island}</p>
+              <p>📍 {listing.barangay_details?.name ? `${listing.barangay_details.name}, ` : ''}{listing.location}, {listing.island}</p>
             </div>
           </div>
 

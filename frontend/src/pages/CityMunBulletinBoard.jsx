@@ -259,14 +259,15 @@ const CityMunBulletinBoard = () => {
     } else if (announcement.is_municipality_wide || !announcement.barangay) {
       return { label: 'Municipality-wide', className: 'scope-municipality' };
     } else {
-      return { label: `Barangay: ${announcement.barangay}`, className: 'scope-barangay' };
+      const barangayName = announcement.barangay_details?.name || 'Unknown Barangay';
+      return { label: `Barangay: ${barangayName}`, className: 'scope-barangay' };
     }
   };
 
   const getListingScope = (listing) => {
-    // Check if listing has barangay field populated
-    if (listing.barangay && listing.barangay.trim() !== '') {
-      return { label: `Barangay: ${listing.barangay}`, className: 'scope-barangay' };
+    // Check if listing has barangay field populated (now barangay is ID, use barangay_name for display)
+    if (listing.barangay && listing.barangay_name) {
+      return { label: `Barangay: ${listing.barangay_name}`, className: 'scope-barangay' };
     }
     // Check if location matches province (province-wide)
     else if (listing.location === displayProvince) {
@@ -355,7 +356,8 @@ const CityMunBulletinBoard = () => {
           )}
         </div>
       </div>
-
+      
+      {/* Sidebar Left */}    
       <div className="bulletin-board-content container-fluid">
         <div className="row d-flex justify-content-between">
           <div className="col-md-3">
@@ -370,24 +372,6 @@ const CityMunBulletinBoard = () => {
                 <span className="stat-label">Announcements</span>
               </div>
             </div>
-
-            {/* Barangays/Districts Navigation */}
-            {barangays.length > 0 && (
-              <div className="barangays-section">
-                <div className="section-header">
-                  <h2>🏘️ {isManila ? 'Districts' : 'Barangays'}</h2>
-                  <button
-                    className="badge barangay-count clickable"
-                    onClick={handleOpenBarangayModal}
-                    title="Click to view all barangays"
-                    aria-label={`View all ${barangays.length} barangays`}
-                  >
-                    {barangays.length} →
-                  </button>
-                </div>
-                <p className="barangay-hint">Click the badge to explore all barangays</p>
-              </div>
-            )}
 
             {/* Activity Feed - Combined Recent Activity */}
             <div className="activity-feed">

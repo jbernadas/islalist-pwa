@@ -103,10 +103,10 @@ const AnnouncementDetail = () => {
     ];
 
     // Add barangay if it exists
-    if (announcement.barangay) {
+    if (announcement.barangay && announcement.barangay_details) {
       breadcrumbs.push({
-        label: announcement.barangay,
-        path: `/${province}/${municipality}/${slugify(announcement.barangay)}`
+        label: announcement.barangay_details.name,
+        path: `/${province}/${municipality}/${slugify(announcement.barangay_details.name)}`
       });
     }
 
@@ -182,7 +182,7 @@ const AnnouncementDetail = () => {
 
         <div className="announcement-detail-meta">
           <p className="meta-item">
-            <strong>📍 Location:</strong> {announcement.barangay ? `${announcement.barangay}, ` : ''}
+            <strong>📍 Location:</strong> {announcement.barangay_details?.name ? `${announcement.barangay_details.name}, ` : ''}
             {announcement.municipality_name}, {announcement.province_name}
           </p>
           <p className="meta-item">

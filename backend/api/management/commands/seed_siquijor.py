@@ -208,25 +208,82 @@ class Command(BaseCommand):
             ('San Juan', 'Tubod', 'Scholarship Program', 'Scholarship grants for deserving students.', 'community', 'medium'),
         ]
 
-        for mun_name, brgy, title, desc, ann_type, priority in brgy_announcements:
-            Announcement.objects.create(
-                title=title,
-                description=desc,
-                priority=priority,
-                announcement_type=ann_type,
-                province=province,
-                municipality=municipalities[mun_name],
-                barangay=brgy,
-                author=random.choice(users),
-                created_at=timezone.now() - timedelta(days=random.randint(1, 20))
-            )
+        for mun_name, brgy_name, title, desc, ann_type, priority in brgy_announcements:
+            # Look up the Barangay object
+            try:
+                barangay_obj = Barangay.objects.get(
+                    name=brgy_name,
+                    municipality=municipalities[mun_name]
+                )
+                Announcement.objects.create(
+                    title=title,
+                    description=desc,
+                    priority=priority,
+                    announcement_type=ann_type,
+                    province=province,
+                    municipality=municipalities[mun_name],
+                    barangay=barangay_obj,
+                    author=random.choice(users),
+                    created_at=timezone.now() - timedelta(days=random.randint(1, 20))
+                )
+            except Barangay.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f'   Skipping announcement for non-existent barangay: {brgy_name} in {mun_name}'))
 
         self.stdout.write('   Created 29 announcements')
 
     def seed_listings(self, province, municipalities, categories, users):
-        # This method would be similarly simplified
-        # Due to character limit, showing abbreviated version
-        self.stdout.write('   Listings seeding complete')
+        listings_data = [
+            # Real Estate listings
+            ('Siquijor', 'Poblacion', 'Beach House for Rent', 'Beautiful beachfront property with 3 bedrooms', 'Real Estate', 25000.00),
+            ('Siquijor', 'Cananay Sur', 'Lot for Sale - Ocean View', '500 sqm lot with stunning ocean views', 'Real Estate', 1500000.00),
+            ('Larena', 'Poblacion', 'Apartment Near Port', '2BR apartment, walking distance to port', 'Real Estate', 8000.00),
+            ('San Juan', 'Tubod', 'Beach Resort Property', 'Prime beachfront resort property for sale', 'Real Estate', 5000000.00),
+
+            # Vehicles
+            ('Siquijor', 'Poblacion', 'Motorcycle for Sale', 'Honda TMX 2020 model, good condition', 'Vehicles', 45000.00),
+            ('Larena', 'Cangomantong', 'Multicab for Rent', 'Daily or weekly rental available', 'Vehicles', 1500.00),
+
+            # For Sale items
+            ('Enrique Villanueva', 'Poblacion', 'Fresh Organic Vegetables', 'Farm fresh vegetables daily', 'For Sale', 50.00),
+            ('Maria', 'Catamboan', 'Handmade Crafts', 'Local handmade souvenirs and crafts', 'For Sale', 150.00),
+            ('Lazi', 'Poblacion', 'Fresh Seafood Daily', 'Freshly caught fish and seafood', 'For Sale', 300.00),
+            ('San Juan', 'Can-uba', 'Homemade Delicacies', 'Traditional Siquijor delicacies', 'For Sale', 200.00),
+
+            # Jobs
+            ('Siquijor', 'Poblacion', 'Tour Guide Needed', 'Looking for experienced tour guide', 'Jobs', 500.00),
+            ('Larena', 'Poblacion', 'Restaurant Staff Hiring', 'Hiring kitchen staff and waiters', 'Jobs', 400.00),
+            ('San Juan', 'Poblacion', 'Dive Instructor Position', 'PADI certified instructor needed', 'Jobs', 800.00),
+
+            # Services
+            ('Siquijor', 'Poblacion', 'Motorcycle Rental Service', 'Affordable motorcycle rentals for tourists', 'Services', 500.00),
+            ('Larena', 'Poblacion', 'Laundry Service', 'Same day laundry service available', 'Services', 50.00),
+            ('Enrique Villanueva', 'Poblacion', 'Island Tour Packages', 'Full day and half day tour packages', 'Services', 1500.00),
+            ('Maria', 'Poblacion', 'Massage and Spa', 'Relaxing massage and spa services', 'Services', 500.00),
+            ('Lazi', 'Poblacion', 'Photography Services', 'Professional photography for events', 'Services', 2000.00),
+            ('San Juan', 'Poblacion', 'Diving Lessons', 'Learn to dive with certified instructors', 'Services', 3000.00),
+        ]
+
+        for mun_name, brgy_name, title, desc, cat_name, price in listings_data:
+            try:
+                barangay_obj = Barangay.objects.get(
+                    name=brgy_name,
+                    municipality=municipalities[mun_name]
+                )
+                Listing.objects.create(
+                    title=title,
+                    description=desc,
+                    category=categories[cat_name],
+                    price=Decimal(str(price)),
+                    barangay=barangay_obj,
+                    seller=random.choice(users),
+                    status='active',
+                    island='Siquijor',
+                    created_at=timezone.now() - timedelta(days=random.randint(1, 30))
+                )
+            except Barangay.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f'   Skipping listing for non-existent barangay: {brgy_name} in {mun_name}'))
+
+        self.stdout.write(f'   Created {len(listings_data)} listings')
 
     def print_summary(self, province, municipalities):
         self.stdout.write(self.style.SUCCESS('\nSEED DATA SUMMARY'))
