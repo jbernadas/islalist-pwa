@@ -323,22 +323,45 @@ const CityMunBulletinBoard = () => {
               </div>
             </div>
           </div>
-          <div className="hero-stats">
-            <div className="hero-stat-item">
-              <span className="hero-stat-number">{stats.listings}</span>
-              <span className="hero-stat-label">Listings</span>
+          {barangays.length > 0 && (
+            <div
+              className="hero-stats clickable-stat"
+              onClick={handleOpenBarangayModal}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleOpenBarangayModal();
+                }
+              }}
+              aria-label={`View all ${barangays.length} barangays`}
+              title="Click to explore all barangays"
+            >
+              <div className="hero-stat-item">
+                <span className="hero-stat-number">{barangays.length}</span>
+                <span className="hero-stat-label">Barangays →</span>
+              </div>
             </div>
-            <div className="hero-stat-item">
-              <span className="hero-stat-number">{stats.announcements}</span>
-              <span className="hero-stat-label">Announcements</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
       <div className="bulletin-board-content container-fluid">
         <div className="row d-flex justify-content-between">
           <div className="col-md-3">
+            {/* Stats Section */}
+            <div className="sidebar-stats">
+              <div className="stat-item">
+                <span className="stat-number">{stats.listings}</span>
+                <span className="stat-label">Listings</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{stats.announcements}</span>
+                <span className="stat-label">Announcements</span>
+              </div>
+            </div>
+
             {/* Barangays Navigation */}
             {barangays.length > 0 && (
               <div className="barangays-section">
@@ -356,7 +379,7 @@ const CityMunBulletinBoard = () => {
                 <p className="barangay-hint">Click the badge to explore all barangays</p>
               </div>
             )}
-            
+
             {/* Activity Feed - Combined Recent Activity */}
             <div className="activity-feed">
               <h2>⚡ Recent Activity</h2>

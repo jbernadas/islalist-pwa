@@ -87,6 +87,10 @@
   min-height: 200px;
 }
 
+.bulletin-hero.barangay-hero {
+  min-height: unset;
+}
+
 .bulletin-hero .hero-overlay {
   position: absolute;
   top: 0;
@@ -144,6 +148,33 @@
   flex-shrink: 0;
 }
 
+.bulletin-hero .hero-stats.clickable-stat {
+  cursor: pointer;
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.bulletin-hero .hero-stats.clickable-stat:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.bulletin-hero .hero-stats.clickable-stat:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.bulletin-hero .hero-stats.clickable-stat:focus {
+  outline: 3px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 4px;
+}
+
 .bulletin-hero .hero-stat-item {
   display: flex;
   flex-direction: column;
@@ -163,6 +194,11 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-top: 0.5rem;
+  transition: letter-spacing 0.3s ease;
+}
+
+.bulletin-hero .hero-stats.clickable-stat:hover .hero-stat-label {
+  letter-spacing: 1.5px;
 }
 
 .bulletin-board-content {
@@ -564,6 +600,40 @@
   color: #999;
   margin: 0;
   margin-top: auto;
+}
+
+/* Sidebar Stats */
+.sidebar-stats {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 2rem;
+  justify-content: space-around;
+}
+
+.sidebar-stats .stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-stats .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  line-height: 1;
+}
+
+.sidebar-stats .stat-label {
+  font-size: 0.875rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 /* Barangays Section */
