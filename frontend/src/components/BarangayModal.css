@@ -1,0 +1,390 @@
+/* Modal Overlay */
+.barangay-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.barangay-modal-content {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.barangay-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #f0f0f0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.barangay-modal-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.barangay-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.barangay-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.barangay-modal-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* Search Section */
+.barangay-modal-search {
+  position: relative;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.search-icon {
+  position: absolute;
+  left: 2.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.barangay-search-input {
+  width: 100%;
+  padding: 0.875rem 3rem 0.875rem 3rem;
+  font-size: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.barangay-search-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.barangay-search-input::placeholder {
+  color: #999;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 2.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(102, 126, 234, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-clear-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Modal Body */
+.barangay-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+/* Custom Scrollbar */
+.barangay-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.barangay-modal-body::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.barangay-modal-body::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+.barangay-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}
+
+/* Barangays Grid */
+.barangays-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Barangay Modal Card */
+.barangay-modal-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  animation: cardFadeIn 0.3s ease;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.barangay-modal-card:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  border-color: transparent;
+}
+
+.barangay-modal-card:active {
+  transform: translateY(0);
+}
+
+.barangay-modal-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.barangay-modal-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barangay-modal-arrow {
+  font-size: 1rem;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.barangay-modal-card:hover .barangay-modal-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+/* Modal Footer */
+.barangay-modal-footer {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 2px solid #f0f0f0;
+}
+
+.barangay-modal-footer p {
+  margin: 0;
+  color: #666;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Empty State */
+.barangay-modal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.empty-text {
+  font-size: 1.125rem;
+  color: #666;
+  margin: 0 0 1.5rem 0;
+}
+
+.empty-clear-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.empty-clear-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.empty-clear-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .barangay-modal-overlay {
+    padding: 0;
+  }
+
+  .barangay-modal-content {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .barangay-modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .barangay-modal-header h2 {
+    font-size: 1.375rem;
+  }
+
+  .barangay-modal-search {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .search-icon {
+    left: 2.25rem;
+  }
+
+  .search-clear-btn {
+    right: 2.25rem;
+  }
+
+  .barangay-modal-body {
+    padding: 1.5rem;
+  }
+
+  .barangays-modal-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .barangay-modal-card {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .barangay-modal-empty {
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  .empty-text {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .barangays-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .barangay-modal-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .barangay-modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+}

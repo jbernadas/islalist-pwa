@@ -4,6 +4,7 @@ import { provincesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../se
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
+import BarangayModal from '../components/BarangayModal';
 import './CityMunBulletinBoard.css';
 
 const CityMunBulletinBoard = () => {
@@ -18,6 +19,7 @@ const CityMunBulletinBoard = () => {
   const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
+  const [isBarangayModalOpen, setIsBarangayModalOpen] = useState(false);
 
   // Fetch provinces and municipalities
   useEffect(() => {
@@ -236,6 +238,14 @@ const CityMunBulletinBoard = () => {
     }
   };
 
+  const handleOpenBarangayModal = () => {
+    setIsBarangayModalOpen(true);
+  };
+
+  const handleCloseBarangayModal = () => {
+    setIsBarangayModalOpen(false);
+  };
+
   if (loading) {
     return (
       <div>
@@ -303,21 +313,16 @@ const CityMunBulletinBoard = () => {
               <div className="barangays-section">
                 <div className="section-header">
                   <h2>🏘️ Barangays</h2>
-                  <div className="badge barangay-count">{barangays.length}</div>
+                  <button
+                    className="badge barangay-count clickable"
+                    onClick={handleOpenBarangayModal}
+                    title="Click to view all barangays"
+                    aria-label={`View all ${barangays.length} barangays`}
+                  >
+                    {barangays.length} →
+                  </button>
                 </div>
-                <div className="barangays-grid">
-                  {barangays.map(barangay => (
-                    <Link
-                      key={barangay.id}
-                      to={`/${province}/${municipality}/${slugify(barangay.name)}`}
-                      className="barangay-card"
-                    >
-                      <span className="barangay-icon">📍</span>
-                      <span className="barangay-name">{barangay.name}</span>
-                      <span className="barangay-arrow">→</span>
-                    </Link>
-                  ))}
-                </div>
+                <p className="barangay-hint">Click the badge to explore all barangays</p>
               </div>
             )}
           </div>
@@ -527,6 +532,16 @@ const CityMunBulletinBoard = () => {
           </div>
         </div>
       </div>
+
+      {/* Barangay Modal */}
+      <BarangayModal
+        isOpen={isBarangayModalOpen}
+        onClose={handleCloseBarangayModal}
+        barangays={barangays}
+        province={province}
+        municipality={municipality}
+        municipalityName={displayMunicipality}
+      />
     </div>
   );
 };

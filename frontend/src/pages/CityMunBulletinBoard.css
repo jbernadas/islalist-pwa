@@ -584,6 +584,34 @@
   font-weight: 500;
 }
 
+.barangay-count.clickable {
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.barangay-count.clickable:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.barangay-count.clickable:active {
+  transform: translateY(0);
+}
+
+.barangay-hint {
+  font-size: 0.8125rem;
+  color: #999;
+  margin: 1rem 0 0 0;
+  text-align: center;
+  font-style: italic;
+}
+
 .barangays-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
