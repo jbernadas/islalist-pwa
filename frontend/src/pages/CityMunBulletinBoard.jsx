@@ -295,231 +295,236 @@ const CityMunBulletinBoard = () => {
         </div>
       </div>
 
-      <div className="bulletin-board-content">
-
-        {/* Urgent Alerts Banner */}
-        {urgentAnnouncements.length > 0 && (
-          <div className="urgent-alerts">
-            <div className="urgent-header">
-              <span className="urgent-icon">🚨</span>
-              <strong>URGENT ALERTS</strong>
-            </div>
-            {urgentAnnouncements.map(announcement => (
-              <div
-                key={announcement.id}
-                className="urgent-item"
-                onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
-              >
-                <span className="urgent-title">{announcement.title}</span>
-                <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Welcome Hero for Completely Empty Municipality */}
-        {stats.listings === 0 && stats.announcements === 0 && (
-          <div className="welcome-hero">
-            <div className="welcome-content">
-              <div className="hero-icon">🏝️</div>
-              <h2>Welcome to {displayMunicipality}!</h2>
-              <p className="welcome-description">
-                This community is just getting started. Be a pioneer and help build this local hub!
-              </p>
-              {isAuthenticated ? (
-                <div className="hero-actions">
-                  <Link
-                    to={`/${province}/${municipality}/create-listing`}
-                    className="btn-hero btn-hero-primary"
-                  >
-                    📝 Post First Listing
-                  </Link>
-                  <Link
-                    to={`/${province}/${municipality}/create-announcement`}
-                    className="btn-hero btn-hero-secondary"
-                  >
-                    📢 Post First Announcement
-                  </Link>
+      <div className="bulletin-board-content container-fluid">
+        <div className="row d-flex justify-content-between">
+          <div className="col-md-3">
+            {/* Barangays Navigation */}
+            {barangays.length > 0 && (
+              <div className="barangays-section">
+                <div className="section-header">
+                  <h2>🏘️ Barangays</h2>
+                  <div className="badge barangay-count">{barangays.length}</div>
                 </div>
-              ) : (
-                <p className="hero-hint">
-                  <Link to="/login" className="hero-link">Sign in</Link> to start contributing to your community
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Latest Announcements Section - Only show if announcements exist */}
-        {recentAnnouncements.length > 0 && (
-          <div className="announcements-section">
-            <div className="section-header">
-              <h2>📢 Latest Announcements</h2>
-              <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
-                View all {stats.announcements} →
-              </Link>
-            </div>
-            <div className="announcements-grid">
-              {recentAnnouncements.map(announcement => (
-                <div
-                  key={announcement.id}
-                  className="announcement-card"
-                  onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
-                >
-                  <div className="announcement-header-inline">
-                    <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
-                    <span className="announcement-type-badge">{announcement.announcement_type}</span>
-                  </div>
-                  <h4 className="announcement-title">{announcement.title}</h4>
-                  <p className="announcement-preview">
-                    {announcement.description.length > 120
-                      ? `${announcement.description.substring(0, 120)}...`
-                      : announcement.description}
-                  </p>
-                  <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
+                <div className="barangays-grid">
+                  {barangays.map(barangay => (
+                    <Link
+                      key={barangay.id}
+                      to={`/${province}/${municipality}/${slugify(barangay.name)}`}
+                      className="barangay-card"
+                    >
+                      <span className="barangay-icon">📍</span>
+                      <span className="barangay-name">{barangay.name}</span>
+                      <span className="barangay-arrow">→</span>
+                    </Link>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Featured Listings Section - Only show if listings exist */}
-        {recentListings.length > 0 && (
-          <div className="featured-section">
-            <div className="section-header">
-              <h2>🏷️ Featured Listings</h2>
-              <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
-                View all {stats.listings} →
-              </Link>
-            </div>
-            <div className="featured-listings-grid">
-              {recentListings.map(listing => (
-                <div
-                  key={listing.id}
-                  className="featured-card"
-                  onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
-                >
-                  {listing.first_image ? (
-                    <div className="featured-image">
-                      <img src={listing.first_image} alt={listing.title} />
-                      {listing.category_name === 'Real Estate' && listing.property_type && (
-                        <span className="property-badge">
-                          {listing.property_type}
-                        </span>
-                      )}
-                      {listing.category_name === 'Vehicles' && listing.vehicle_type && (
-                        <span className="property-badge">
-                          {listing.vehicle_type}
-                        </span>
-                      )}
-                      {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
-                        <span className="property-badge">
-                          {listing.pay_period.replace('_', ' ')}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="featured-image">
-                      <span className="display-5">🏝️ IslaList</span>
-                    </div>
-                  )}
-                  <div className="featured-info">
-                    <h3>{listing.title}</h3>
-                    <p className="featured-price">{formatPrice(listing.price)}</p>
-                    <p className="featured-meta">
-                      <span>{listing.category_name}</span>
-                      {listing.category_name === 'Vehicles' && listing.vehicle_year && (
-                        <>
-                          <span>•</span>
-                          <span>{listing.vehicle_year}</span>
-                        </>
-                      )}
-                      {listing.category_name === 'Vehicles' && listing.vehicle_make && listing.vehicle_model && (
-                        <>
-                          <span>•</span>
-                          <span>{listing.vehicle_make} {listing.vehicle_model}</span>
-                        </>
-                      )}
-                      <span>•</span>
-                      <span>{getTimeAgo(listing.created_at)}</span>
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Activity Feed - Combined Recent Activity */}
-        <div className="activity-feed">
-          <h2>⚡ Recent Activity</h2>
-          <div className="activity-list">
-            {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
-              ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
-              .sort((a, b) => new Date(b.time) - new Date(a.time))
-              .slice(0, 8)
-              .map((item) => (
-                <div
-                  key={`${item.type}-${item.id}`}
-                  className={`activity-item ${item.type}`}
-                  onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
-                >
-                  <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
-                  <span className="activity-text">
-                    {item.type === 'listing'
-                      ? `${item.title} - ${formatPrice(item.price)}`
-                      : item.title}
-                  </span>
-                  <span className="activity-time">{getTimeAgo(item.time)}</span>
-                </div>
-              ))}
-            {recentListings.length === 0 && recentAnnouncements.length === 0 && (
-              <div className="activity-empty">
-                <p>No recent activity in this area</p>
               </div>
             )}
           </div>
-        </div>
+          
+          <div className="col-md-9">
+            {/* Urgent Alerts Banner */}
+            {urgentAnnouncements.length > 0 && (
+              <div className="urgent-alerts">
+                <div className="urgent-header">
+                  <span className="urgent-icon">🚨</span>
+                  <strong>URGENT ALERTS</strong>
+                </div>
+                {urgentAnnouncements.map(announcement => (
+                  <div
+                    key={announcement.id}
+                    className="urgent-item"
+                    onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                  >
+                    <span className="urgent-title">{announcement.title}</span>
+                    <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {/* Barangays Navigation */}
-        {barangays.length > 0 && (
-          <div className="barangays-section">
-            <div className="section-header">
-              <h2>🏘️ Barangays in {displayMunicipality}</h2>
-              <span className="barangay-count">{barangays.length} barangays</span>
+            {/* Welcome Hero for Completely Empty Municipality */}
+            {stats.listings === 0 && stats.announcements === 0 && (
+              <div className="welcome-hero">
+                <div className="welcome-content">
+                  <div className="hero-icon">🏝️</div>
+                  <h2>Welcome to {displayMunicipality}!</h2>
+                  <p className="welcome-description">
+                    This community is just getting started. Be a pioneer and help build this local hub!
+                  </p>
+                  {isAuthenticated ? (
+                    <div className="hero-actions">
+                      <Link
+                        to={`/${province}/${municipality}/create-listing`}
+                        className="btn-hero btn-hero-primary"
+                      >
+                        📝 Post First Listing
+                      </Link>
+                      <Link
+                        to={`/${province}/${municipality}/create-announcement`}
+                        className="btn-hero btn-hero-secondary"
+                      >
+                        📢 Post First Announcement
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className="hero-hint">
+                      <Link to="/login" className="hero-link">Sign in</Link> to start contributing to your community
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Latest Announcements Section - Only show if announcements exist */}
+            {recentAnnouncements.length > 0 && (
+              <div className="announcements-section">
+                <div className="section-header">
+                  <h2>📢 Latest Announcements</h2>
+                  <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
+                    View all {stats.announcements} →
+                  </Link>
+                </div>
+                <div className="announcements-grid">
+                  {recentAnnouncements.map(announcement => (
+                    <div
+                      key={announcement.id}
+                      className="announcement-card"
+                      onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                    >
+                      <div className="announcement-header-inline">
+                        <span className="priority-indicator">{getPriorityIcon(announcement.priority)}</span>
+                        <span className="announcement-type-badge">{announcement.announcement_type}</span>
+                      </div>
+                      <h4 className="announcement-title">{announcement.title}</h4>
+                      <p className="announcement-preview">
+                        {announcement.description.length > 120
+                          ? `${announcement.description.substring(0, 120)}...`
+                          : announcement.description}
+                      </p>
+                      <p className="announcement-time-bottom">{getTimeAgo(announcement.created_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Featured Listings Section - Only show if listings exist */}
+            {recentListings.length > 0 && (
+              <div className="featured-section">
+                <div className="section-header">
+                  <h2>🏷️ Featured Listings</h2>
+                  <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
+                    View all {stats.listings} →
+                  </Link>
+                </div>
+                <div className="featured-listings-grid">
+                  {recentListings.map(listing => (
+                    <div
+                      key={listing.id}
+                      className="featured-card"
+                      onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
+                    >
+                      {listing.first_image ? (
+                        <div className="featured-image">
+                          <img src={listing.first_image} alt={listing.title} />
+                          {listing.category_name === 'Real Estate' && listing.property_type && (
+                            <span className="property-badge">
+                              {listing.property_type}
+                            </span>
+                          )}
+                          {listing.category_name === 'Vehicles' && listing.vehicle_type && (
+                            <span className="property-badge">
+                              {listing.vehicle_type}
+                            </span>
+                          )}
+                          {listing.category_name === 'Jobs' && listing.pay_period && listing.pay_period !== 'not_applicable' && (
+                            <span className="property-badge">
+                              {listing.pay_period.replace('_', ' ')}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="featured-image">
+                          <span className="display-5">🏝️ IslaList</span>
+                        </div>
+                      )}
+                      <div className="featured-info">
+                        <h3>{listing.title}</h3>
+                        <p className="featured-price">{formatPrice(listing.price)}</p>
+                        <p className="featured-meta">
+                          <span>{listing.category_name}</span>
+                          {listing.category_name === 'Vehicles' && listing.vehicle_year && (
+                            <>
+                              <span>•</span>
+                              <span>{listing.vehicle_year}</span>
+                            </>
+                          )}
+                          {listing.category_name === 'Vehicles' && listing.vehicle_make && listing.vehicle_model && (
+                            <>
+                              <span>•</span>
+                              <span>{listing.vehicle_make} {listing.vehicle_model}</span>
+                            </>
+                          )}
+                          <span>•</span>
+                          <span>{getTimeAgo(listing.created_at)}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Activity Feed - Combined Recent Activity */}
+            <div className="activity-feed">
+              <h2>⚡ Recent Activity</h2>
+              <div className="activity-list">
+                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
+                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
+                  .sort((a, b) => new Date(b.time) - new Date(a.time))
+                  .slice(0, 8)
+                  .map((item) => (
+                    <div
+                      key={`${item.type}-${item.id}`}
+                      className={`activity-item ${item.type}`}
+                      onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                    >
+                      <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
+                      <span className="activity-text">
+                        {item.type === 'listing'
+                          ? `${item.title} - ${formatPrice(item.price)}`
+                          : item.title}
+                      </span>
+                      <span className="activity-time">{getTimeAgo(item.time)}</span>
+                    </div>
+                  ))}
+                {recentListings.length === 0 && recentAnnouncements.length === 0 && (
+                  <div className="activity-empty">
+                    <p>No recent activity in this area</p>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="barangays-grid">
-              {barangays.map(barangay => (
-                <Link
-                  key={barangay.id}
-                  to={`/${province}/${municipality}/${slugify(barangay.name)}`}
-                  className="barangay-card"
-                >
-                  <span className="barangay-icon">📍</span>
-                  <span className="barangay-name">{barangay.name}</span>
-                  <span className="barangay-arrow">→</span>
-                </Link>
-              ))}
+
+            {/* Quick Navigation */}
+            <div className="quick-navigation">
+              <Link to={`/${province}/${municipality}/listings`} className="nav-card listings">
+                <span className="nav-icon">🏷️</span>
+                <span className="nav-label">Browse All Listings</span>
+              </Link>
+              <Link to={`/${province}/${municipality}/announcements`} className="nav-card announcements">
+                <span className="nav-icon">📢</span>
+                <span className="nav-label">Browse All Announcements</span>
+              </Link>
+            </div>
+
+            <div className="back-link">
+              <Link to={`/${province}`}>
+                ← Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
+              </Link>
             </div>
           </div>
-        )}
-
-        {/* Quick Navigation */}
-        <div className="quick-navigation">
-          <Link to={`/${province}/${municipality}/listings`} className="nav-card listings">
-            <span className="nav-icon">🏷️</span>
-            <span className="nav-label">Browse All Listings</span>
-          </Link>
-          <Link to={`/${province}/${municipality}/announcements`} className="nav-card announcements">
-            <span className="nav-icon">📢</span>
-            <span className="nav-label">Browse All Announcements</span>
-          </Link>
-        </div>
-
-        <div className="back-link">
-          <Link to={`/${province}`}>
-            ← Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
-          </Link>
         </div>
       </div>
     </div>
