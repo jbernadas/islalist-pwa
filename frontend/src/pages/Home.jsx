@@ -23,29 +23,25 @@ const Home = () => {
     { name: 'City of Antipolo', province: 'Rizal' },
     { name: 'City of Bacolod', province: 'Negros Occidental' },
     { name: 'City of Baguio', province: 'Benguet' },
-    { name: 'City of Baler', province: 'Aurora' },
-    { name: 'City of Basco', province: 'Batanes' },
-    { name: 'City of Busuanga', province: 'Palawan' }, 
     { name: 'City of Cebu', province: 'Cebu' },
-    { name: 'City of Coron', province: 'Palawan' },
     { name: 'City of Davao', province: 'Davao del Sur' },
     { name: 'City of Dumaguete', province: 'Negros Oriental' },
-    { name: 'City of El Nido', province: 'Palawan' },
+    { name: 'El Nido', province: 'Palawan' },
     { name: 'City of Iloilo', province: 'Iloilo' },
     { name: 'City of Laoag', province: 'Ilocos Norte' },
     { name: 'City of Lapu-Lapu', province: 'Cebu' },
     { name: 'City of Manila', province: 'Metro Manila (NCR)' },
     { name: 'City of Olongapo', province: 'Zambales' },
-    { name: 'City of Panglao', province: 'Bohol' },
+    { name: 'Panglao', province: 'Bohol' },
     { name: 'City of Puerto Princesa', province: 'Palawan' },
     { name: 'City of Roxas', province: 'Capiz' },
-    { name: 'City of Siquijor', province: 'Siquijor'},
+    { name: 'Siquijor', province: 'Siquijor'},
     { name: 'City of Surigao', province: 'Surigao del Norte'},
     { name: 'City of Tacloban', province: 'Leyte' },
     { name: 'City of Tagaytay', province: 'Cavite' },
     { name: 'City of Tagbilaran', province: 'Bohol' },
     { name: 'City of Vigan', province: 'Ilocos Sur' },
-    { name: 'City of Zamboanga', province: 'Zamboanga Peninsula' }
+    { name: 'City of Zamboanga', province: 'Zamboanga del Sur' }
   ];
 
   useEffect(() => {
@@ -267,9 +263,9 @@ const Home = () => {
 
         {/* Featured Cities Section */}
         <div className="featured-cities-section">
-          <h3 className="section-title">Popular Cities</h3>
+          <h3 className="section-title">Popular Destinations</h3>
           <p className="section-description">
-            Select a popular city to explore local listings
+            Select a popular destination to explore local listings
           </p>
           <div className="featured-cities-list">
             {FEATURED_CITIES.map((city, index) => (
