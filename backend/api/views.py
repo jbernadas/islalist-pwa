@@ -119,6 +119,44 @@ class MunicipalityViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['province']
 
+    @action(detail=True, methods=['get'], url_path='districts-or-barangays')
+    def districts_or_barangays(self, request, slug=None):
+        """Get districts (for Manila) or barangays (for other municipalities)
+
+        Special handling: City of Manila returns 14 SubMun districts instead of barangays
+        """
+        municipality = self.get_object()
+
+        # Special case for City of Manila - return SubMun districts
+        if municipality.name == "City of Manila" and municipality.province.name == "Metro Manila (NCR)":
+            districts = Municipality.objects.filter(
+                province=municipality.province,
+                type='SubMun',
+                active=True
+            ).order_by('name')
+
+            # Serialize as municipalities but format like barangays for frontend compatibility
+            data = [{
+                'id': district.id,
+                'name': district.name,
+                'slug': district.slug,
+                'municipality': municipality.id,
+                'municipality_name': municipality.name,
+                'active': district.active,
+                'is_district': True  # Flag to indicate this is a district, not a barangay
+            } for district in districts]
+
+            return Response(data)
+
+        # Regular case - return barangays
+        barangays = Barangay.objects.filter(
+            municipality=municipality,
+            active=True
+        ).order_by('name')
+
+        serializer = BarangaySerializer(barangays, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 class BarangayViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint for viewing barangays"""

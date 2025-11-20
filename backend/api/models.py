@@ -40,10 +40,10 @@ class Municipality(models.Model):
         help_text="Parent province"
     )
     type = models.CharField(
-        max_length=4,
-        choices=[('City', 'City'), ('Mun', 'Municipality')],
+        max_length=6,
+        choices=[('City', 'City'), ('Mun', 'Municipality'), ('SubMun', 'Sub-Municipality')],
         default='Mun',
-        help_text="Designation: City or Municipality"
+        help_text="Designation: City, Municipality, or Sub-Municipality (Manila districts)"
     )
     active = models.BooleanField(default=True, help_text="Show in city/municipality listings")
     created_at = models.DateTimeField(auto_now_add=True)

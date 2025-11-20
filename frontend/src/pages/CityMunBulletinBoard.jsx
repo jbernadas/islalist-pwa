@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { provincesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../services/api';
+import { provincesAPI, municipalitiesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
@@ -20,6 +20,7 @@ const CityMunBulletinBoard = () => {
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
   const [isBarangayModalOpen, setIsBarangayModalOpen] = useState(false);
+  const [isManila, setIsManila] = useState(false); // Track if current municipality is City of Manila
 
   // Fetch provinces and municipalities
   useEffect(() => {
@@ -61,10 +62,14 @@ const CityMunBulletinBoard = () => {
             const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
             setMunicipalities(munResponse.data);
 
-            // Fetch barangays for the current municipality
+            // Fetch barangays/districts for the current municipality
             const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
             if (currentMun) {
-              const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
+              // Check if this is City of Manila
+              setIsManila(currentMun.name === 'City of Manila');
+
+              // Use new endpoint that returns districts for Manila, barangays for others
+              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(currentMun.slug);
               setBarangays(barResponse.data || []);
             }
           }
@@ -81,10 +86,14 @@ const CityMunBulletinBoard = () => {
             const munResponse = await provincesAPI.getMunicipalities(province.toLowerCase());
             setMunicipalities(munResponse.data);
 
-            // Fetch barangays for the current municipality
+            // Fetch barangays/districts for the current municipality
             const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
             if (currentMun) {
-              const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
+              // Check if this is City of Manila
+              setIsManila(currentMun.name === 'City of Manila');
+
+              // Use new endpoint that returns districts for Manila, barangays for others
+              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(currentMun.slug);
               setBarangays(barResponse.data || []);
             }
           }
@@ -340,7 +349,7 @@ const CityMunBulletinBoard = () => {
             >
               <div className="hero-stat-item">
                 <span className="hero-stat-number">{barangays.length}</span>
-                <span className="hero-stat-label">Barangays →</span>
+                <span className="hero-stat-label">{isManila ? 'Districts' : 'Barangays'} →</span>
               </div>
             </div>
           )}
@@ -362,11 +371,11 @@ const CityMunBulletinBoard = () => {
               </div>
             </div>
 
-            {/* Barangays Navigation */}
+            {/* Barangays/Districts Navigation */}
             {barangays.length > 0 && (
               <div className="barangays-section">
                 <div className="section-header">
-                  <h2>🏘️ Barangays</h2>
+                  <h2>🏘️ {isManila ? 'Districts' : 'Barangays'}</h2>
                   <button
                     className="badge barangay-count clickable"
                     onClick={handleOpenBarangayModal}
@@ -591,6 +600,7 @@ const CityMunBulletinBoard = () => {
         province={province}
         municipality={municipality}
         municipalityName={displayMunicipality}
+        isManila={isManila}
       />
     </div>
   );

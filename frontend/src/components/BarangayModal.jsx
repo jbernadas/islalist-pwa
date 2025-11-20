@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { slugify } from '../utils/slugify';
 import './BarangayModal.css';
 
-const BarangayModal = ({ isOpen, onClose, barangays, province, municipality, municipalityName }) => {
+const BarangayModal = ({ isOpen, onClose, barangays, province, municipality, municipalityName, isManila = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBarangays, setFilteredBarangays] = useState(barangays);
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ const BarangayModal = ({ isOpen, onClose, barangays, province, municipality, mun
       <div className="barangay-modal-content">
         {/* Header */}
         <div className="barangay-modal-header">
-          <h2>🏘️ Barangays in {municipalityName}</h2>
+          <h2>🏘️ {isManila ? 'Districts' : 'Barangays'} in {municipalityName}</h2>
           <button
             className="barangay-modal-close"
             onClick={onClose}
@@ -138,9 +138,9 @@ const BarangayModal = ({ isOpen, onClose, barangays, province, municipality, mun
               {/* Results Count */}
               <div className="barangay-modal-footer">
                 {searchQuery ? (
-                  <p>Showing {filteredBarangays.length} of {barangays.length} barangays</p>
+                  <p>Showing {filteredBarangays.length} of {barangays.length} {isManila ? 'districts' : 'barangays'}</p>
                 ) : (
-                  <p>{barangays.length} barangays total</p>
+                  <p>{barangays.length} {isManila ? 'districts' : 'barangays'} total</p>
                 )}
               </div>
             </>

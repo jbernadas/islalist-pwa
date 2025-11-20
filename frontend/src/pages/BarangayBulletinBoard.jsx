@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { provincesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../services/api';
+import { provincesAPI, municipalitiesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
@@ -18,6 +18,8 @@ const BarangayBulletinBoard = () => {
   const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
+  const [isDistrict, setIsDistrict] = useState(false); // Track if this is a Manila district (SubMun)
+  const [currentMunicipalityData, setCurrentMunicipalityData] = useState(null);
 
   // Fetch provinces, municipalities, and barangays
   useEffect(() => {
@@ -66,11 +68,27 @@ const BarangayBulletinBoard = () => {
           const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
           setMunicipalities(munResponse.data);
 
-          // Fetch barangays for this municipality
-          const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
-          if (currentMun) {
-            const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
+          // Check if the "barangay" param is actually a Manila district (SubMun)
+          // In Manila's case, districts are stored as municipalities with type='SubMun'
+          const potentialDistrict = munResponse.data.find(m => slugify(m.name) === barangay);
+
+          if (potentialDistrict && potentialDistrict.type === 'SubMun') {
+            // This is a Manila district, not a barangay
+            setIsDistrict(true);
+            setCurrentMunicipalityData(potentialDistrict);
+
+            // Fetch barangays within this district
+            const barResponse = await barangaysAPI.getAll({ municipality: potentialDistrict.id });
             setBarangays(barResponse.data || []);
+          } else {
+            // Regular case: fetch barangays for the municipality
+            const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
+            if (currentMun) {
+              setIsDistrict(false);
+              setCurrentMunicipalityData(currentMun);
+              const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
+              setBarangays(barResponse.data || []);
+            }
           }
         }
       } catch (error) {
@@ -280,9 +298,9 @@ const BarangayBulletinBoard = () => {
             <span className="breadcrumb-separator"> / </span>
             <span className="breadcrumb-current">{displayBarangay}</span>
           </div>
-          <div className="hero-info">
+          <div className="hero-info text-end">
             <h1 className="hero-title">{displayBarangay}</h1>
-            <p className="hero-subtitle">Barangay Hub</p>
+            <p className="hero-subtitle">{isDistrict ? "District Hub" : "Barangay Hub"}</p>
           </div>
         </div>
       </div>

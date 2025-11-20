@@ -99,6 +99,7 @@ export const provincesAPI = {
 export const municipalitiesAPI = {
   getAll: (params) => api.get('/api/municipalities/', { params }),
   getBySlug: (slug) => api.get(`/api/municipalities/${slug}/`),
+  getDistrictsOrBarangays: (slug) => api.get(`/api/municipalities/${slug}/districts-or-barangays/`),
 };
 
 // Barangays API
