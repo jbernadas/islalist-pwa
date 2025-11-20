@@ -325,6 +325,37 @@ const CityMunBulletinBoard = () => {
                 <p className="barangay-hint">Click the badge to explore all barangays</p>
               </div>
             )}
+            
+            {/* Activity Feed - Combined Recent Activity */}
+            <div className="activity-feed">
+              <h2>⚡ Recent Activity</h2>
+              <div className="activity-list">
+                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
+                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
+                  .sort((a, b) => new Date(b.time) - new Date(a.time))
+                  .slice(0, 8)
+                  .map((item) => (
+                    <div
+                      key={`${item.type}-${item.id}`}
+                      className={`activity-item ${item.type}`}
+                      onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                    >
+                      <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
+                      <span className="activity-text">
+                        {item.type === 'listing'
+                          ? `${item.title} - ${formatPrice(item.price)}`
+                          : item.title}
+                      </span>
+                      <span className="activity-time">{getTimeAgo(item.time)}</span>
+                    </div>
+                  ))}
+                {recentListings.length === 0 && recentAnnouncements.length === 0 && (
+                  <div className="activity-empty">
+                    <p>No recent activity in this area</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           
           <div className="col-md-9">
@@ -480,37 +511,6 @@ const CityMunBulletinBoard = () => {
                 </div>
               </div>
             )}
-
-            {/* Activity Feed - Combined Recent Activity */}
-            <div className="activity-feed">
-              <h2>⚡ Recent Activity</h2>
-              <div className="activity-list">
-                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
-                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
-                  .sort((a, b) => new Date(b.time) - new Date(a.time))
-                  .slice(0, 8)
-                  .map((item) => (
-                    <div
-                      key={`${item.type}-${item.id}`}
-                      className={`activity-item ${item.type}`}
-                      onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
-                    >
-                      <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
-                      <span className="activity-text">
-                        {item.type === 'listing'
-                          ? `${item.title} - ${formatPrice(item.price)}`
-                          : item.title}
-                      </span>
-                      <span className="activity-time">{getTimeAgo(item.time)}</span>
-                    </div>
-                  ))}
-                {recentListings.length === 0 && recentAnnouncements.length === 0 && (
-                  <div className="activity-empty">
-                    <p>No recent activity in this area</p>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Quick Navigation */}
             <div className="quick-navigation">
