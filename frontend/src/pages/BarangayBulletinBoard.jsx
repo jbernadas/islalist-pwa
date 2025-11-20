@@ -116,23 +116,20 @@ const BarangayBulletinBoard = () => {
 
       if (!currentProvince || !currentMunicipality || !currentBarangay) return;
 
-      // Format barangay name for search (title case)
-      const barangayName = currentBarangay.name;
-
-      // Listings use barangay name for filtering
+      // Both listings and announcements now use barangay ID for filtering
       // Backend will include: barangay-specific + municipality-wide + province-wide
       const listingsParams = {
         municipality: municipality,
         province: province,
-        barangay: barangay, // Send slug format, backend will format
+        barangay: currentBarangay.id, // Send barangay ID
       };
 
-      // Announcements use IDs and barangay name
+      // Announcements use IDs for filtering
       // Backend will include: barangay-specific + municipality-wide (high/urgent) + province-wide (urgent)
       const announcementsParams = {
         province: currentProvince.id,
         municipality: currentMunicipality.id,
-        barangay: barangayName, // Use actual name
+        barangay: currentBarangay.id, // Send barangay ID
       };
 
       // Fetch recent listings (limit 3)

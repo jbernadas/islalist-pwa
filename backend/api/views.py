@@ -253,13 +253,13 @@ class ListingViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(
                     Q(barangay_id=barangay_id) |
                     Q(barangay__isnull=True, location__icontains=municipality_formatted) |
-                    Q(is_province_wide=True, island__iexact=province_formatted)
+                    Q(barangay__isnull=True, island__iexact=province_formatted)
                 )
             except (ValueError, TypeError):
                 # If barangay is not a valid ID, filter only municipality and province-wide
                 queryset = queryset.filter(
                     Q(barangay__isnull=True, location__icontains=municipality_formatted) |
-                    Q(is_province_wide=True, island__iexact=province_formatted)
+                    Q(barangay__isnull=True, island__iexact=province_formatted)
                 )
         elif municipality:
             # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
