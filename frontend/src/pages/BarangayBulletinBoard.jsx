@@ -269,62 +269,99 @@ const BarangayBulletinBoard = () => {
       />
 
       {/* Hero Section */}
-      <div className="bulletin-hero">
+      <div className="bulletin-hero barangay-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <div className="d-flex align-items-start flex-column">
-            {/* Breadcrumb Navigation */}
-            <div className="hero-breadcrumb">
-              <Link to={`/${province}`} className="breadcrumb-link">{displayProvince}</Link>
-              <span className="breadcrumb-separator"> / </span>
-              <Link to={`/${province}/${municipality}`} className="breadcrumb-link">{displayMunicipality}</Link>
-              <span className="breadcrumb-separator"> / </span>
-              <span className="breadcrumb-current">{displayBarangay}</span>
-            </div>
-            <div className="hero-main">
-              <div className="hero-info">
-                <h1 className="hero-title">{displayBarangay}</h1>
-                <p className="hero-subtitle">Barangay Hub</p>
-              </div>
-            </div>
+          {/* Breadcrumb Navigation */}
+          <div className="hero-breadcrumb">
+            <Link to={`/${province}`} className="breadcrumb-link">{displayProvince}</Link>
+            <span className="breadcrumb-separator"> / </span>
+            <Link to={`/${province}/${municipality}`} className="breadcrumb-link">{displayMunicipality}</Link>
+            <span className="breadcrumb-separator"> / </span>
+            <span className="breadcrumb-current">{displayBarangay}</span>
           </div>
-          <div className="hero-stats">
-              <div className="hero-stat-item">
-                <span className="hero-stat-number">{stats.listings}</span>
-                <span className="hero-stat-label">Listings</span>
-              </div>
-              <div className="hero-stat-item">
-                <span className="hero-stat-number">{stats.announcements}</span>
-                <span className="hero-stat-label">Announcements</span>
-              </div>
-            </div>
+          <div className="hero-info">
+            <h1 className="hero-title">{displayBarangay}</h1>
+            <p className="hero-subtitle">Barangay Hub</p>
+          </div>
         </div>
       </div>
 
-      <div className="bulletin-board-content">
-
-        {/* Urgent Alerts Banner */}
-        {urgentAnnouncements.length > 0 && (
-          <div className="urgent-alerts">
-            <div className="urgent-header">
-              <span className="urgent-icon">🚨</span>
-              <strong>URGENT ALERTS</strong>
-            </div>
-            {urgentAnnouncements.map(announcement => (
-              <div
-                key={announcement.id}
-                className="urgent-item"
-                onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
-              >
-                <div className="urgent-content">
-                  <span className="urgent-title">{announcement.title}</span>
-                  {getScopeLabel(announcement)}
-                </div>
-                <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
+      <div className="bulletin-board-content container-fluid">
+        <div className="row d-flex justify-content-between">
+          <div className="col-md-3">
+            {/* Stats Section */}
+            <div className="sidebar-stats">
+              <div className="stat-item">
+                <span className="stat-number">{stats.listings}</span>
+                <span className="stat-label">Listings</span>
               </div>
-            ))}
+              <div className="stat-item">
+                <span className="stat-number">{stats.announcements}</span>
+                <span className="stat-label">Announcements</span>
+              </div>
+            </div>
+
+            {/* Activity Feed - Combined Recent Activity */}
+            <div className="activity-feed">
+              <h2>⚡ Recent Activity</h2>
+              <div className="activity-list">
+                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
+                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
+                  .sort((a, b) => new Date(b.time) - new Date(a.time))
+                  .slice(0, 8)
+                  .map((item) => (
+                    <div
+                      key={`${item.type}-${item.id}`}
+                      className="activity-item"
+                      onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                    >
+                      <div className="activity-icon">
+                        {item.type === 'listing' ? '🛒' : '📢'}
+                      </div>
+                      <div className="activity-content">
+                        <div className="activity-title">{item.title}</div>
+                        <div className="activity-meta">
+                          {item.type === 'listing' && item.price && (
+                            <span className="activity-price">{formatPrice(item.price)}</span>
+                          )}
+                          {item.type === 'announcement' && (
+                            <span className={`activity-priority priority-${item.priority}`}>
+                              {getPriorityIcon(item.priority)} {item.priority}
+                            </span>
+                          )}
+                          <span className="activity-time">{getTimeAgo(item.time)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
-        )}
+
+          <div className="col-md-9">
+            {/* Urgent Alerts Banner */}
+            {urgentAnnouncements.length > 0 && (
+              <div className="urgent-alerts">
+                <div className="urgent-header">
+                  <span className="urgent-icon">🚨</span>
+                  <strong>URGENT ALERTS</strong>
+                </div>
+                {urgentAnnouncements.map(announcement => (
+                  <div
+                    key={announcement.id}
+                    className="urgent-item"
+                    onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                  >
+                    <div className="urgent-content">
+                      <span className="urgent-title">{announcement.title}</span>
+                      {getScopeLabel(announcement)}
+                    </div>
+                    <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
         {/* Welcome Hero for Completely Empty Barangay */}
         {stats.listings === 0 && stats.announcements === 0 && (
@@ -449,46 +486,48 @@ const BarangayBulletinBoard = () => {
           </div>
         )}
 
-        {/* Quick Actions */}
-        {isAuthenticated && (
-          <div className="quick-actions">
-            <h3>Quick Actions</h3>
-            <div className="actions-grid">
-              <Link
-                to={`/${province}/${municipality}/create-listing`}
-                className="action-card"
-              >
-                <span className="action-icon">📝</span>
-                <span className="action-title">Post a Listing</span>
-                <span className="action-description">Sell or rent items in {displayBarangay}</span>
-              </Link>
-              <Link
-                to={`/${province}/${municipality}/create-announcement`}
-                className="action-card"
-              >
-                <span className="action-icon">📢</span>
-                <span className="action-title">Make an Announcement</span>
-                <span className="action-description">Share news with the barangay</span>
-              </Link>
-              <Link
-                to={`/${province}/${municipality}/listings?barangay=${barangay}`}
-                className="action-card"
-              >
-                <span className="action-icon">🔍</span>
-                <span className="action-title">Browse Listings</span>
-                <span className="action-description">View all listings in {displayBarangay}</span>
-              </Link>
-              <Link
-                to={`/${province}/${municipality}/announcements?barangay=${barangay}`}
-                className="action-card"
-              >
-                <span className="action-icon">📋</span>
-                <span className="action-title">View Announcements</span>
-                <span className="action-description">See all announcements</span>
-              </Link>
-            </div>
+            {/* Quick Actions */}
+            {isAuthenticated && (
+              <div className="quick-actions">
+                <h3>Quick Actions</h3>
+                <div className="actions-grid">
+                  <Link
+                    to={`/${province}/${municipality}/create-listing`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">📝</span>
+                    <span className="action-title">Post a Listing</span>
+                    <span className="action-description">Sell or rent items in {displayBarangay}</span>
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/create-announcement`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">📢</span>
+                    <span className="action-title">Make an Announcement</span>
+                    <span className="action-description">Share news with the barangay</span>
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/listings?barangay=${barangay}`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">🔍</span>
+                    <span className="action-title">Browse Listings</span>
+                    <span className="action-description">View all listings in {displayBarangay}</span>
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/announcements?barangay=${barangay}`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">📋</span>
+                    <span className="action-title">View Announcements</span>
+                    <span className="action-description">See all announcements</span>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
