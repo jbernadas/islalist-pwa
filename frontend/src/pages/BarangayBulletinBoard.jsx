@@ -68,18 +68,25 @@ const BarangayBulletinBoard = () => {
           const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
           setMunicipalities(munResponse.data);
 
-          // Check if the "barangay" param is actually a Manila district (SubMun)
-          // In Manila's case, districts are stored as municipalities with type='SubMun'
-          const potentialDistrict = munResponse.data.find(m => slugify(m.name) === barangay);
+          // Special handling for City of Manila districts
+          // Check if municipality is City of Manila and fetch districts
+          if (municipality === 'city-of-manila') {
+            try {
+              const districtsResponse = await municipalitiesAPI.getDistrictsOrBarangays('city-of-manila');
+              const currentDistrict = districtsResponse.data.find(d => slugify(d.name) === barangay);
 
-          if (potentialDistrict && potentialDistrict.type === 'SubMun') {
-            // This is a Manila district, not a barangay
-            setIsDistrict(true);
-            setCurrentMunicipalityData(potentialDistrict);
+              if (currentDistrict && currentDistrict.is_district) {
+                // This is a Manila district (SubMun)
+                setIsDistrict(true);
+                setCurrentMunicipalityData(currentDistrict);
 
-            // Fetch barangays within this district
-            const barResponse = await barangaysAPI.getAll({ municipality: potentialDistrict.id });
-            setBarangays(barResponse.data || []);
+                // Fetch barangays within this district
+                const barResponse = await barangaysAPI.getAll({ municipality: currentDistrict.id });
+                setBarangays(barResponse.data || []);
+              }
+            } catch (error) {
+              console.error('Error fetching Manila districts:', error);
+            }
           } else {
             // Regular case: fetch barangays for the municipality
             const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
