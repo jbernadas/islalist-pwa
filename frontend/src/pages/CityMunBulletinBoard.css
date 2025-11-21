@@ -206,6 +206,19 @@
   padding: 2rem 1rem;
 }
 
+.bulletin-hero-city-municipality-in-bgy a {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -1px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.bulletin-hero-city-municipality-in-bgy a:hover {
+  text-decoration: none;  
+}
+
 /* Urgent Alerts Banner */
 .urgent-alerts {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);

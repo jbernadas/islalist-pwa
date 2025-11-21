@@ -309,6 +309,13 @@ const BarangayBulletinBoard = () => {
             <Link to={`/${province}/${municipality}`} className="breadcrumb-link">{displayMunicipality}</Link>
             <span className="breadcrumb-separator"> / </span>
             <span className="breadcrumb-current">{displayBarangay}</span>
+            <div className="hero-main">
+              <div className="hero-info">      
+                <h2 className="bulletin-hero-city-municipality-in-bgy">
+                  <Link to={`/${province}/${municipality}`}>{displayMunicipality}</Link>
+                </h2>
+              </div>
+            </div>
           </div>
           <div className="hero-info text-end">
             <h1 className="hero-title">{displayBarangay}</h1>
