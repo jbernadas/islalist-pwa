@@ -220,10 +220,13 @@ const BarangayBulletinBoard = () => {
     .join(' ');
 
   const currentBarangayObj = barangays.find(b => slugify(b.name) === barangay);
-  const displayBarangay = currentBarangayObj?.name || barangay
-    ?.split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // For districts, use currentMunicipalityData.name; for barangays, use the barangay name
+  const displayBarangay = isDistrict
+    ? currentMunicipalityData?.name  // Use district name from municipality data (e.g., "Tondo I/II")
+    : (currentBarangayObj?.name || barangay  // Use barangay name or fallback to slug formatting
+        ?.split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' '));
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-PH', {
