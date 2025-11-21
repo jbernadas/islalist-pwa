@@ -102,9 +102,10 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['get'])
     def municipalities(self, request, slug=None):
-        """Get all cities/municipalities for a province"""
+        """Get all cities/municipalities for a province (excludes SubMun districts)"""
         province = self.get_object()
-        municipalities = province.municipalities.filter(active=True)
+        # Exclude SubMun types - these are districts within City of Manila, not standalone municipalities
+        municipalities = province.municipalities.filter(active=True, type__in=['City', 'Mun']).order_by('name')
         serializer = MunicipalitySerializer(municipalities, many=True)
         return Response(serializer.data)
 
