@@ -23,7 +23,7 @@ class MunicipalitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Municipality
-        fields = ['id', 'name', 'slug', 'province', 'province_name', 'type', 'active']
+        fields = ['id', 'name', 'slug', 'psgc_code', 'province', 'province_name', 'type', 'active']
         read_only_fields = ['id', 'slug']
 
 

@@ -93,6 +93,7 @@ class Command(BaseCommand):
             # Create province
             province = Province.objects.create(
                 name=province_name,
+                psgc_code=str(province_code) if province_code else None,
                 active=True
             )
             created_provinces += 1
@@ -104,9 +105,11 @@ class Command(BaseCommand):
             for city_mun in province_data['cities_municipalities']:
                 municipality_name = city_mun['name']
                 municipality_type = city_mun.get('type', 'Mun')
+                municipality_code = city_mun.get('code', '')
                 # Preserve SubMun type for Manila districts
                 municipality = Municipality.objects.create(
                     name=municipality_name,
+                    psgc_code=str(municipality_code) if municipality_code else None,
                     province=province,
                     type=municipality_type,
                     active=True

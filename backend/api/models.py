@@ -9,6 +9,13 @@ class Province(models.Model):
     """Philippine provinces for location filtering"""
     name = models.CharField(max_length=100, unique=True, help_text="Province name (e.g., Camarines Norte)")
     slug = models.SlugField(unique=True, blank=True, help_text="URL-friendly version (e.g., camarines-norte)")
+    psgc_code = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="10-digit PSGC code"
+    )
     active = models.BooleanField(default=True, help_text="Show in province listings")
     featured = models.BooleanField(default=False, help_text="Highlight on homepage")
     description = models.TextField(blank=True, help_text="Province description")
@@ -33,6 +40,13 @@ class Municipality(models.Model):
     """Cities and municipalities within provinces"""
     name = models.CharField(max_length=100, help_text="City/Municipality name (e.g., Daet, Cebu City)")
     slug = models.SlugField(help_text="URL-friendly version (e.g., daet, cebu-city)")
+    psgc_code = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="10-digit PSGC code"
+    )
     province = models.ForeignKey(
         Province,
         on_delete=models.CASCADE,

@@ -68,8 +68,10 @@ const CityMunBulletinBoard = () => {
               // Check if this is City of Manila
               setIsManila(currentMun.name === 'City of Manila');
 
-              // Use new endpoint that returns districts for Manila, barangays for others
-              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(currentMun.slug);
+              // Use psgc_code if available (unique), otherwise fall back to slug
+              // This ensures municipalities with duplicate names (like Morong) work correctly
+              const municipalityIdentifier = currentMun.psgc_code || currentMun.slug;
+              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(municipalityIdentifier);
               setBarangays(barResponse.data || []);
             }
           }
@@ -92,8 +94,10 @@ const CityMunBulletinBoard = () => {
               // Check if this is City of Manila
               setIsManila(currentMun.name === 'City of Manila');
 
-              // Use new endpoint that returns districts for Manila, barangays for others
-              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(currentMun.slug);
+              // Use psgc_code if available (unique), otherwise fall back to slug
+              // This ensures municipalities with duplicate names (like Morong) work correctly
+              const municipalityIdentifier = currentMun.psgc_code || currentMun.slug;
+              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(municipalityIdentifier);
               setBarangays(barResponse.data || []);
             }
           }

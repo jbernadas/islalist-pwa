@@ -120,6 +120,35 @@ class MunicipalityViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['province']
 
+    def get_object(self):
+        """Override to support lookup by both slug and psgc_code"""
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs[lookup_url_kwarg]
+
+        # Try to get by slug first
+        try:
+            obj = queryset.get(slug=lookup_value)
+            self.check_object_permissions(self.request, obj)
+            return obj
+        except Municipality.DoesNotExist:
+            pass
+        except Municipality.MultipleObjectsReturned:
+            # If multiple objects with same slug, try psgc_code
+            pass
+
+        # Try to get by psgc_code
+        try:
+            obj = queryset.get(psgc_code=lookup_value)
+            self.check_object_permissions(self.request, obj)
+            return obj
+        except Municipality.DoesNotExist:
+            pass
+
+        # If neither worked, raise 404
+        from django.http import Http404
+        raise Http404
+
     @action(detail=True, methods=['get'], url_path='districts-or-barangays')
     def districts_or_barangays(self, request, slug=None):
         """Get districts (for Manila) or barangays (for other municipalities)
