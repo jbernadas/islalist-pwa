@@ -83,6 +83,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  padding: unset;
 }
 
 .barangay-modal-close:hover {
