@@ -75,7 +75,7 @@ class Municipality(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name}, {self.province.name}"
+        return self.name
 
 
 class Barangay(models.Model):
@@ -122,7 +122,7 @@ class Barangay(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name}, {self.municipality.name}"
+        return self.name
 
 
 class Category(models.Model):
@@ -326,8 +326,23 @@ class Listing(models.Model):
         default='not_applicable'
     )
 
-    # Location
-    location = models.CharField(max_length=200, help_text="City/Municipality/Barangay")
+    # Location - Philippine Administrative Hierarchy
+    province = models.ForeignKey(
+        Province,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='listings',
+        help_text="Province"
+    )
+    municipality = models.ForeignKey(
+        Municipality,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='listings',
+        help_text="City/Municipality"
+    )
     barangay = models.ForeignKey(
         'Barangay',
         on_delete=models.SET_NULL,
@@ -336,7 +351,6 @@ class Listing(models.Model):
         related_name='listings',
         help_text="Barangay (optional)"
     )
-    island = models.CharField(max_length=100, default='Siquijor')
 
     # User and Status
     seller = models.ForeignKey(
@@ -364,7 +378,8 @@ class Listing(models.Model):
         indexes = [
             models.Index(fields=['status', '-created_at']),
             models.Index(fields=['category', 'status']),
-            models.Index(fields=['island', 'status']),
+            models.Index(fields=['province', 'status']),
+            models.Index(fields=['municipality', 'status']),
         ]
 
     def save(self, *args, **kwargs):
@@ -378,6 +393,31 @@ class Listing(models.Model):
 
     def is_expired(self):
         return timezone.now() > self.expires_at if self.expires_at else False
+
+    @property
+    def location_display(self):
+        """
+        Returns a properly formatted location string based on the administrative hierarchy.
+
+        Format:
+        - If barangay exists: "Barangay, Municipality, Province"
+        - If only municipality: "Municipality, Province"
+        - If only province: "Province"
+        - Otherwise: "Location not specified"
+        """
+        parts = []
+
+        if self.barangay:
+            parts.append(self.barangay.name)
+            parts.append(self.municipality.name if self.municipality else self.barangay.municipality.name)
+            parts.append(self.province.name if self.province else self.barangay.municipality.province.name)
+        elif self.municipality:
+            parts.append(self.municipality.name)
+            parts.append(self.province.name if self.province else self.municipality.province.name)
+        elif self.province:
+            parts.append(self.province.name)
+
+        return ', '.join(parts) if parts else 'Location not specified'
 
 
 class ListingImage(models.Model):

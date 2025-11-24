@@ -212,10 +212,8 @@ class ListingViewSet(viewsets.ModelViewSet):
     queryset = Listing.objects.filter(status='active')
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    # Removed 'island' from filterset_fields to handle it with case-insensitive matching in get_queryset()
-    # barangay is now a ForeignKey, so we filter by ID in get_queryset()
-    filterset_fields = ['category', 'property_type', 'location', 'status']
-    search_fields = ['title', 'description', 'location', 'barangay__name']
+    filterset_fields = ['category', 'property_type', 'province', 'municipality', 'barangay', 'status']
+    search_fields = ['title', 'description', 'barangay__name', 'municipality__name', 'province__name']
     ordering_fields = ['created_at', 'price', 'views_count']
     ordering = ['-created_at']
 
@@ -236,26 +234,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         from django.db.models import Q
         queryset = super().get_queryset()
 
-        # Filter by island/province (accepts both name and slug format)
-        island = self.request.query_params.get('island')
-        if island:
-            # Try to match by province name first (case-insensitive)
-            # If the parameter looks like a slug (contains hyphens), also try to find the province by slug
-            if '-' in island:
-                # Looks like a slug format (e.g., "davao-del-norte")
-                # Try to get the actual province name from the Province model
-                try:
-                    from api.models import Province
-                    province = Province.objects.get(slug__iexact=island)
-                    # Use the actual province name for filtering
-                    queryset = queryset.filter(island__iexact=province.name)
-                except Province.DoesNotExist:
-                    # Slug not found, fall back to direct matching
-                    queryset = queryset.filter(island__iexact=island)
-            else:
-                # Looks like a province name (e.g., "Davao del Norte")
-                queryset = queryset.filter(island__iexact=island)
-
         # Filter by price range
         min_price = self.request.query_params.get('min_price')
         max_price = self.request.query_params.get('max_price')
@@ -265,68 +243,50 @@ class ListingViewSet(viewsets.ModelViewSet):
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
 
-        # Filter by municipality and barangay (case-insensitive, partial match in location field)
-        municipality = self.request.query_params.get('municipality')
-        province_param = self.request.query_params.get('province')
-        barangay = self.request.query_params.get('barangay')
+        # Hierarchical location filtering using ForeignKeys
+        province_slug = self.request.query_params.get('province')
+        municipality_slug = self.request.query_params.get('municipality')
+        barangay_slug = self.request.query_params.get('barangay')
 
-        if barangay and municipality and province_param:
-            # Priority-based cascade filtering for barangay level:
-            # For listings, we show ALL listings in the barangay since listings don't have priority
-            # This includes: barangay-specific OR municipality-level OR province-wide
-            # barangay parameter is now expected to be an ID
-            municipality_formatted = municipality.replace('-', ' ').title()
-            province_formatted = province_param.replace('-', ' ').title()
-
+        if province_slug and municipality_slug and barangay_slug:
+            # Barangay level: Show listings in this barangay, or municipality-wide, or province-wide
             try:
-                barangay_id = int(barangay)
+                from api.models import Province, Municipality, Barangay
+                province_obj = Province.objects.get(slug=province_slug)
+                municipality_obj = Municipality.objects.get(slug=municipality_slug, province=province_obj)
+                barangay_obj = Barangay.objects.get(slug=barangay_slug, municipality=municipality_obj)
+
                 queryset = queryset.filter(
-                    Q(barangay_id=barangay_id) |
-                    Q(barangay__isnull=True, location__icontains=municipality_formatted) |
-                    Q(barangay__isnull=True, island__iexact=province_formatted)
+                    Q(barangay=barangay_obj) |  # Barangay-specific
+                    Q(municipality=municipality_obj, barangay__isnull=True) |  # Municipality-wide
+                    Q(province=province_obj, municipality__isnull=True, barangay__isnull=True)  # Province-wide
                 )
-            except (ValueError, TypeError):
-                # If barangay is not a valid ID, filter only municipality and province-wide
+            except (Province.DoesNotExist, Municipality.DoesNotExist, Barangay.DoesNotExist):
+                # If location not found, return empty queryset
+                queryset = queryset.none()
+
+        elif province_slug and municipality_slug:
+            # Municipality level: Show listings in this municipality (any barangay) or province-wide
+            try:
+                from api.models import Province, Municipality
+                province_obj = Province.objects.get(slug=province_slug)
+                municipality_obj = Municipality.objects.get(slug=municipality_slug, province=province_obj)
+
                 queryset = queryset.filter(
-                    Q(barangay__isnull=True, location__icontains=municipality_formatted) |
-                    Q(barangay__isnull=True, island__iexact=province_formatted)
+                    Q(municipality=municipality_obj) |  # Municipality and its barangays
+                    Q(province=province_obj, municipality__isnull=True)  # Province-wide
                 )
-        elif municipality:
-            # Convert URL slug format to title case (e.g., 'san-juan' -> 'San Juan')
-            municipality_formatted = municipality.replace('-', ' ').title()
+            except (Province.DoesNotExist, Municipality.DoesNotExist):
+                queryset = queryset.none()
 
-            # HIERARCHICAL VISIBILITY: Municipality view shows:
-            # 1. Listings with location matching municipality (municipality-wide)
-            # 2. Listings with barangay field set (barangay-specific within this municipality)
-            # 3. Province-wide listings (location matching province name)
-
-            if province_param:
-                province_formatted = province_param.replace('-', ' ').title()
-
-                # Get all barangays for this municipality to include barangay-specific listings
-                try:
-                    from api.models import Municipality as MunicipalityModel
-                    municipality_obj = MunicipalityModel.objects.get(slug=municipality)
-
-                    # Build query: municipality-wide OR any barangay in this municipality OR province-wide
-                    # With FK, we can filter by municipality relationship directly
-                    query = Q(location__icontains=municipality_formatted, barangay__isnull=True)
-
-                    # Add all barangays in this municipality
-                    query |= Q(barangay__municipality=municipality_obj)
-
-                    # Add province-wide listings
-                    query |= Q(location__iexact=province_formatted, barangay__isnull=True)
-
-                    queryset = queryset.filter(query)
-                except MunicipalityModel.DoesNotExist:
-                    # Fallback to old behavior if municipality not found
-                    queryset = queryset.filter(
-                        Q(location__icontains=municipality_formatted) |
-                        Q(location__iexact=province_formatted)
-                    )
-            else:
-                queryset = queryset.filter(location__icontains=municipality_formatted)
+        elif province_slug:
+            # Province level: Show all listings in this province
+            try:
+                from api.models import Province
+                province_obj = Province.objects.get(slug=province_slug)
+                queryset = queryset.filter(province=province_obj)
+            except Province.DoesNotExist:
+                queryset = queryset.none()
 
         return queryset
 

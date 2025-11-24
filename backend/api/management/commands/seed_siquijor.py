@@ -41,7 +41,7 @@ class Command(BaseCommand):
     def clear_siquijor_data(self):
         try:
             province = Province.objects.get(name='Siquijor')
-            Listing.objects.filter(island='Siquijor').delete()
+            Listing.objects.filter(province=province).delete()
             Announcement.objects.filter(province=province).delete()
             self.stdout.write(self.style.SUCCESS('   Cleared existing data'))
         except Province.DoesNotExist:
@@ -274,10 +274,11 @@ class Command(BaseCommand):
                     description=desc,
                     category=categories[cat_name],
                     price=Decimal(str(price)),
+                    province=province,
+                    municipality=municipalities[mun_name],
                     barangay=barangay_obj,
                     seller=random.choice(users),
                     status='active',
-                    island='Siquijor',
                     created_at=timezone.now() - timedelta(days=random.randint(1, 30))
                 )
             except Barangay.DoesNotExist:
@@ -290,7 +291,7 @@ class Command(BaseCommand):
         self.stdout.write('=' * 50)
 
         announcement_count = Announcement.objects.filter(province=province).count()
-        listing_count = Listing.objects.filter(island='Siquijor', status='active').count()
+        listing_count = Listing.objects.filter(province=province, status='active').count()
 
         self.stdout.write(f'Province: {province.name}')
         self.stdout.write(f'Municipalities: {len(municipalities)}')

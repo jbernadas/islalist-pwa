@@ -401,7 +401,7 @@ const ListingDetail = () => {
           <div className="location-section">
             <h3>Location</h3>
             <div className="location-card">
-              <p>📍 {listing.barangay_details?.name ? `${listing.barangay_details.name}, ` : ''}{listing.location}, {listing.island}</p>
+              <p>📍 {listing.location_display}</p>
             </div>
           </div>
 

@@ -297,6 +297,8 @@ class ListingSerializer(serializers.ModelSerializer):
         source='category.name',
         read_only=True
     )
+    province_details = ProvinceListSerializer(source='province', read_only=True)
+    municipality_details = MunicipalitySerializer(source='municipality', read_only=True)
     barangay_details = BarangaySerializer(source='barangay', read_only=True)
     images = ListingImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
@@ -310,6 +312,7 @@ class ListingSerializer(serializers.ModelSerializer):
         required=False
     )
     is_favorited = serializers.SerializerMethodField()
+    location_display = serializers.ReadOnlyField()
 
     class Meta:
         model = Listing
@@ -319,14 +322,15 @@ class ListingSerializer(serializers.ModelSerializer):
             'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
             'vehicle_mileage', 'vehicle_transmission', 'vehicle_fuel_type', 'vehicle_condition',
             'category', 'category_name',
-            'condition', 'location', 'barangay', 'barangay_details', 'island', 'seller', 'status',
+            'condition', 'province', 'province_details', 'municipality', 'municipality_details',
+            'barangay', 'barangay_details', 'location_display', 'seller', 'status',
             'views_count', 'featured', 'created_at', 'updated_at',
             'expires_at', 'images', 'uploaded_images', 'reused_image_ids',
             'is_favorited'
         ]
         read_only_fields = [
             'id', 'seller', 'views_count', 'created_at',
-            'updated_at', 'is_favorited', 'barangay_details'
+            'updated_at', 'is_favorited', 'province_details', 'municipality_details', 'barangay_details'
         ]
 
     def get_is_favorited(self, obj):
@@ -418,6 +422,16 @@ class ListingListSerializer(serializers.ModelSerializer):
         source='category.name',
         read_only=True
     )
+    province_name = serializers.CharField(
+        source='province.name',
+        read_only=True,
+        allow_null=True
+    )
+    municipality_name = serializers.CharField(
+        source='municipality.name',
+        read_only=True,
+        allow_null=True
+    )
     barangay_name = serializers.CharField(
         source='barangay.name',
         read_only=True,
@@ -425,13 +439,15 @@ class ListingListSerializer(serializers.ModelSerializer):
     )
     first_image = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
+    location_display = serializers.ReadOnlyField()
 
     class Meta:
         model = Listing
         fields = [
             'id', 'title', 'price', 'property_type', 'pay_period',
             'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
-            'location', 'barangay', 'barangay_name', 'island',
+            'province', 'province_name', 'municipality', 'municipality_name',
+            'barangay', 'barangay_name', 'location_display',
             'category_name', 'seller_name', 'status', 'created_at',
             'first_image', 'bedrooms', 'bathrooms', 'area_sqm',
             'is_favorited'

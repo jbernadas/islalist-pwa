@@ -527,7 +527,7 @@ const Listings = () => {
                       )}
                     </div>
                     <p className="location">
-                      📍 {listing.barangay_name ? `${listing.barangay_name}, ` : ''}{listing.location}, {listing.island}
+                      📍 {listing.location_display}
                     </p>
                     <p className="seller">👤 {listing.seller_name}</p>
                   </div>

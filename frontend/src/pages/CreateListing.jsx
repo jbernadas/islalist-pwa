@@ -19,8 +19,6 @@ const CreateListing = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [municipalities, setMunicipalities] = useState([]);
   const [barangays, setBarangays] = useState([]);
-  const [currentMunicipalityName, setCurrentMunicipalityName] = useState('');
-  const [currentMunicipalityId, setCurrentMunicipalityId] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -40,11 +38,9 @@ const CreateListing = () => {
     vehicle_fuel_type: '',
     vehicle_condition: '',
     category: '',
-    location: '',
+    province: '',
+    municipality: '',
     barangay: '',
-    island: 'Siquijor',
-    province_id: '',
-    is_province_wide: false,
   });
 
   useEffect(() => {
@@ -99,8 +95,7 @@ const CreateListing = () => {
       if (currentProvince) {
         setFormData(prev => ({
           ...prev,
-          province_id: currentProvince.id,
-          island: currentProvince.name
+          province: currentProvince.id
         }));
       }
     } catch (err) {
@@ -116,15 +111,10 @@ const CreateListing = () => {
       const municipalitiesData = response.data;
       setMunicipalities(municipalitiesData);
 
-      // Find current municipality and set location
+      // Find current municipality and set it
       const currentMunicipality = municipalitiesData.find(m => slugify(m.name) === municipality);
       if (currentMunicipality) {
-        setCurrentMunicipalityName(currentMunicipality.name);
-        setCurrentMunicipalityId(currentMunicipality.id);
-        // Auto-populate location with municipality name (unless province-wide)
-        if (!formData.is_province_wide) {
-          setFormData(prev => ({ ...prev, location: currentMunicipality.name }));
-        }
+        setFormData(prev => ({ ...prev, municipality: currentMunicipality.id }));
         // Fetch barangays for this municipality
         fetchBarangays(currentMunicipality.id);
       }
@@ -148,32 +138,17 @@ const CreateListing = () => {
     }
   };
 
-  const handleProvinceWideChange = (e) => {
-    const isProvinceWide = e.target.checked;
-    setFormData(prev => ({
-      ...prev,
-      is_province_wide: isProvinceWide,
-      // When province-wide, set location to province name (capitalize first letter)
-      location: isProvinceWide
-        ? province.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-        : currentMunicipalityName
-    }));
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    // If location (municipality) changes, fetch barangays for that municipality
-    if (name === 'location' && value) {
-      const selectedMunicipality = municipalities.find(m => m.name === value);
-      if (selectedMunicipality) {
-        fetchBarangays(selectedMunicipality.id);
-        // Clear barangay selection when municipality changes
-        setFormData(prev => ({ ...prev, barangay: '' }));
-      }
-    } else if (name === 'location' && !value) {
-      // Clear barangays if location is cleared
+    // If municipality changes, fetch barangays for that municipality
+    if (name === 'municipality' && value) {
+      fetchBarangays(value);
+      // Clear barangay selection when municipality changes
+      setFormData(prev => ({ ...prev, barangay: '' }));
+    } else if (name === 'municipality' && !value) {
+      // Clear barangays if municipality is cleared
       setBarangays([]);
       setFormData(prev => ({ ...prev, barangay: '' }));
     }
@@ -567,38 +542,21 @@ const CreateListing = () => {
         <div className="form-section">
           <h2>Location</h2>
 
-          <div className="form-group">
-            <label className="checkbox-label d-flex">
-              <input
-                type="checkbox"
-                name="is_province_wide"
-                checked={formData.is_province_wide}
-                onChange={handleProvinceWideChange}
-                style={{ width: 'auto', flexShrink: 0, marginRight: '0.75rem' }}
-              />
-              <span style={{ flex: 1 , fontWeight: 'bold' }}>Province-wide listing (show this in all municipalities)</span>
-            </label>
-            <p className="help-text">
-              Check this if your listing serves the entire province (e.g., mobile services, delivery).
-            </p>
-          </div>
-
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="province_id">Province *</label>
+              <label htmlFor="province">Province *</label>
               <select
-                id="province_id"
-                name="province_id"
-                value={formData.province_id}
+                id="province"
+                name="province"
+                value={formData.province}
                 onChange={(e) => {
                   const provinceId = e.target.value;
                   const selectedProvince = provinces.find(p => p.id === parseInt(provinceId));
                   setFormData(prev => ({
                     ...prev,
-                    province_id: provinceId,
-                    island: selectedProvince ? selectedProvince.name : '',
-                    location: '',
-                    is_province_wide: false
+                    province: provinceId,
+                    municipality: '',
+                    barangay: ''
                   }));
                   // Fetch municipalities for selected province
                   if (selectedProvince) {
@@ -619,27 +577,21 @@ const CreateListing = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="location">Location (City/Municipality) *</label>
+              <label htmlFor="municipality">City/Municipality *</label>
               <select
-                id="location"
-                name="location"
-                value={formData.location}
+                id="municipality"
+                name="municipality"
+                value={formData.municipality}
                 onChange={handleChange}
                 required
-                disabled={formData.is_province_wide}
               >
                 <option value="">Select a municipality</option>
                 {municipalities.map(mun => (
-                  <option key={mun.id} value={mun.name}>
+                  <option key={mun.id} value={mun.id}>
                     {mun.name}
                   </option>
                 ))}
               </select>
-              <p className="help-text">
-                {formData.is_province_wide
-                  ? `Set to province-wide: ${formData.location}`
-                  : ``}
-              </p>
             </div>
           </div>
 
@@ -650,9 +602,9 @@ const CreateListing = () => {
               name="barangay"
               value={formData.barangay}
               onChange={handleChange}
-              disabled={formData.is_province_wide || barangays.length === 0}
+              disabled={barangays.length === 0}
             >
-              <option value="">Select your barangay</option>
+              <option value="">Select a barangay</option>
               {barangays.map(barangay => (
                 <option key={barangay.id} value={barangay.id}>
                   {barangay.name}
