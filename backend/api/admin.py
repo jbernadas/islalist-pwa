@@ -47,12 +47,33 @@ class ListingImageInline(admin.TabularInline):
 
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
-    list_display = ['title', 'seller', 'property_type', 'price', 'location', 'status', 'created_at']
-    list_filter = ['status', 'property_type', 'category', 'island', 'created_at']
-    search_fields = ['title', 'description', 'location']
-    readonly_fields = ['views_count', 'created_at', 'updated_at']
+    list_display = ['title', 'seller', 'property_type', 'price', 'get_location_display', 'status', 'created_at']
+    list_filter = ['status', 'property_type', 'category', 'province', 'created_at']
+    search_fields = ['title', 'description']
+    readonly_fields = ['views_count', 'created_at', 'updated_at', 'location_display']
     inlines = [ListingImageInline]
     date_hierarchy = 'created_at'
+
+    # Disable add/change/delete/view buttons for location ForeignKeys
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        # Remove the add/edit/delete/view links for province, municipality, barangay
+        form.base_fields['province'].widget.can_add_related = False
+        form.base_fields['province'].widget.can_change_related = False
+        form.base_fields['province'].widget.can_delete_related = False
+        form.base_fields['province'].widget.can_view_related = False
+
+        form.base_fields['municipality'].widget.can_add_related = False
+        form.base_fields['municipality'].widget.can_change_related = False
+        form.base_fields['municipality'].widget.can_delete_related = False
+        form.base_fields['municipality'].widget.can_view_related = False
+
+        form.base_fields['barangay'].widget.can_add_related = False
+        form.base_fields['barangay'].widget.can_change_related = False
+        form.base_fields['barangay'].widget.can_delete_related = False
+        form.base_fields['barangay'].widget.can_view_related = False
+
+        return form
 
     fieldsets = (
         ('Basic Information', {
@@ -62,7 +83,8 @@ class ListingAdmin(admin.ModelAdmin):
             'fields': ('property_type', 'area_sqm', 'bedrooms', 'bathrooms', 'condition')
         }),
         ('Location', {
-            'fields': ('island', 'location')
+            'fields': ('province', 'municipality', 'barangay', 'location_display'),
+            'description': 'Select location using Province → City/Municipality → Barangay hierarchy.'
         }),
         ('Management', {
             'fields': ('seller', 'status', 'featured', 'expires_at')
@@ -72,6 +94,40 @@ class ListingAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def get_location_display(self, obj):
+        """Display formatted location in list view"""
+        return obj.location_display
+    get_location_display.short_description = 'Location'
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Filter municipality and barangay based on selected province/municipality"""
+        if db_field.name == "municipality":
+            # Customize label to show "City/District/Muni"
+            kwargs["label"] = "City/District/Muni"
+            # Get province from request if editing existing listing
+            if request.resolver_match.kwargs.get('object_id'):
+                from .models import Listing
+                try:
+                    listing = Listing.objects.get(pk=request.resolver_match.kwargs['object_id'])
+                    if listing.province:
+                        kwargs["queryset"] = listing.province.municipalities.filter(active=True)
+                except Listing.DoesNotExist:
+                    pass
+        elif db_field.name == "barangay":
+            # Get municipality from request if editing existing listing
+            if request.resolver_match.kwargs.get('object_id'):
+                from .models import Listing
+                try:
+                    listing = Listing.objects.get(pk=request.resolver_match.kwargs['object_id'])
+                    if listing.municipality:
+                        kwargs["queryset"] = listing.municipality.barangays.filter(active=True)
+                except Listing.DoesNotExist:
+                    pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    class Media:
+        js = ('admin/js/listing_location_cascade.js',)
 
 
 @admin.register(UserProfile)
