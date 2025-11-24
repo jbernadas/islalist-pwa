@@ -1,3 +1,51 @@
+"""
+PSGC Excel Parser - Django Management Command
+
+This script parses the official PSGC (Philippine Standard Geographic Code) Excel file
+from the Philippine Statistics Authority (PSA) and generates a structured JSON file
+containing provinces, cities/municipalities, and barangays.
+
+DATA SOURCE:
+-----------
+The PSGC Excel file should be downloaded from the official PSA website:
+https://psa.gov.ph/classification/psgc
+
+Expected file: psgc-1q-2025-publication-datafile.xlsx (or similar quarterly release)
+Location: Same directory as this script (api/management/commands/)
+
+FILE FORMAT:
+-----------
+The Excel file must contain a sheet named 'PSGC' with columns:
+- 'Geographic Level': Reg, Prov, City, Mun, SubMun, Bgy
+- 'Name': Name of the geographic unit
+- '10-digit PSGC': The PSGC code
+
+UPDATING PSGC DATA:
+------------------
+When PSA releases a new PSGC file (usually quarterly):
+1. Download the new Excel file from PSA
+2. Place it in: backend/api/management/commands/
+3. Update the filename in this script if it changed (line ~81)
+4. Run: python manage.py parse_psgc
+5. Verify with: python manage.py check_misplaced_city_mun
+6. Update database: python manage.py reseed_locations
+
+VALIDATION & AUTO-CORRECTION:
+-----------------------------
+This script automatically:
+- Validates PSGC code consistency between provinces and municipalities
+- Detects misplaced Highly Urbanized Cities (HUCs) based on known correct placements
+- Auto-corrects misplacements during parsing
+- Handles special cases (NCR cities, Manila districts, code-1999 municipalities)
+
+See get_huc_correct_placement() for the canonical HUC placement mapping.
+
+OUTPUT:
+------
+Generates: provinces_data.json (in the same directory)
+This file is used by reseed_locations.py to populate the database.
+"""
+
 import json
 import os
 import pandas as pd
