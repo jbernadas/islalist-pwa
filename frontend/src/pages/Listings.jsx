@@ -179,19 +179,29 @@ const Listings = () => {
       if (filters.property_type) params.property_type = filters.property_type;
       if (filters.min_price) params.min_price = filters.min_price;
       if (filters.max_price) params.max_price = filters.max_price;
-      if (filters.barangay) params.barangay = filters.barangay;
 
-      // ALWAYS filter by province from URL (use actual province name from API data)
+      // ALWAYS filter by province from URL using PSGC code
       if (province) {
         const provinceObj = provinces.find(p => p.slug === province);
-        const provinceName = provinceObj ? provinceObj.name : province;
-        params.island = provinceName; // Backend uses 'island' field for province
-        params.province = province; // Also send slug format for municipality filtering logic
+        if (provinceObj && provinceObj.psgc_code) {
+          params.province = provinceObj.psgc_code;
+        }
       }
 
-      // Add city/municipality filter from URL if not 'all'
+      // Add city/municipality filter from URL if not 'all' using PSGC code
       if (municipality && municipality.toLowerCase() !== 'all') {
-        params.municipality = municipality;
+        const municipalityObj = municipalities.find(m => slugify(m.name) === municipality);
+        if (municipalityObj && municipalityObj.psgc_code) {
+          params.municipality = municipalityObj.psgc_code;
+        }
+      }
+
+      // Add barangay filter using PSGC code if present
+      if (filters.barangay) {
+        const barangayObj = barangays.find(b => b.id === parseInt(filters.barangay));
+        if (barangayObj && barangayObj.psgc_code) {
+          params.barangay = barangayObj.psgc_code;
+        }
       }
 
       const response = await listingsAPI.getAll(params);

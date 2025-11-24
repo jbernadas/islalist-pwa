@@ -51,7 +51,7 @@ const CityMunBulletinBoard = () => {
         const cachedVersion = localStorage.getItem('provinces_cache_version');
         const now = Date.now();
         const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-        const CACHE_VERSION = '2'; // Must match Home.jsx version
+        const CACHE_VERSION = '3'; // Must match Home.jsx version
 
         if (cachedProvinces && cacheTime && cachedVersion === CACHE_VERSION && (now - parseInt(cacheTime)) < cacheExpiry) {
           const provincesData = JSON.parse(cachedProvinces);
@@ -126,18 +126,16 @@ const CityMunBulletinBoard = () => {
 
       if (!currentProvince || !currentMunicipality) return;
 
-      // Listings use municipality slug for text search in location field
-      // Also pass province to include province-wide listings
+      // Use PSGC codes for filtering (reliable, portable identifiers)
       const listingsParams = {
-        municipality: municipality,
-        province: province,
+        province: currentProvince.psgc_code,
+        municipality: currentMunicipality.psgc_code,
       };
 
-      // Announcements use province and municipality IDs (foreign keys)
-      // Backend will automatically include province-wide announcements
+      // Announcements also use PSGC codes
       const announcementsParams = {
-        province: currentProvince.id,
-        municipality: currentMunicipality.id,
+        province: currentProvince.psgc_code,
+        municipality: currentMunicipality.psgc_code,
       };
 
       // Fetch recent listings (limit 3)

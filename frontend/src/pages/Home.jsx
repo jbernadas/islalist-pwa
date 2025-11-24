@@ -79,7 +79,7 @@ const Home = () => {
     try {
       const now = Date.now();
       const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-      const CACHE_VERSION = '2'; // Increment this to force cache refresh (v2: added NCR)
+      const CACHE_VERSION = '3'; // Increment this to force cache refresh (v3: added psgc_code)
 
       // Try to get provinces from cache first
       const cachedProvinces = localStorage.getItem('provinces');

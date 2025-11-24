@@ -37,27 +37,10 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR('Operation cancelled.'))
                 return
 
-        # Delete all existing data
+        # Reseed data (using update_or_create to preserve IDs)
         self.stdout.write('')
-        self.stdout.write('Deleting existing data...')
-
-        deleted_barangays = Barangay.objects.all().delete()
-        deleted_municipalities = Municipality.objects.all().delete()
-        deleted_provinces = Province.objects.all().delete()
-
-        self.stdout.write(
-            self.style.SUCCESS(f'  Deleted {deleted_provinces[0]} provinces')
-        )
-        self.stdout.write(
-            self.style.SUCCESS(f'  Deleted {deleted_municipalities[0]} cities/municipalities')
-        )
-        self.stdout.write(
-            self.style.SUCCESS(f'  Deleted {deleted_barangays[0]} barangays')
-        )
-
-        # Reseed data
-        self.stdout.write('')
-        self.stdout.write('Reseeding provinces, cities/municipalities, and barangays...')
+        self.stdout.write('Updating/Creating provinces, cities/municipalities, and barangays...')
+        self.stdout.write(self.style.WARNING('Using PSGC codes to preserve database IDs'))
 
         # Load Province and Municipality data from JSON file
         json_path = os.path.join(
@@ -83,62 +66,108 @@ class Command(BaseCommand):
             return
 
         created_provinces = 0
+        updated_provinces = 0
         created_municipalities = 0
+        updated_municipalities = 0
         created_barangays = 0
+        updated_barangays = 0
 
         for province_data in provinces_data:
             province_name = province_data['name']
             province_code = province_data.get('code', '')
 
-            # Create province
-            province = Province.objects.create(
-                name=province_name,
-                psgc_code=str(province_code) if province_code else None,
-                active=True
-            )
-            created_provinces += 1
-            self.stdout.write(
-                self.style.SUCCESS(f'  Created province: {province_name}')
+            if not province_code:
+                self.stdout.write(
+                    self.style.WARNING(f'  Skipping province {province_name} - no PSGC code')
+                )
+                continue
+
+            # Update or create province using PSGC code as lookup key
+            province, created = Province.objects.update_or_create(
+                psgc_code=str(province_code),
+                defaults={
+                    'name': province_name,
+                    'active': True
+                }
             )
 
-            # Create cities/municipalities for this province
+            if created:
+                created_provinces += 1
+                self.stdout.write(
+                    self.style.SUCCESS(f'  Created province: {province_name}')
+                )
+            else:
+                updated_provinces += 1
+                self.stdout.write(
+                    f'  Updated province: {province_name}'
+                )
+
+            # Update or create cities/municipalities for this province
             for city_mun in province_data['cities_municipalities']:
                 municipality_name = city_mun['name']
                 municipality_type = city_mun.get('type', 'Mun')
                 municipality_code = city_mun.get('code', '')
-                # Preserve SubMun type for Manila districts
-                municipality = Municipality.objects.create(
-                    name=municipality_name,
-                    psgc_code=str(municipality_code) if municipality_code else None,
-                    province=province,
-                    type=municipality_type,
-                    active=True
-                )
-                created_municipalities += 1
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f'    Created city/municipality: {municipality_name}'
+
+                if not municipality_code:
+                    self.stdout.write(
+                        self.style.WARNING(f'    Skipping {municipality_name} - no PSGC code')
                     )
+                    continue
+
+                # Update or create municipality using PSGC code as lookup key
+                municipality, mun_created = Municipality.objects.update_or_create(
+                    psgc_code=str(municipality_code),
+                    defaults={
+                        'name': municipality_name,
+                        'province': province,
+                        'type': municipality_type,
+                        'active': True
+                    }
                 )
 
-                # Create barangays for this city/municipality
+                if mun_created:
+                    created_municipalities += 1
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'    Created city/municipality: {municipality_name}'
+                        )
+                    )
+                else:
+                    updated_municipalities += 1
+
+                # Update or create barangays for this city/municipality
+                barangay_created_count = 0
+                barangay_updated_count = 0
+
                 for barangay_data in city_mun.get('barangays', []):
                     barangay_name = barangay_data['name']
                     barangay_code = barangay_data.get('code', '')
-                    Barangay.objects.create(
-                        name=barangay_name,
-                        psgc_code=str(barangay_code) if barangay_code else None,
-                        municipality=municipality,
-                        active=True
+
+                    if not barangay_code:
+                        continue
+
+                    # Update or create barangay using PSGC code as lookup key
+                    barangay, brgy_created = Barangay.objects.update_or_create(
+                        psgc_code=str(barangay_code),
+                        defaults={
+                            'name': barangay_name,
+                            'municipality': municipality,
+                            'active': True
+                        }
                     )
-                    created_barangays += 1
+
+                    if brgy_created:
+                        created_barangays += 1
+                        barangay_created_count += 1
+                    else:
+                        updated_barangays += 1
+                        barangay_updated_count += 1
 
                 # Show barangay count for this municipality
-                barangay_count = len(city_mun.get('barangays', []))
-                if barangay_count > 0:
+                if barangay_created_count > 0 or barangay_updated_count > 0:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f'      Created {barangay_count} barangays'
+                            f'      Barangays: {barangay_created_count} created, {barangay_updated_count} updated'
                         )
                     )
 
@@ -146,9 +175,19 @@ class Command(BaseCommand):
         self.stdout.write('')
         self.stdout.write('='*50)
         self.stdout.write(self.style.SUCCESS('RESEED COMPLETE!'))
-        self.stdout.write(f'Provinces created: {created_provinces}')
-        self.stdout.write(f'Cities/Municipalities created: {created_municipalities}')
-        self.stdout.write(f'Barangays created: {created_barangays}')
+        self.stdout.write('')
+        self.stdout.write('Provinces:')
+        self.stdout.write(f'  Created: {created_provinces}')
+        self.stdout.write(f'  Updated: {updated_provinces}')
+        self.stdout.write('')
+        self.stdout.write('Cities/Municipalities:')
+        self.stdout.write(f'  Created: {created_municipalities}')
+        self.stdout.write(f'  Updated: {updated_municipalities}')
+        self.stdout.write('')
+        self.stdout.write('Barangays:')
+        self.stdout.write(f'  Created: {created_barangays}')
+        self.stdout.write(f'  Updated: {updated_barangays}')
+        self.stdout.write('')
         self.stdout.write(
             f'Total active provinces: {Province.objects.filter(active=True).count()}'
         )

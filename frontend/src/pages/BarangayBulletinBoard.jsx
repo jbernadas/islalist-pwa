@@ -45,7 +45,7 @@ const BarangayBulletinBoard = () => {
         const cachedVersion = localStorage.getItem('provinces_cache_version');
         const now = Date.now();
         const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-        const CACHE_VERSION = '2'; // Must match Home.jsx version
+        const CACHE_VERSION = '3'; // Must match Home.jsx version
 
         let provincesData = [];
 
@@ -123,20 +123,20 @@ const BarangayBulletinBoard = () => {
 
       if (!currentProvince || !currentMunicipality || !currentBarangay) return;
 
-      // Both listings and announcements now use barangay ID for filtering
+      // Use PSGC codes for filtering (reliable, portable identifiers)
       // Backend will include: barangay-specific + municipality-wide + province-wide
       const listingsParams = {
-        municipality: municipality,
-        province: province,
-        barangay: currentBarangay.id, // Send barangay ID
+        province: currentProvince.psgc_code,
+        municipality: currentMunicipality.psgc_code,
+        barangay: currentBarangay.psgc_code,
       };
 
-      // Announcements use IDs for filtering
+      // Announcements also use PSGC codes
       // Backend will include: barangay-specific + municipality-wide (high/urgent) + province-wide (urgent)
       const announcementsParams = {
-        province: currentProvince.id,
-        municipality: currentMunicipality.id,
-        barangay: currentBarangay.id, // Send barangay ID
+        province: currentProvince.psgc_code,
+        municipality: currentMunicipality.psgc_code,
+        barangay: currentBarangay.psgc_code,
       };
 
       // Fetch recent listings (limit 3)

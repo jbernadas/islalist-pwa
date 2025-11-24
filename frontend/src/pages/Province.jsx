@@ -34,7 +34,7 @@ const Province = () => {
         const cachedVersion = localStorage.getItem('provinces_cache_version');
         const now = Date.now();
         const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-        const CACHE_VERSION = '2'; // Must match Home.jsx version
+        const CACHE_VERSION = '3'; // Must match Home.jsx version
 
         if (cachedProvinces && cacheTime && cachedVersion === CACHE_VERSION && (now - parseInt(cacheTime)) < cacheExpiry) {
           // Use cached data

@@ -212,7 +212,8 @@ class ListingViewSet(viewsets.ModelViewSet):
     queryset = Listing.objects.filter(status='active')
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'property_type', 'province', 'municipality', 'barangay', 'status']
+    # Province, municipality, barangay are handled in get_queryset() with slug-based filtering
+    filterset_fields = ['category', 'property_type', 'status']
     search_fields = ['title', 'description', 'barangay__name', 'municipality__name', 'province__name']
     ordering_fields = ['created_at', 'price', 'views_count']
     ordering = ['-created_at']
@@ -243,18 +244,18 @@ class ListingViewSet(viewsets.ModelViewSet):
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
 
-        # Hierarchical location filtering using ForeignKeys
-        province_slug = self.request.query_params.get('province')
-        municipality_slug = self.request.query_params.get('municipality')
-        barangay_slug = self.request.query_params.get('barangay')
+        # Hierarchical location filtering using PSGC codes
+        province_code = self.request.query_params.get('province')
+        municipality_code = self.request.query_params.get('municipality')
+        barangay_code = self.request.query_params.get('barangay')
 
-        if province_slug and municipality_slug and barangay_slug:
+        if province_code and municipality_code and barangay_code:
             # Barangay level: Show listings in this barangay, or municipality-wide, or province-wide
             try:
                 from api.models import Province, Municipality, Barangay
-                province_obj = Province.objects.get(slug=province_slug)
-                municipality_obj = Municipality.objects.get(slug=municipality_slug, province=province_obj)
-                barangay_obj = Barangay.objects.get(slug=barangay_slug, municipality=municipality_obj)
+                province_obj = Province.objects.get(psgc_code=province_code)
+                municipality_obj = Municipality.objects.get(psgc_code=municipality_code, province=province_obj)
+                barangay_obj = Barangay.objects.get(psgc_code=barangay_code, municipality=municipality_obj)
 
                 queryset = queryset.filter(
                     Q(barangay=barangay_obj) |  # Barangay-specific
@@ -265,12 +266,12 @@ class ListingViewSet(viewsets.ModelViewSet):
                 # If location not found, return empty queryset
                 queryset = queryset.none()
 
-        elif province_slug and municipality_slug:
+        elif province_code and municipality_code:
             # Municipality level: Show listings in this municipality (any barangay) or province-wide
             try:
                 from api.models import Province, Municipality
-                province_obj = Province.objects.get(slug=province_slug)
-                municipality_obj = Municipality.objects.get(slug=municipality_slug, province=province_obj)
+                province_obj = Province.objects.get(psgc_code=province_code)
+                municipality_obj = Municipality.objects.get(psgc_code=municipality_code, province=province_obj)
 
                 queryset = queryset.filter(
                     Q(municipality=municipality_obj) |  # Municipality and its barangays
@@ -279,11 +280,11 @@ class ListingViewSet(viewsets.ModelViewSet):
             except (Province.DoesNotExist, Municipality.DoesNotExist):
                 queryset = queryset.none()
 
-        elif province_slug:
+        elif province_code:
             # Province level: Show all listings in this province
             try:
                 from api.models import Province
-                province_obj = Province.objects.get(slug=province_slug)
+                province_obj = Province.objects.get(psgc_code=province_code)
                 queryset = queryset.filter(province=province_obj)
             except Province.DoesNotExist:
                 queryset = queryset.none()
@@ -435,50 +436,66 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
                 expiry_date__lt=timezone.now().date()
             )
 
-        # Handle province, municipality, and barangay filtering with cascade support
-        municipality = self.request.query_params.get('municipality')
-        province = self.request.query_params.get('province')
-        barangay = self.request.query_params.get('barangay')
+        # Handle province, municipality, and barangay filtering using PSGC codes
+        municipality_code = self.request.query_params.get('municipality')
+        province_code = self.request.query_params.get('province')
+        barangay_code = self.request.query_params.get('barangay')
 
-        if barangay and municipality and province:
+        if barangay_code and municipality_code and province_code:
             from django.db.models import Q
+            from api.models import Province, Municipality, Barangay
             # Priority-based cascade filtering for barangay level:
-            # 1. Direct barangay match (by ID)
+            # 1. Direct barangay match (by PSGC code)
             # 2. Municipality-wide with High/Urgent priority
             # 3. Province-wide with Urgent priority only
-            # barangay parameter is now expected to be an ID
             try:
-                barangay_id = int(barangay)
+                province_obj = Province.objects.get(psgc_code=province_code)
+                municipality_obj = Municipality.objects.get(psgc_code=municipality_code, province=province_obj)
+                barangay_obj = Barangay.objects.get(psgc_code=barangay_code, municipality=municipality_obj)
+
                 queryset = queryset.filter(
-                    Q(barangay_id=barangay_id, municipality=municipality, province=province) |
-                    Q(is_municipality_wide=True, municipality=municipality, province=province,
+                    Q(barangay=barangay_obj, municipality=municipality_obj, province=province_obj) |
+                    Q(is_municipality_wide=True, municipality=municipality_obj, province=province_obj,
                       priority__in=['high', 'urgent']) |
-                    Q(is_province_wide=True, province=province, priority='urgent')
+                    Q(is_province_wide=True, province=province_obj, priority='urgent')
                 )
-            except (ValueError, TypeError):
-                # If barangay is not a valid ID, show only municipality and province-wide
-                queryset = queryset.filter(
-                    Q(is_municipality_wide=True, municipality=municipality, province=province,
-                      priority__in=['high', 'urgent']) |
-                    Q(is_province_wide=True, province=province, priority='urgent')
-                )
-        elif municipality and province:
+            except (Province.DoesNotExist, Municipality.DoesNotExist, Barangay.DoesNotExist):
+                # If location not found, return empty queryset
+                queryset = queryset.none()
+        elif municipality_code and province_code:
             from django.db.models import Q
+            from api.models import Province, Municipality
             # HIERARCHICAL VISIBILITY: Municipality view shows:
             # 1. Municipality-wide announcements (municipality FK matches, barangay='')
             # 2. ALL barangay-specific announcements in this municipality (municipality FK matches, barangay set)
             # 3. Province-wide announcements (is_province_wide=True)
             # This naturally includes all barangays because we filter by municipality FK
-            queryset = queryset.filter(
-                Q(municipality=municipality, province=province) |
-                Q(is_province_wide=True, province=province)
-            )
-        elif municipality and not province:
+            try:
+                province_obj = Province.objects.get(psgc_code=province_code)
+                municipality_obj = Municipality.objects.get(psgc_code=municipality_code, province=province_obj)
+
+                queryset = queryset.filter(
+                    Q(municipality=municipality_obj, province=province_obj) |
+                    Q(is_province_wide=True, province=province_obj)
+                )
+            except (Province.DoesNotExist, Municipality.DoesNotExist):
+                queryset = queryset.none()
+        elif municipality_code and not province_code:
             # Filter by municipality only
-            queryset = queryset.filter(municipality=municipality)
-        elif province and not municipality:
+            from api.models import Municipality
+            try:
+                municipality_obj = Municipality.objects.get(psgc_code=municipality_code)
+                queryset = queryset.filter(municipality=municipality_obj)
+            except Municipality.DoesNotExist:
+                queryset = queryset.none()
+        elif province_code and not municipality_code:
             # Filter by province only
-            queryset = queryset.filter(province=province)
+            from api.models import Province
+            try:
+                province_obj = Province.objects.get(psgc_code=province_code)
+                queryset = queryset.filter(province=province_obj)
+            except Province.DoesNotExist:
+                queryset = queryset.none()
 
         return queryset
 

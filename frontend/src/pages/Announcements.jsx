@@ -121,21 +121,28 @@ const Announcements = () => {
       if (filters.search) params.search = filters.search;
       if (filters.priority) params.priority = filters.priority;
       if (filters.announcement_type) params.announcement_type = filters.announcement_type;
-      if (filters.barangay) params.barangay = filters.barangay;
 
-      // Filter by province
+      // Filter by province using PSGC code
       if (province) {
         const currentProvince = provinces.find(p => p.slug === province);
-        if (currentProvince) {
-          params.province = currentProvince.id;
+        if (currentProvince && currentProvince.psgc_code) {
+          params.province = currentProvince.psgc_code;
         }
       }
 
-      // Filter by municipality
+      // Filter by municipality using PSGC code
       if (municipality && municipality.toLowerCase() !== 'all') {
         const currentMunicipality = municipalities.find(m => slugify(m.name) === municipality);
-        if (currentMunicipality) {
-          params.municipality = currentMunicipality.id;
+        if (currentMunicipality && currentMunicipality.psgc_code) {
+          params.municipality = currentMunicipality.psgc_code;
+        }
+      }
+
+      // Filter by barangay using PSGC code if present
+      if (filters.barangay) {
+        const barangayObj = barangays.find(b => b.id === parseInt(filters.barangay));
+        if (barangayObj && barangayObj.psgc_code) {
+          params.barangay = barangayObj.psgc_code;
         }
       }
 

@@ -35,7 +35,7 @@ class ProvinceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Province
         fields = [
-            'id', 'name', 'slug', 'active', 'featured',
+            'id', 'name', 'slug', 'psgc_code', 'active', 'featured',
             'description', 'municipalities', 'municipality_count'
         ]
         read_only_fields = ['id', 'slug']
@@ -50,7 +50,7 @@ class ProvinceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Province
-        fields = ['id', 'name', 'slug', 'municipality_count']
+        fields = ['id', 'name', 'slug', 'psgc_code', 'municipality_count']
 
     def get_municipality_count(self, obj):
         return obj.municipalities.filter(active=True).count()
