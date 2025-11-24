@@ -26,6 +26,13 @@ class Command(BaseCommand):
             self.clear_siquijor_data()
 
         province, municipalities = self.ensure_locations()
+
+        # Check if locations were found
+        if not province or not municipalities:
+            self.stdout.write(self.style.ERROR('Failed to find Siquijor locations!'))
+            self.stdout.write(self.style.ERROR('Please run: python manage.py reseed_locations'))
+            return
+
         users = self.create_users()
         categories = self.ensure_categories()
 
@@ -50,47 +57,35 @@ class Command(BaseCommand):
     def ensure_locations(self):
         self.stdout.write(self.style.SUCCESS('Setting up locations...'))
 
-        province, _ = Province.objects.get_or_create(
-            name='Siquijor',
-            defaults={'active': True, 'featured': True}
-        )
+        # Get existing Siquijor province (should already exist from reseed_locations)
+        try:
+            province = Province.objects.get(name='Siquijor')
+            self.stdout.write(f'   Found existing province: {province.name} (PSGC: {province.psgc_code})')
+        except Province.DoesNotExist:
+            self.stdout.write(self.style.ERROR('   Siquijor province not found! Run reseed_locations first.'))
+            return None, {}
 
-        municipality_data = [
-            ('Siquijor', 'Mun'),
-            ('Larena', 'Mun'),
-            ('Enrique Villanueva', 'Mun'),
-            ('Maria', 'Mun'),
-            ('Lazi', 'Mun'),
-            ('San Juan', 'Mun'),
-        ]
-
+        # Get existing municipalities (should already exist from reseed_locations)
+        municipality_names = ['Siquijor', 'Larena', 'Enrique Villanueva', 'Maria', 'Lazi', 'San Juan']
         municipalities = {}
-        for name, mun_type in municipality_data:
-            mun, created = Municipality.objects.get_or_create(
-                name=name,
-                province=province,
-                defaults={'type': mun_type, 'active': True}
-            )
-            municipalities[name] = mun
 
-        barangay_data = {
-            'Siquijor': ['Poblacion', 'Cananay Sur', 'Dumala'],
-            'Larena': ['Poblacion', 'Cangomantong', 'Nonok'],
-            'Enrique Villanueva': ['Poblacion', 'Bino-ongan', 'Libo'],
-            'Maria': ['Poblacion', 'Catamboan', 'Cangmangki'],
-            'Lazi': ['Poblacion', 'Campalanas', 'Tigbawan'],
-            'San Juan': ['Poblacion', 'Tubod', 'Can-uba'],
-        }
+        for name in municipality_names:
+            try:
+                mun = Municipality.objects.get(name=name, province=province)
+                municipalities[name] = mun
+                self.stdout.write(f'   Found municipality: {name} (PSGC: {mun.psgc_code})')
+            except Municipality.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f'   Municipality {name} not found, skipping'))
+            except Municipality.MultipleObjectsReturned:
+                # If multiple exist, get the one with a PSGC code
+                mun = Municipality.objects.filter(name=name, province=province).exclude(psgc_code__isnull=True).first()
+                if mun:
+                    municipalities[name] = mun
+                    self.stdout.write(f'   Found municipality: {name} (PSGC: {mun.psgc_code})')
+                else:
+                    self.stdout.write(self.style.WARNING(f'   Multiple {name} found but none with PSGC code'))
 
-        for mun_name, barangay_names in barangay_data.items():
-            mun = municipalities[mun_name]
-            for brgy_name in barangay_names:
-                Barangay.objects.get_or_create(
-                    name=brgy_name,
-                    municipality=mun,
-                    defaults={'active': True}
-                )
-
+        self.stdout.write('   All municipalities found with PSGC codes')
         return province, municipalities
 
     def create_users(self):
@@ -192,97 +187,92 @@ class Command(BaseCommand):
                 created_at=timezone.now() - timedelta(days=random.randint(1, 25))
             )
 
-        # BARANGAY-SPECIFIC (12)
+        # BARANGAY-SPECIFIC (12) - Using PSGC codes for reliable lookup
         brgy_announcements = [
-            ('Siquijor', 'Poblacion', 'Barangay Cleanup Schedule', 'Monthly cleanup every first Sunday.', 'community', 'medium'),
-            ('Siquijor', 'Cananay Sur', 'Basketball League Registration', 'Inter-purok basketball league now open!', 'community', 'low'),
-            ('Larena', 'Poblacion', 'Water Interruption Notice', 'Water supply interruption tomorrow for pump repair.', 'infrastructure', 'urgent'),
-            ('Larena', 'Cangomantong', 'Barangay Assembly', 'Quarterly assembly this Friday 6 PM.', 'government', 'medium'),
-            ('Enrique Villanueva', 'Poblacion', 'Street Light Repairs', 'Electrician will repair street lights this week.', 'infrastructure', 'low'),
-            ('Enrique Villanueva', 'Bino-ongan', 'Vaccination Drive', 'Free vaccination for children 0-5 years old.', 'health', 'high'),
-            ('Maria', 'Poblacion', 'Senior Citizens Meeting', 'Monthly meeting and social pension distribution.', 'community', 'medium'),
-            ('Maria', 'Catamboan', 'Road Project Update', 'Sitio road 50% complete. Finish in 2 weeks.', 'infrastructure', 'low'),
-            ('Lazi', 'Poblacion', 'Barangay Tanod Recruitment', 'Hiring additional barangay tanod. Apply now!', 'government', 'medium'),
-            ('Lazi', 'Campalanas', 'Farm Road Opening', 'New farm-to-market road now open!', 'infrastructure', 'medium'),
-            ('San Juan', 'Poblacion', 'Fiesta Celebration', 'Barangay fiesta with street dancing and competitions!', 'community', 'high'),
-            ('San Juan', 'Tubod', 'Scholarship Program', 'Scholarship grants for deserving students.', 'community', 'medium'),
+            ('1806106001', 'Barangay Cleanup Schedule', 'Monthly cleanup every first Sunday.', 'community', 'medium'),
+            ('1806106002', 'Basketball League Registration', 'Inter-purok basketball league now open!', 'community', 'low'),
+            ('1806102001', 'Water Interruption Notice', 'Water supply interruption tomorrow for pump repair.', 'infrastructure', 'urgent'),
+            ('1806102003', 'Barangay Assembly', 'Quarterly assembly this Friday 6 PM.', 'government', 'medium'),
+            ('1806101001', 'Street Light Repairs', 'Electrician will repair street lights this week.', 'infrastructure', 'low'),
+            ('1806101002', 'Vaccination Drive', 'Free vaccination for children 0-5 years old.', 'health', 'high'),
+            ('1806104001', 'Senior Citizens Meeting', 'Monthly meeting and social pension distribution.', 'community', 'medium'),
+            ('1806104002', 'Road Project Update', 'Sitio road 50% complete. Finish in 2 weeks.', 'infrastructure', 'low'),
+            ('1806103002', 'Barangay Tanod Recruitment', 'Hiring additional barangay tanod. Apply now!', 'government', 'medium'),
+            ('1806103001', 'Farm Road Opening', 'New farm-to-market road now open!', 'infrastructure', 'medium'),
+            ('1806105001', 'Fiesta Celebration', 'Barangay fiesta with street dancing and competitions!', 'community', 'high'),
+            ('1806105002', 'Scholarship Program', 'Scholarship grants for deserving students.', 'community', 'medium'),
         ]
 
-        for mun_name, brgy_name, title, desc, ann_type, priority in brgy_announcements:
-            # Look up the Barangay object
+        for psgc_code, title, desc, ann_type, priority in brgy_announcements:
+            # Look up the Barangay object by PSGC code
             try:
-                barangay_obj = Barangay.objects.get(
-                    name=brgy_name,
-                    municipality=municipalities[mun_name]
-                )
+                barangay_obj = Barangay.objects.get(psgc_code=psgc_code)
                 Announcement.objects.create(
                     title=title,
                     description=desc,
                     priority=priority,
                     announcement_type=ann_type,
-                    province=province,
-                    municipality=municipalities[mun_name],
+                    province=barangay_obj.municipality.province,
+                    municipality=barangay_obj.municipality,
                     barangay=barangay_obj,
                     author=random.choice(users),
                     created_at=timezone.now() - timedelta(days=random.randint(1, 20))
                 )
             except Barangay.DoesNotExist:
-                self.stdout.write(self.style.WARNING(f'   Skipping announcement for non-existent barangay: {brgy_name} in {mun_name}'))
+                self.stdout.write(self.style.WARNING(f'   Barangay with PSGC {psgc_code} not found'))
 
         self.stdout.write('   Created 29 announcements')
 
     def seed_listings(self, province, municipalities, categories, users):
+        # Using PSGC codes for reliable barangay lookup
         listings_data = [
             # Real Estate listings
-            ('Siquijor', 'Poblacion', 'Beach House for Rent', 'Beautiful beachfront property with 3 bedrooms', 'Real Estate', 25000.00),
-            ('Siquijor', 'Cananay Sur', 'Lot for Sale - Ocean View', '500 sqm lot with stunning ocean views', 'Real Estate', 1500000.00),
-            ('Larena', 'Poblacion', 'Apartment Near Port', '2BR apartment, walking distance to port', 'Real Estate', 8000.00),
-            ('San Juan', 'Tubod', 'Beach Resort Property', 'Prime beachfront resort property for sale', 'Real Estate', 5000000.00),
+            ('1806106001', 'Beach House for Rent', 'Beautiful beachfront property with 3 bedrooms', 'Real Estate', 25000.00),
+            ('1806106002', 'Lot for Sale - Ocean View', '500 sqm lot with stunning ocean views', 'Real Estate', 1500000.00),
+            ('1806102001', 'Apartment Near Port', '2BR apartment, walking distance to port', 'Real Estate', 8000.00),
+            ('1806105002', 'Beach Resort Property', 'Prime beachfront resort property for sale', 'Real Estate', 5000000.00),
 
             # Vehicles
-            ('Siquijor', 'Poblacion', 'Motorcycle for Sale', 'Honda TMX 2020 model, good condition', 'Vehicles', 45000.00),
-            ('Larena', 'Cangomantong', 'Multicab for Rent', 'Daily or weekly rental available', 'Vehicles', 1500.00),
+            ('1806106003', 'Motorcycle for Sale', 'Honda TMX 2020 model, good condition', 'Vehicles', 45000.00),
+            ('1806102002', 'Multicab for Rent', 'Daily or weekly rental available', 'Vehicles', 1500.00),
 
             # For Sale items
-            ('Enrique Villanueva', 'Poblacion', 'Fresh Organic Vegetables', 'Farm fresh vegetables daily', 'For Sale', 50.00),
-            ('Maria', 'Catamboan', 'Handmade Crafts', 'Local handmade souvenirs and crafts', 'For Sale', 150.00),
-            ('Lazi', 'Poblacion', 'Fresh Seafood Daily', 'Freshly caught fish and seafood', 'For Sale', 300.00),
-            ('San Juan', 'Can-uba', 'Homemade Delicacies', 'Traditional Siquijor delicacies', 'For Sale', 200.00),
+            ('1806101001', 'Fresh Organic Vegetables', 'Farm fresh vegetables daily', 'For Sale', 50.00),
+            ('1806104001', 'Handmade Crafts', 'Local handmade souvenirs and crafts', 'For Sale', 150.00),
+            ('1806103001', 'Fresh Seafood Daily', 'Freshly caught fish and seafood', 'For Sale', 300.00),
+            ('1806105003', 'Homemade Delicacies', 'Traditional Siquijor delicacies', 'For Sale', 200.00),
 
             # Jobs
-            ('Siquijor', 'Poblacion', 'Tour Guide Needed', 'Looking for experienced tour guide', 'Jobs', 500.00),
-            ('Larena', 'Poblacion', 'Restaurant Staff Hiring', 'Hiring kitchen staff and waiters', 'Jobs', 400.00),
-            ('San Juan', 'Poblacion', 'Dive Instructor Position', 'PADI certified instructor needed', 'Jobs', 800.00),
+            ('1806106001', 'Tour Guide Needed', 'Looking for experienced tour guide', 'Jobs', 500.00),
+            ('1806102001', 'Restaurant Staff Hiring', 'Hiring kitchen staff and waiters', 'Jobs', 400.00),
+            ('1806105001', 'Dive Instructor Position', 'PADI certified instructor needed', 'Jobs', 800.00),
 
             # Services
-            ('Siquijor', 'Poblacion', 'Motorcycle Rental Service', 'Affordable motorcycle rentals for tourists', 'Services', 500.00),
-            ('Larena', 'Poblacion', 'Laundry Service', 'Same day laundry service available', 'Services', 50.00),
-            ('Enrique Villanueva', 'Poblacion', 'Island Tour Packages', 'Full day and half day tour packages', 'Services', 1500.00),
-            ('Maria', 'Poblacion', 'Massage and Spa', 'Relaxing massage and spa services', 'Services', 500.00),
-            ('Lazi', 'Poblacion', 'Photography Services', 'Professional photography for events', 'Services', 2000.00),
-            ('San Juan', 'Poblacion', 'Diving Lessons', 'Learn to dive with certified instructors', 'Services', 3000.00),
+            ('1806106002', 'Motorcycle Rental Service', 'Affordable motorcycle rentals for tourists', 'Services', 500.00),
+            ('1806102003', 'Laundry Service', 'Same day laundry service available', 'Services', 50.00),
+            ('1806101002', 'Island Tour Packages', 'Full day and half day tour packages', 'Services', 1500.00),
+            ('1806104002', 'Massage and Spa', 'Relaxing massage and spa services', 'Services', 500.00),
+            ('1806103002', 'Photography Services', 'Professional photography for events', 'Services', 2000.00),
+            ('1806105001', 'Diving Lessons', 'Learn to dive with certified instructors', 'Services', 3000.00),
         ]
 
-        for mun_name, brgy_name, title, desc, cat_name, price in listings_data:
+        for psgc_code, title, desc, cat_name, price in listings_data:
             try:
-                barangay_obj = Barangay.objects.get(
-                    name=brgy_name,
-                    municipality=municipalities[mun_name]
-                )
+                barangay_obj = Barangay.objects.get(psgc_code=psgc_code)
                 Listing.objects.create(
                     title=title,
                     description=desc,
                     category=categories[cat_name],
                     price=Decimal(str(price)),
-                    province=province,
-                    municipality=municipalities[mun_name],
+                    province=barangay_obj.municipality.province,
+                    municipality=barangay_obj.municipality,
                     barangay=barangay_obj,
                     seller=random.choice(users),
                     status='active',
                     created_at=timezone.now() - timedelta(days=random.randint(1, 30))
                 )
             except Barangay.DoesNotExist:
-                self.stdout.write(self.style.WARNING(f'   Skipping listing for non-existent barangay: {brgy_name} in {mun_name}'))
+                self.stdout.write(self.style.WARNING(f'   Barangay with PSGC {psgc_code} not found'))
 
         self.stdout.write(f'   Created {len(listings_data)} listings')
 
