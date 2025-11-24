@@ -78,10 +78,7 @@ class Command(BaseCommand):
 
         # Get file paths
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        excel_file = os.path.join(
-            os.path.dirname(script_dir),
-            'psgc-1q-2025-publication-datafile.xlsx'
-        )
+        excel_file = os.path.join(script_dir, 'psgc-1q-2025-publication-datafile.xlsx')
         output_file = os.path.join(script_dir, 'provinces_data.json')
 
         # Confirmation prompt
