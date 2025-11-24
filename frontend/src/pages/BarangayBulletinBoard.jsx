@@ -361,7 +361,7 @@ const BarangayBulletinBoard = () => {
                     <div
                       key={`${item.type}-${item.id}`}
                       className="activity-item"
-                      onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                      onClick={() => navigate(`/${item.province_slug}/${item.municipality_slug}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
                     >
                       <div className="activity-icon">
                         {item.type === 'listing' ? '🛒' : '📢'}
@@ -500,7 +500,7 @@ const BarangayBulletinBoard = () => {
                   <div
                     key={listing.id}
                     className="featured-card"
-                    onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
+                    onClick={() => navigate(`/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`)}
                   >
                     {listing.first_image ? (
                       <div className="featured-image">

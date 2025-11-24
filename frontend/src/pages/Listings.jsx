@@ -282,7 +282,12 @@ const Listings = () => {
     return priceStr;
   };
 
-  // Helper function to build municipality-scoped URLs
+  // Helper function to build listing detail URLs using listing's actual location
+  const getListingDetailPath = (listing) => {
+    return `/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`;
+  };
+
+  // Helper function to build municipality-scoped URLs (for create listing, etc.)
   const getMunicipalityPath = (path = '') => {
     return `/${province}/${municipality}${path}`;
   };
@@ -477,7 +482,7 @@ const Listings = () => {
                 <div
                   key={listing.id}
                   className="listing-card featured-card"
-                  onClick={() => navigate(getMunicipalityPath(`/listings/${listing.id}`))}
+                  onClick={() => navigate(getListingDetailPath(listing))}
                 >
                   <div className="listing-image featured-image">
                     {listing.first_image ? (

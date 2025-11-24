@@ -186,7 +186,10 @@ const AnnouncementDetail = () => {
             {announcement.municipality_name}, {announcement.province_name}
           </p>
           <p className="meta-item">
-            <strong>👤 Posted by:</strong> {announcement.author.username}
+            <strong>👤 Posted by:</strong>{' '}
+            <Link to={`/user/${announcement.author.username}`} className="author-link">
+              {announcement.author.username}
+            </Link>
           </p>
           <p className="meta-item">
             <strong>📅 Posted on:</strong> {formatDate(announcement.created_at)}

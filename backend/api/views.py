@@ -13,7 +13,7 @@ from .models import (
 from .serializers import (
     ProvinceSerializer, ProvinceListSerializer, MunicipalitySerializer,
     BarangaySerializer,
-    UserSerializer, UserRegistrationSerializer,
+    UserSerializer, PublicUserSerializer, UserRegistrationSerializer,
     UserProfileUpdateSerializer,
     CategorySerializer, ListingSerializer, ListingListSerializer,
     AnnouncementSerializer, AnnouncementListSerializer
@@ -86,6 +86,57 @@ def user_profile_view(request):
             user_serializer = UserSerializer(request.user)
             return Response(user_serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_user_profile_view(request, username):
+    """API endpoint to get public user profile by username"""
+    try:
+        user = User.objects.get(username=username)
+        serializer = PublicUserSerializer(user, context={'request': request})
+        return Response(serializer.data)
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'User not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_user_listings_view(request, username):
+    """API endpoint to get listings by a specific user"""
+    try:
+        user = User.objects.get(username=username)
+        queryset = Listing.objects.filter(seller=user, status='active').order_by('-created_at')
+
+        from .serializers import ListingListSerializer
+        serializer = ListingListSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'User not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_user_announcements_view(request, username):
+    """API endpoint to get announcements by a specific user"""
+    try:
+        user = User.objects.get(username=username)
+        queryset = Announcement.objects.filter(author=user, is_active=True).order_by('-created_at')
+
+        from .serializers import AnnouncementListSerializer
+        serializer = AnnouncementListSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'User not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):

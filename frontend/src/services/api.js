@@ -88,6 +88,13 @@ export const authAPI = {
     }),
 };
 
+// Public user profiles API
+export const usersAPI = {
+  getPublicProfile: (username) => api.get(`/api/users/${username}/`),
+  getUserListings: (username) => api.get(`/api/users/${username}/listings/`),
+  getUserAnnouncements: (username) => api.get(`/api/users/${username}/announcements/`),
+};
+
 // Provinces API
 export const provincesAPI = {
   getAll: () => api.get('/api/provinces/'),

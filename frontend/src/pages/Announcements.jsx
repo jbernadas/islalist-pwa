@@ -215,6 +215,11 @@ const Announcements = () => {
     });
   };
 
+  // Helper function to build announcement detail URLs using announcement's actual location
+  const getAnnouncementDetailPath = (announcement) => {
+    return `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`;
+  };
+
   const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
   const currentMunicipalities = municipalities.map(m => m.name);
   
@@ -346,7 +351,7 @@ const Announcements = () => {
                 <div
                   key={announcement.id}
                   className="announcement-card"
-                  onClick={() => navigate(`/${province}/${municipality}/announcements/${announcement.id}`)}
+                  onClick={() => navigate(getAnnouncementDetailPath(announcement))}
                 >
                   <div className="announcement-header">
                     <span className={getPriorityBadgeClass(announcement.priority)}>

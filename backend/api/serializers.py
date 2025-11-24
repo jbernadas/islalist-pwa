@@ -81,6 +81,40 @@ class UserSerializer(serializers.ModelSerializer):
         ).exists()
 
 
+class PublicUserSerializer(serializers.ModelSerializer):
+    """Serializer for public user profiles - hides sensitive information"""
+    profile_picture = serializers.SerializerMethodField()
+    bio = serializers.CharField(source='profile.bio', read_only=True, allow_null=True)
+    verified = serializers.BooleanField(source='profile.verified', read_only=True)
+    listing_count = serializers.SerializerMethodField()
+    announcement_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'first_name', 'last_name',
+            'profile_picture', 'bio', 'verified',
+            'listing_count', 'announcement_count'
+        ]
+        read_only_fields = ['id', 'username', 'first_name', 'last_name']
+
+    def get_profile_picture(self, obj):
+        """Get profile picture URL if available"""
+        if hasattr(obj, 'profile') and obj.profile.profile_picture:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile.profile_picture.url)
+        return None
+
+    def get_listing_count(self, obj):
+        """Count active listings"""
+        return obj.listings.filter(status='active').count()
+
+    def get_announcement_count(self, obj):
+        """Count active announcements"""
+        return obj.announcements.filter(is_active=True).count()
+
+
 class CustomRegisterSerializer(RegisterSerializer):
     """Custom registration serializer for dj-rest-auth with additional fields"""
     first_name = serializers.CharField(required=True, max_length=150)
@@ -427,13 +461,28 @@ class ListingListSerializer(serializers.ModelSerializer):
         read_only=True,
         allow_null=True
     )
+    province_slug = serializers.CharField(
+        source='province.slug',
+        read_only=True,
+        allow_null=True
+    )
     municipality_name = serializers.CharField(
         source='municipality.name',
         read_only=True,
         allow_null=True
     )
+    municipality_slug = serializers.CharField(
+        source='municipality.slug',
+        read_only=True,
+        allow_null=True
+    )
     barangay_name = serializers.CharField(
         source='barangay.name',
+        read_only=True,
+        allow_null=True
+    )
+    barangay_slug = serializers.CharField(
+        source='barangay.slug',
         read_only=True,
         allow_null=True
     )
@@ -446,8 +495,10 @@ class ListingListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'price', 'property_type', 'pay_period',
             'vehicle_type', 'vehicle_year', 'vehicle_make', 'vehicle_model',
-            'province', 'province_name', 'municipality', 'municipality_name',
-            'barangay', 'barangay_name', 'location_display',
+            'province', 'province_name', 'province_slug',
+            'municipality', 'municipality_name', 'municipality_slug',
+            'barangay', 'barangay_name', 'barangay_slug',
+            'location_display',
             'category_name', 'seller_name', 'status', 'created_at',
             'first_image', 'bedrooms', 'bathrooms', 'area_sqm',
             'is_favorited'
@@ -511,12 +562,25 @@ class AnnouncementListSerializer(serializers.ModelSerializer):
         source='province.name',
         read_only=True
     )
+    province_slug = serializers.CharField(
+        source='province.slug',
+        read_only=True
+    )
     municipality_name = serializers.CharField(
         source='municipality.name',
         read_only=True
     )
+    municipality_slug = serializers.CharField(
+        source='municipality.slug',
+        read_only=True
+    )
     barangay_name = serializers.CharField(
         source='barangay.name',
+        read_only=True,
+        allow_null=True
+    )
+    barangay_slug = serializers.CharField(
+        source='barangay.slug',
         read_only=True,
         allow_null=True
     )
@@ -526,7 +590,9 @@ class AnnouncementListSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = [
             'id', 'title', 'description', 'priority', 'announcement_type',
-            'province_name', 'municipality_name', 'barangay', 'barangay_name',
+            'province_name', 'province_slug',
+            'municipality_name', 'municipality_slug',
+            'barangay', 'barangay_name', 'barangay_slug',
             'is_province_wide', 'is_municipality_wide',
             'author_name', 'contact_info', 'created_at', 'expiry_date',
             'is_active', 'is_expired'

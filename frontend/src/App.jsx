@@ -21,6 +21,7 @@ import AnnouncementDetail from './pages/AnnouncementDetail';
 import MyPosts from './pages/MyPosts';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/user/:username" element={<PublicProfile />} />
           <Route
             path="/my-posts"
             element={

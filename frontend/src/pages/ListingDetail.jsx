@@ -414,8 +414,10 @@ const ListingDetail = () => {
             <h3>Seller Information</h3>
             <div className="seller-card">
               <div className="seller-info">
-                <p><strong>👤 {listing.seller.first_name} {listing.seller.last_name}</strong></p>
-                <p className="username">@{listing.seller.username}</p>
+                <Link to={`/user/${listing.seller.username}`} className="seller-link">
+                  <p><strong>👤 {listing.seller.first_name} {listing.seller.last_name}</strong></p>
+                  <p className="username">@{listing.seller.username}</p>
+                </Link>
               </div>
               {!isOwner && (
                 <button

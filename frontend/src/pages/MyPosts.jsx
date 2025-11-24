@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI, announcementsAPI } from '../services/api';
-import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './MyPosts.css';
 
@@ -104,31 +103,21 @@ const MyPosts = () => {
     }
   };
 
-  // Helper to build URLs using location data from posts
+  // Helper to build URLs using location slugs from posts
   const getListingPath = (listing) => {
-    const provinceSlug = slugify(listing.island || 'siquijor');
-    const locationParts = listing.location.split(',');
-    const municipalitySlug = slugify(locationParts[0]?.trim() || 'siquijor');
-    return `/${provinceSlug}/${municipalitySlug}/listings/${listing.id}`;
+    return `/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`;
   };
 
   const getEditListingPath = (listing) => {
-    const provinceSlug = slugify(listing.island || 'siquijor');
-    const locationParts = listing.location.split(',');
-    const municipalitySlug = slugify(locationParts[0]?.trim() || 'siquijor');
-    return `/${provinceSlug}/${municipalitySlug}/edit-listing/${listing.id}`;
+    return `/${listing.province_slug}/${listing.municipality_slug}/edit-listing/${listing.id}`;
   };
 
   const getAnnouncementPath = (announcement) => {
-    const provinceSlug = slugify(announcement.province_name);
-    const municipalitySlug = slugify(announcement.municipality_name);
-    return `/${provinceSlug}/${municipalitySlug}/announcements/${announcement.id}`;
+    return `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`;
   };
 
   const getEditAnnouncementPath = (announcement) => {
-    const provinceSlug = slugify(announcement.province_name);
-    const municipalitySlug = slugify(announcement.municipality_name);
-    return `/${provinceSlug}/${municipalitySlug}/announcements/${announcement.id}/edit`;
+    return `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}/edit`;
   };
 
   // Combine and sort posts

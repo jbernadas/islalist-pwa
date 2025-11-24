@@ -20,6 +20,11 @@ urlpatterns = [
     path('auth/logout/', views.logout_view, name='logout'),
     path('auth/profile/', views.user_profile_view, name='profile'),
 
+    # Public user profile endpoints
+    path('users/<str:username>/', views.public_user_profile_view, name='public-user-profile'),
+    path('users/<str:username>/listings/', views.public_user_listings_view, name='public-user-listings'),
+    path('users/<str:username>/announcements/', views.public_user_announcements_view, name='public-user-announcements'),
+
     # Include router URLs
     path('', include(router.urls)),
 ]

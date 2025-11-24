@@ -297,9 +297,46 @@ h3 {
   margin: 5px 0;
 }
 
+.seller-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.seller-link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateX(2px);
+}
+
+.seller-link p {
+  margin: 5px 0;
+}
+
 .username {
   color: #777;
   font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.seller-link:hover .username {
+  color: #667eea;
+}
+
+.author-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.author-link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  text-decoration: underline;
 }
 
 .btn-contact {
