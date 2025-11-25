@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsAPI } from '../services/api';
+import { buildListingURL } from '../utils/locationUtils';
 import Header from '../components/Header';
 import './MyPosts.css';
 
@@ -8,11 +9,6 @@ const Favorites = () => {
   const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Helper to build listing detail URLs using listing's actual location
-  const getListingPath = (listing) => {
-    return `/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`;
-  };
 
   useEffect(() => {
     fetchFavorites();
@@ -86,7 +82,7 @@ const Favorites = () => {
               <div key={listing.id} className="my-listing-card">
                 <div
                   className="listing-image"
-                  onClick={() => navigate(getListingPath(listing))}
+                  onClick={() => navigate(buildListingURL(listing))}
                 >
                   {listing.first_image ? (
                     <img src={listing.first_image} alt={listing.title} />
@@ -100,7 +96,7 @@ const Favorites = () => {
 
                 <div className="listing-info">
                   <div className="listing-header">
-                    <h3 onClick={() => navigate(getListingPath(listing))}>
+                    <h3 onClick={() => navigate(buildListingURL(listing))}>
                       {listing.title}
                     </h3>
                     <p className="price">{formatPrice(listing.price, listing.pay_period)}</p>
@@ -144,7 +140,7 @@ const Favorites = () => {
 
                   <div className="listing-actions">
                     <button
-                      onClick={() => navigate(getListingPath(listing))}
+                      onClick={() => navigate(buildListingURL(listing))}
                       className="btn-view"
                     >
                       👁️ View

@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usersAPI, authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  buildListingURL,
+  buildAnnouncementURL,
+  buildEditListingURL,
+  buildEditAnnouncementURL
+} from '../utils/locationUtils';
 import Header from '../components/Header';
 import './PublicProfile.css';
 
@@ -159,21 +165,6 @@ const PublicProfile = () => {
     }
   };
 
-  const getListingPath = (listing) => {
-    return `/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`;
-  };
-
-  const getEditListingPath = (listing) => {
-    return `/${listing.province_slug}/${listing.municipality_slug}/edit-listing/${listing.id}`;
-  };
-
-  const getAnnouncementPath = (announcement) => {
-    return `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`;
-  };
-
-  const getEditAnnouncementPath = (announcement) => {
-    return `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}/edit`;
-  };
 
   // Combine and sort posts
   const allPosts = [
@@ -357,7 +348,7 @@ const PublicProfile = () => {
                   <div key={`listing-${post.id}`} className="post-card listing-card">
                     <div
                       className="listing-image"
-                      onClick={() => navigate(getListingPath(post))}
+                      onClick={() => navigate(buildListingURL(post))}
                     >
                       {post.first_image ? (
                         <img src={post.first_image} alt={post.title} />
@@ -372,7 +363,7 @@ const PublicProfile = () => {
 
                     <div className="post-info">
                       <div className="post-header">
-                        <h3 onClick={() => navigate(getListingPath(post))}>
+                        <h3 onClick={() => navigate(buildListingURL(post))}>
                           {post.title}
                         </h3>
                         <p className="price">{formatPrice(post.price, post.pay_period)}</p>
@@ -387,13 +378,13 @@ const PublicProfile = () => {
                       {isOwnProfile && (
                         <div className="post-actions">
                           <button
-                            onClick={() => navigate(getListingPath(post))}
+                            onClick={() => navigate(buildListingURL(post))}
                             className="btn-view"
                           >
                             👁️ View
                           </button>
                           <button
-                            onClick={() => navigate(getEditListingPath(post))}
+                            onClick={() => navigate(buildEditListingURL(post))}
                             className="btn-edit"
                           >
                             ✏️ Edit
@@ -421,7 +412,7 @@ const PublicProfile = () => {
                 // Announcement
                 return (
                   <div key={`announcement-${post.id}`} className="post-card announcement-card">
-                    <div className="announcement-preview" onClick={() => navigate(getAnnouncementPath(post))}>
+                    <div className="announcement-preview" onClick={() => navigate(buildAnnouncementURL(post))}>
                       <span className="post-type-badge announcement-badge">Announcement</span>
                       <span className={getPriorityBadgeClass(post.priority)}>
                         {post.priority.toUpperCase()}
@@ -430,7 +421,7 @@ const PublicProfile = () => {
 
                     <div className="post-info">
                       <div className="post-header">
-                        <h3 onClick={() => navigate(getAnnouncementPath(post))}>
+                        <h3 onClick={() => navigate(buildAnnouncementURL(post))}>
                           {post.title}
                         </h3>
                       </div>
@@ -453,13 +444,13 @@ const PublicProfile = () => {
                       {isOwnProfile && (
                         <div className="post-actions">
                           <button
-                            onClick={() => navigate(getAnnouncementPath(post))}
+                            onClick={() => navigate(buildAnnouncementURL(post))}
                             className="btn-view"
                           >
                             👁️ View
                           </button>
                           <button
-                            onClick={() => navigate(getEditAnnouncementPath(post))}
+                            onClick={() => navigate(buildEditAnnouncementURL(post))}
                             className="btn-edit"
                           >
                             ✏️ Edit
