@@ -1,14 +1,13 @@
 /**
- * Regression tests for Listings component
+ * Tests for Listings component
  *
- * This test suite addresses the race condition bug where fetchListings()
- * would run before the provinces array was loaded, causing it to send
- * the province slug instead of the province name to the API.
+ * This test suite verifies that the Listings component correctly uses
+ * PSGC (Philippine Standard Geographic Code) for location filtering.
  *
- * The fix:
- * - fetchListings() now waits for provinces.length > 0 before executing
- * - This ensures the province name is always available when needed
- * - Prevents sending incorrect slug format to the API
+ * The component:
+ * - Waits for provinces to load before fetching listings
+ * - Uses PSGC codes for province, municipality, and barangay filtering
+ * - Handles cached provinces data correctly
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -58,7 +57,7 @@ const renderListings = (province = 'davao-del-norte', municipality = 'all') => {
   );
 };
 
-describe('Listings Component - Race Condition Fix', () => {
+describe('Listings Component - PSGC Filtering', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks();
@@ -74,16 +73,16 @@ describe('Listings Component - Race Condition Fix', () => {
     mockProvincesGetAll.mockResolvedValue({
       data: {
         results: [
-          { id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' },
-          { id: 2, name: 'Siquijor', slug: 'siquijor' }
+          { id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' },
+          { id: 2, name: 'Siquijor', slug: 'siquijor', psgc_code: '076100000' }
         ]
       }
     });
 
     mockGetMunicipalities.mockResolvedValue({
       data: [
-        { id: 1, name: 'City of Tagum', slug: 'city-of-tagum' },
-        { id: 2, name: 'Asuncion', slug: 'asuncion' }
+        { id: 1, name: 'City of Tagum', slug: 'city-of-tagum', psgc_code: '112314000' },
+        { id: 2, name: 'Asuncion', slug: 'asuncion', psgc_code: '112302000' }
       ]
     });
 
@@ -102,7 +101,7 @@ describe('Listings Component - Race Condition Fix', () => {
       new Promise(resolve =>
         setTimeout(() => resolve({
           data: {
-            results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' }]
+            results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' }]
           }
         }), 100)
       )
@@ -124,21 +123,20 @@ describe('Listings Component - Race Condition Fix', () => {
       expect(mockListingsGetAll).toHaveBeenCalled();
     }, { timeout: 2000 });
 
-    // Verify it was called with the correct province NAME (not slug)
+    // Verify it was called with the province PSGC code
     expect(mockListingsGetAll).toHaveBeenCalledWith(
       expect.objectContaining({
-        island: 'Davao del Norte',  // NAME, not 'davao-del-norte' slug
-        province: 'davao-del-norte'  // slug format for municipality filtering
+        province: '112300000'  // PSGC code, not slug or name
       })
     );
   });
 
-  it('should use province name from loaded data, not slug', async () => {
+  it('should use province PSGC code for filtering', async () => {
     mockProvincesGetAll.mockResolvedValue({
       data: {
         results: [
-          { id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' },
-          { id: 2, name: 'Davao de Oro', slug: 'davao-de-oro' }
+          { id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' },
+          { id: 2, name: 'Davao de Oro', slug: 'davao-de-oro', psgc_code: '118200000' }
         ]
       }
     });
@@ -149,9 +147,9 @@ describe('Listings Component - Race Condition Fix', () => {
       expect(mockListingsGetAll).toHaveBeenCalled();
     }, { timeout: 2000 });
 
-    // Should use "Davao de Oro" (lowercase "de"), not "Davao De Oro"
+    // Should use PSGC code for Davao de Oro
     const callArgs = mockListingsGetAll.mock.calls[0][0];
-    expect(callArgs.island).toBe('Davao de Oro');
+    expect(callArgs.province).toBe('118200000');
   });
 
   it('should show loading state while provinces are loading', async () => {
@@ -159,7 +157,7 @@ describe('Listings Component - Race Condition Fix', () => {
     mockProvincesGetAll.mockImplementation(() =>
       new Promise(resolve =>
         setTimeout(() => resolve({
-          data: { results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' }] }
+          data: { results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' }] }
         }), 200)
       )
     );
@@ -176,24 +174,24 @@ describe('Listings Component - Race Condition Fix', () => {
   });
 
   it('should handle cached provinces data correctly', async () => {
-    // Simulate cached data in localStorage
+    // Simulate cached data in localStorage with PSGC codes
     const cachedProvinces = [
-      { id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' }
+      { id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' }
     ];
     localStorage.setItem('provinces', JSON.stringify(cachedProvinces));
     localStorage.setItem('provinces_cache_time', Date.now().toString());
 
     renderListings('davao-del-norte', 'all');
 
-    // Should use cached data and call listingsAPI immediately
+    // Should use cached data and call listingsAPI
     await waitFor(() => {
       expect(mockListingsGetAll).toHaveBeenCalled();
     }, { timeout: 2000 });
 
-    // Should use correct province name from cache
+    // Should use PSGC code from cached data
     expect(mockListingsGetAll).toHaveBeenCalledWith(
       expect.objectContaining({
-        island: 'Davao del Norte'
+        province: '112300000'
       })
     );
   });
@@ -213,11 +211,17 @@ describe('Listings Component - Race Condition Fix', () => {
     expect(mockListingsGetAll).not.toHaveBeenCalled();
   });
 
-  it('should filter by municipality when not "all"', async () => {
+  it('should filter by municipality PSGC code when not "all"', async () => {
     mockProvincesGetAll.mockResolvedValue({
       data: {
-        results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' }]
+        results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' }]
       }
+    });
+
+    mockGetMunicipalities.mockResolvedValue({
+      data: [
+        { id: 1, name: 'City of Tagum', slug: 'city-of-tagum', psgc_code: '112314000' }
+      ]
     });
 
     renderListings('davao-del-norte', 'city-of-tagum');
@@ -226,12 +230,11 @@ describe('Listings Component - Race Condition Fix', () => {
       expect(mockListingsGetAll).toHaveBeenCalled();
     }, { timeout: 2000 });
 
-    // Should include municipality parameter
+    // Should include both province and municipality PSGC codes
     expect(mockListingsGetAll).toHaveBeenCalledWith(
       expect.objectContaining({
-        island: 'Davao del Norte',
-        province: 'davao-del-norte',
-        municipality: 'city-of-tagum'
+        province: '112300000',
+        municipality: '112314000'
       })
     );
   });
@@ -239,7 +242,7 @@ describe('Listings Component - Race Condition Fix', () => {
   it('should not include municipality parameter when "all"', async () => {
     mockProvincesGetAll.mockResolvedValue({
       data: {
-        results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte' }]
+        results: [{ id: 1, name: 'Davao del Norte', slug: 'davao-del-norte', psgc_code: '112300000' }]
       }
     });
 
@@ -254,11 +257,11 @@ describe('Listings Component - Race Condition Fix', () => {
     expect(callArgs.municipality).toBeUndefined();
   });
 
-  it('should preserve lowercase particles in province names', async () => {
+  it('should use correct PSGC codes for different provinces', async () => {
     const testCases = [
-      { slug: 'davao-del-norte', name: 'Davao del Norte' },
-      { slug: 'davao-de-oro', name: 'Davao de Oro' },
-      { slug: 'agusan-del-sur', name: 'Agusan del Sur' },
+      { slug: 'davao-del-norte', psgc_code: '112300000' },
+      { slug: 'davao-de-oro', psgc_code: '118200000' },
+      { slug: 'agusan-del-sur', psgc_code: '160200000' },
     ];
 
     for (const testCase of testCases) {
@@ -267,7 +270,7 @@ describe('Listings Component - Race Condition Fix', () => {
 
       mockProvincesGetAll.mockResolvedValue({
         data: {
-          results: [{ id: 1, name: testCase.name, slug: testCase.slug }]
+          results: [{ id: 1, name: 'Test Province', slug: testCase.slug, psgc_code: testCase.psgc_code }]
         }
       });
 
@@ -277,9 +280,9 @@ describe('Listings Component - Race Condition Fix', () => {
         expect(mockListingsGetAll).toHaveBeenCalled();
       }, { timeout: 2000 });
 
-      // Should use exact province name with correct case
+      // Should use correct PSGC code for each province
       const callArgs = mockListingsGetAll.mock.calls[0][0];
-      expect(callArgs.island).toBe(testCase.name);
+      expect(callArgs.province).toBe(testCase.psgc_code);
     }
   });
 });
