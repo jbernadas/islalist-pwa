@@ -151,7 +151,7 @@ const ImageSelectorModal = ({ isOpen, onClose, onSelectImages, excludeImageIds =
                         className={`image-item ${isSelected ? 'selected' : ''} ${isExcluded ? 'excluded' : ''}`}
                         onClick={() => toggleImageSelection(image)}
                       >
-                        <img src={image.image_url} alt={image.listing_title} />
+                        <img src={image.image_small || image.image_medium} alt={image.listing_title} />
                         <div className="image-overlay">
                           <div className="image-info">
                             <span className="listing-name">{image.listing_title}</span>

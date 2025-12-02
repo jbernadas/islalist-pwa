@@ -633,7 +633,7 @@ const CreateListing = () => {
             <div className="image-previews">
               {reusedImages.map((image, index) => (
                 <div key={`reused-${index}`} className="image-preview">
-                  <img src={image.image_url} alt={image.listing_title} />
+                  <img src={image.image_small || image.image_medium} alt={image.listing_title} />
                   <div className="image-badge">Reused</div>
                   <button
                     type="button"

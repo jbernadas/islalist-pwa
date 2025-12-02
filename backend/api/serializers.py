@@ -84,6 +84,9 @@ class UserSerializer(serializers.ModelSerializer):
 class PublicUserSerializer(serializers.ModelSerializer):
     """Serializer for public user profiles - hides sensitive information"""
     profile_picture = serializers.SerializerMethodField()
+    profile_picture_thumb = serializers.SerializerMethodField()
+    profile_picture_small = serializers.SerializerMethodField()
+    profile_picture_medium = serializers.SerializerMethodField()
     bio = serializers.CharField(source='profile.bio', read_only=True, allow_null=True)
     verified = serializers.BooleanField(source='profile.verified', read_only=True)
     listing_count = serializers.SerializerMethodField()
@@ -93,18 +96,35 @@ class PublicUserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name',
-            'profile_picture', 'bio', 'verified',
+            'profile_picture', 'profile_picture_thumb', 'profile_picture_small',
+            'profile_picture_medium', 'bio', 'verified',
             'listing_count', 'announcement_count'
         ]
         read_only_fields = ['id', 'username', 'first_name', 'last_name']
 
-    def get_profile_picture(self, obj):
-        """Get profile picture URL if available"""
-        if hasattr(obj, 'profile') and obj.profile.profile_picture:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.profile.profile_picture.url)
+    def _get_profile_picture_url(self, obj, field_name):
+        """Helper to get absolute URL for a profile picture field"""
+        if hasattr(obj, 'profile'):
+            image_field = getattr(obj.profile, field_name, None)
+            if image_field and image_field.name:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(image_field.url)
+                return image_field.url
         return None
+
+    def get_profile_picture(self, obj):
+        """Get default profile picture URL (small size for most uses)"""
+        return self._get_profile_picture_url(obj, 'profile_picture_small')
+
+    def get_profile_picture_thumb(self, obj):
+        return self._get_profile_picture_url(obj, 'profile_picture_thumb')
+
+    def get_profile_picture_small(self, obj):
+        return self._get_profile_picture_url(obj, 'profile_picture_small')
+
+    def get_profile_picture_medium(self, obj):
+        return self._get_profile_picture_url(obj, 'profile_picture_medium')
 
     def get_listing_count(self, obj):
         """Count active listings"""
@@ -296,8 +316,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
-    """Serializer for Listing images"""
-    image_url = serializers.SerializerMethodField()
+    """Serializer for Listing images with multiple size variants"""
+    # Size-specific URLs
+    image_thumb = serializers.SerializerMethodField()
+    image_small = serializers.SerializerMethodField()
+    image_medium = serializers.SerializerMethodField()
+    image_large = serializers.SerializerMethodField()
+    image_xlarge = serializers.SerializerMethodField()
     listing_title = serializers.CharField(
         source='listing.title',
         read_only=True
@@ -310,18 +335,36 @@ class ListingImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListingImage
         fields = [
-            'id', 'image', 'image_url', 'order',
+            'id', 'image_thumb', 'image_small', 'image_medium',
+            'image_large', 'image_xlarge', 'order',
             'listing_title', 'listing_id'
         ]
         read_only_fields = ['id']
 
-    def get_image_url(self, obj):
+    def _get_image_url(self, obj, field_name):
+        """Helper to get absolute URL for an image field"""
         request = self.context.get('request')
-        if obj.image and hasattr(obj.image, 'url'):
+        image_field = getattr(obj, field_name, None)
+        if image_field and hasattr(image_field, 'url') and image_field.name:
             if request is not None:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+                return request.build_absolute_uri(image_field.url)
+            return image_field.url
         return None
+
+    def get_image_thumb(self, obj):
+        return self._get_image_url(obj, 'image_thumb')
+
+    def get_image_small(self, obj):
+        return self._get_image_url(obj, 'image_small')
+
+    def get_image_medium(self, obj):
+        return self._get_image_url(obj, 'image_medium')
+
+    def get_image_large(self, obj):
+        return self._get_image_url(obj, 'image_large')
+
+    def get_image_xlarge(self, obj):
+        return self._get_image_url(obj, 'image_xlarge')
 
 
 class ListingSerializer(serializers.ModelSerializer):
@@ -384,27 +427,24 @@ class ListingSerializer(serializers.ModelSerializer):
 
         order = 0
 
-        # Add reused images first
+        # Add reused images first (copy all size variants)
         for image_id in reused_image_ids:
             try:
                 original_image = ListingImage.objects.get(id=image_id)
-                # Create new ListingImage with same file
-                ListingImage.objects.create(
-                    listing=listing,
-                    image=original_image.image.name,
-                    order=order
-                )
+                # Create new ListingImage copying all size variant references
+                new_image = ListingImage(listing=listing, order=order)
+                for field_name in ['image_thumb', 'image_small', 'image_medium', 'image_large', 'image_xlarge']:
+                    original_field = getattr(original_image, field_name, None)
+                    if original_field and original_field.name:
+                        setattr(new_image, field_name, original_field.name)
+                new_image.save()
                 order += 1
             except ListingImage.DoesNotExist:
                 continue
 
-        # Then add new uploaded images
+        # Then add new uploaded images (process into size variants)
         for image in uploaded_images:
-            ListingImage.objects.create(
-                listing=listing,
-                image=image,
-                order=order
-            )
+            ListingImage.create_from_upload(listing, image, order=order)
             order += 1
 
         return listing
@@ -420,27 +460,24 @@ class ListingSerializer(serializers.ModelSerializer):
 
         current_max_order = instance.images.count()
 
-        # Add reused images
+        # Add reused images (copy all size variants)
         for image_id in reused_image_ids:
             try:
                 original_image = ListingImage.objects.get(id=image_id)
-                # Create new ListingImage with same file
-                ListingImage.objects.create(
-                    listing=instance,
-                    image=original_image.image.name,
-                    order=current_max_order
-                )
+                # Create new ListingImage copying all size variant references
+                new_image = ListingImage(listing=instance, order=current_max_order)
+                for field_name in ['image_thumb', 'image_small', 'image_medium', 'image_large', 'image_xlarge']:
+                    original_field = getattr(original_image, field_name, None)
+                    if original_field and original_field.name:
+                        setattr(new_image, field_name, original_field.name)
+                new_image.save()
                 current_max_order += 1
             except ListingImage.DoesNotExist:
                 continue
 
-        # Add new uploaded images
+        # Add new uploaded images (process into size variants)
         for image in uploaded_images:
-            ListingImage.objects.create(
-                listing=instance,
-                image=image,
-                order=current_max_order
-            )
+            ListingImage.create_from_upload(instance, image, order=current_max_order)
             current_max_order += 1
 
         return instance
@@ -505,12 +542,17 @@ class ListingListSerializer(serializers.ModelSerializer):
         ]
 
     def get_first_image(self, obj):
+        """Return medium size image for listing cards (optimal for both mobile and desktop)"""
         request = self.context.get('request')
         first_image = obj.images.first()
-        if first_image and first_image.image:
-            if request is not None:
-                return request.build_absolute_uri(first_image.image.url)
-            return first_image.image.url
+        if first_image:
+            # Return medium size for cards, fall back to other sizes if not available
+            for field_name in ['image_medium', 'image_small', 'image_large']:
+                image_field = getattr(first_image, field_name, None)
+                if image_field and image_field.name:
+                    if request is not None:
+                        return request.build_absolute_uri(image_field.url)
+                    return image_field.url
         return None
 
     def get_is_favorited(self, obj):

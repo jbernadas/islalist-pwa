@@ -421,13 +421,38 @@ class Listing(models.Model):
 
 
 class ListingImage(models.Model):
-    """Images for listings"""
+    """Images for listings with multiple size variants in WebP format"""
     listing = models.ForeignKey(
         Listing,
         on_delete=models.CASCADE,
         related_name='images'
     )
-    image = models.ImageField(upload_to='listings/%Y/%m/%d/')
+    # Size variants - all stored as WebP
+    image_thumb = models.ImageField(
+        upload_to='listings/%Y/%m/%d/',
+        blank=True,
+        help_text="Thumbnail (150x100)"
+    )
+    image_small = models.ImageField(
+        upload_to='listings/%Y/%m/%d/',
+        blank=True,
+        help_text="Small (300x200) - mobile cards"
+    )
+    image_medium = models.ImageField(
+        upload_to='listings/%Y/%m/%d/',
+        blank=True,
+        help_text="Medium (500x333) - desktop cards"
+    )
+    image_large = models.ImageField(
+        upload_to='listings/%Y/%m/%d/',
+        blank=True,
+        help_text="Large (1200x800) - detail page"
+    )
+    image_xlarge = models.ImageField(
+        upload_to='listings/%Y/%m/%d/',
+        blank=True,
+        help_text="Extra large (1920x1280) - desktop lightbox"
+    )
     order = models.IntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -437,18 +462,103 @@ class ListingImage(models.Model):
     def __str__(self):
         return f"Image for {self.listing.title}"
 
+    def delete(self, *args, **kwargs):
+        """Delete all image files when model instance is deleted"""
+        # Delete all size variant files
+        for field_name in ['image_thumb', 'image_small', 'image_medium', 'image_large', 'image_xlarge']:
+            image_field = getattr(self, field_name, None)
+            if image_field and image_field.name:
+                image_field.delete(save=False)
+        super().delete(*args, **kwargs)
+
+    @classmethod
+    def create_from_upload(cls, listing, image_file, order=0):
+        """
+        Create a ListingImage with all size variants from an uploaded file.
+
+        Args:
+            listing: Listing instance to associate with
+            image_file: Uploaded image file
+            order: Display order for the image
+
+        Returns:
+            ListingImage instance with all size variants
+        """
+        from .utils import process_listing_image
+
+        instance = cls(listing=listing, order=order)
+
+        # Process image into all size variants
+        variants = process_listing_image(image_file)
+
+        # Save each variant to the corresponding field
+        for size_name, (path, content_file) in variants.items():
+            field_name = f'image_{size_name}'
+            field = getattr(instance, field_name, None)
+            if field is not None:
+                field.save(content_file.name, content_file, save=False)
+
+        instance.save()
+        return instance
+
 
 class UserProfile(models.Model):
-    """Extended user profile"""
+    """Extended user profile with multiple profile picture size variants"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=200, blank=True)
     bio = models.TextField(blank=True)
-    profile_picture = models.ImageField(upload_to='profiles/', blank=True)
+    # Profile picture size variants - all stored as WebP
+    profile_picture_thumb = models.ImageField(
+        upload_to='profiles/',
+        blank=True,
+        help_text="Thumbnail (100x100)"
+    )
+    profile_picture_small = models.ImageField(
+        upload_to='profiles/',
+        blank=True,
+        help_text="Small (200x200) - standard avatar"
+    )
+    profile_picture_medium = models.ImageField(
+        upload_to='profiles/',
+        blank=True,
+        help_text="Medium (400x400) - profile page"
+    )
     verified = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+
+    def delete_profile_pictures(self):
+        """Delete all profile picture files"""
+        for field_name in ['profile_picture_thumb', 'profile_picture_small', 'profile_picture_medium']:
+            image_field = getattr(self, field_name, None)
+            if image_field and image_field.name:
+                image_field.delete(save=False)
+
+    def set_profile_picture(self, image_file):
+        """
+        Set profile picture with all size variants from an uploaded file.
+
+        Args:
+            image_file: Uploaded image file
+        """
+        from .utils import process_profile_picture
+
+        # Delete existing profile pictures
+        self.delete_profile_pictures()
+
+        # Process image into all size variants
+        variants = process_profile_picture(image_file)
+
+        # Save each variant to the corresponding field
+        for size_name, (path, content_file) in variants.items():
+            field_name = f'profile_picture_{size_name}'
+            field = getattr(self, field_name, None)
+            if field is not None:
+                field.save(content_file.name, content_file, save=False)
+
+        self.save()
 
 
 class Favorite(models.Model):

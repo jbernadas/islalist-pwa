@@ -203,7 +203,7 @@ const ListingDetail = () => {
           <button className="lightbox-close" onClick={closeLightbox}>×</button>
           <div className="lightbox-content">
             <img
-              src={listing.images[currentImageIndex].image_url}
+              src={listing.images[currentImageIndex].image_xlarge || listing.images[currentImageIndex].image_large}
               alt={listing.title}
             />
             {listing.images.length > 1 && (
@@ -254,7 +254,7 @@ const ListingDetail = () => {
             <>
               <div className="main-image" onClick={openLightbox}>
                 <img
-                  src={listing.images[currentImageIndex].image_url}
+                  src={listing.images[currentImageIndex].image_large || listing.images[currentImageIndex].image_medium}
                   alt={listing.title}
                 />
                 <div className="zoom-hint">🔍 Click to zoom</div>
@@ -273,7 +273,7 @@ const ListingDetail = () => {
                   {listing.images.map((image, index) => (
                     <img
                       key={image.id}
-                      src={image.image_url}
+                      src={image.image_thumb || image.image_small}
                       alt={`${listing.title} ${index + 1}`}
                       className={index === currentImageIndex ? 'active' : ''}
                       onClick={() => setCurrentImageIndex(index)}
