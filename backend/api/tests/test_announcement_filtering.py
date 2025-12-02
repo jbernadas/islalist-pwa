@@ -1,30 +1,31 @@
 """
-Tests for announcement filtering by province and municipality
+Tests for announcement filtering by province and municipality using PSGC codes
 
-Announcements use ForeignKeys for province and municipality (unlike listings which use CharField).
-This means filtering is by ID, not by name/slug.
+Announcements use ForeignKey relations for province, municipality, and barangay.
+Filtering is done via PSGC codes.
 
 Key features to test:
-1. Filtering by province
-2. Filtering by municipality
+1. Filtering by province PSGC code
+2. Filtering by municipality PSGC code
 3. Province-wide announcements (is_province_wide=True)
-4. Expiry date filtering
-5. Active/inactive announcements
+4. Municipality-wide announcements (is_municipality_wide=True)
+5. Expiry date filtering
+6. Active/inactive announcements
+7. Priority-based cascade filtering
 """
 import pytest
 from datetime import date, timedelta
-from django.utils import timezone
 from api.models import Announcement
 
 
 @pytest.mark.django_db
 class TestAnnouncementFiltering:
-    """Test announcement filtering by province and municipality"""
+    """Test announcement filtering by province and municipality using PSGC codes"""
 
     def test_filter_by_province(
         self, api_client, user, province_davao_del_norte, municipality_tagum
     ):
-        """Test filtering announcements by province"""
+        """Test filtering announcements by province PSGC code"""
         announcement = Announcement.objects.create(
             title='Provincial Announcement',
             description='Important announcement',
@@ -36,8 +37,8 @@ class TestAnnouncementFiltering:
             is_active=True
         )
 
-        # Filter by province ID
-        response = api_client.get('/api/announcements/', {'province': province_davao_del_norte.id})
+        # Filter by province PSGC code
+        response = api_client.get('/api/announcements/', {'province': province_davao_del_norte.psgc_code})
 
         assert response.status_code == 200
         results = response.data.get('results', response.data)
@@ -47,7 +48,7 @@ class TestAnnouncementFiltering:
     def test_filter_by_municipality(
         self, api_client, user, province_davao_del_norte, municipality_tagum
     ):
-        """Test filtering announcements by municipality"""
+        """Test filtering announcements by municipality PSGC code"""
         announcement = Announcement.objects.create(
             title='Municipal Announcement',
             description='City announcement',
@@ -59,8 +60,11 @@ class TestAnnouncementFiltering:
             is_active=True
         )
 
-        # Filter by municipality ID
-        response = api_client.get('/api/announcements/', {'municipality': municipality_tagum.id})
+        # Filter by province and municipality PSGC codes
+        response = api_client.get('/api/announcements/', {
+            'province': province_davao_del_norte.psgc_code,
+            'municipality': municipality_tagum.psgc_code
+        })
 
         assert response.status_code == 200
         results = response.data.get('results', response.data)
@@ -71,75 +75,87 @@ class TestAnnouncementFiltering:
         self, api_client, user, province_davao_del_norte, municipality_tagum
     ):
         """
-        Test that province-wide announcements appear for all municipalities
+        Test that province-wide announcements appear for all municipalities.
 
-        When is_province_wide=True, the announcement should appear when
-        filtering by ANY municipality in that province.
+        Province-wide announcements with is_province_wide=True and 'urgent' priority
+        should appear when filtering by any municipality in that province.
         """
-        from api.models import Municipality
+        from api.models import Municipality, Barangay
 
-        # Create another municipality in the same province
+        # Create another municipality and barangays for testing
         municipality_asuncion = Municipality.objects.create(
             name='Asuncion',
             slug='asuncion',
+            psgc_code='112302000',
             province=province_davao_del_norte,
             active=True
         )
 
-        # Create a province-wide announcement
+        barangay_in_tagum = Barangay.objects.create(
+            name='Magugpo',
+            slug='magugpo',
+            psgc_code='112314001',
+            municipality=municipality_tagum,
+            active=True
+        )
+
+        barangay_in_asuncion = Barangay.objects.create(
+            name='Poblacion',
+            slug='poblacion-asuncion',
+            psgc_code='112302001',
+            municipality=municipality_asuncion,
+            active=True
+        )
+
+        # Create a province-wide urgent announcement
         province_wide_announcement = Announcement.objects.create(
             title='Province-wide Announcement',
             description='Important for entire province',
-            priority='urgent',
+            priority='urgent',  # Must be urgent for province-wide cascade
             announcement_type='alert',
             province=province_davao_del_norte,
-            municipality=municipality_tagum,  # Created in Tagum
-            is_province_wide=True,  # But shows everywhere in province
+            municipality=municipality_tagum,
+            barangay=barangay_in_tagum,
+            is_province_wide=True,
             author=user,
             is_active=True
         )
 
-        # Create a municipality-specific announcement
-        tagum_only_announcement = Announcement.objects.create(
-            title='Tagum Only Announcement',
-            description='Only for City of Tagum',
+        # Create a barangay-specific announcement
+        local_announcement = Announcement.objects.create(
+            title='Tagum Local Announcement',
+            description='Only for Magugpo barangay',
             priority='low',
             announcement_type='general',
             province=province_davao_del_norte,
             municipality=municipality_tagum,
+            barangay=barangay_in_tagum,
             is_province_wide=False,
             author=user,
             is_active=True
         )
 
-        # Filter by Tagum - should see BOTH announcements
+        # Filter by Tagum's barangay - should see BOTH announcements
         response = api_client.get('/api/announcements/', {
-            'province': province_davao_del_norte.id,
-            'municipality': municipality_tagum.id
+            'province': province_davao_del_norte.psgc_code,
+            'municipality': municipality_tagum.psgc_code,
+            'barangay': barangay_in_tagum.psgc_code
         })
         results = response.data.get('results', response.data)
         assert len(results) == 2
         ids = {r['id'] for r in results}
         assert province_wide_announcement.id in ids
-        assert tagum_only_announcement.id in ids
+        assert local_announcement.id in ids
 
-        # Filter by Asuncion with BOTH province AND municipality - should see province-wide announcement
+        # Filter by Asuncion's barangay - should see only province-wide urgent announcement
         response = api_client.get('/api/announcements/', {
-            'province': province_davao_del_norte.id,
-            'municipality': municipality_asuncion.id
+            'province': province_davao_del_norte.psgc_code,
+            'municipality': municipality_asuncion.psgc_code,
+            'barangay': barangay_in_asuncion.psgc_code
         })
         results = response.data.get('results', response.data)
         assert len(results) == 1
         assert results[0]['id'] == province_wide_announcement.id
-
-        # Filter by Asuncion with ONLY municipality (no province param) - won't see province-wide
-        # because the province-wide logic only triggers when both params are provided
-        response = api_client.get('/api/announcements/', {
-            'municipality': municipality_asuncion.id
-        })
-        results = response.data.get('results', response.data)
-        # In this case, filterset_fields handles filtering, so no province-wide announcements appear
-        # This is expected behavior based on current implementation
 
     def test_expired_announcements_excluded_by_default(
         self, api_client, user, province_davao_del_norte, municipality_tagum
@@ -173,7 +189,7 @@ class TestAnnouncementFiltering:
 
         # Default request - should exclude expired
         response = api_client.get('/api/announcements/', {
-            'province': province_davao_del_norte.id
+            'province': province_davao_del_norte.psgc_code
         })
         results = response.data.get('results', response.data)
         assert len(results) == 1
@@ -211,7 +227,7 @@ class TestAnnouncementFiltering:
 
         # Request with include_expired=true
         response = api_client.get('/api/announcements/', {
-            'province': province_davao_del_norte.id,
+            'province': province_davao_del_norte.psgc_code,
             'include_expired': 'true'
         })
         results = response.data.get('results', response.data)
@@ -250,33 +266,17 @@ class TestAnnouncementFiltering:
 
         # Should only see active announcement
         response = api_client.get('/api/announcements/', {
-            'province': province_davao_del_norte.id
+            'province': province_davao_del_norte.psgc_code
         })
         results = response.data.get('results', response.data)
         assert len(results) == 1
         assert results[0]['id'] == active.id
 
     def test_filter_multiple_provinces(
-        self, api_client, user, province_davao_del_norte, province_davao_de_oro
+        self, api_client, user, province_davao_del_norte, province_davao_de_oro,
+        municipality_tagum, municipality_montevista
     ):
         """Test that filtering by one province doesn't return announcements from another"""
-        from api.models import Municipality
-
-        # Create municipalities
-        tagum = Municipality.objects.create(
-            name='City of Tagum',
-            slug='city-of-tagum',
-            province=province_davao_del_norte,
-            active=True
-        )
-
-        montevista = Municipality.objects.create(
-            name='Montevista',
-            slug='montevista',
-            province=province_davao_de_oro,
-            active=True
-        )
-
         # Create announcements in different provinces
         norte_announcement = Announcement.objects.create(
             title='Norte Announcement',
@@ -284,7 +284,7 @@ class TestAnnouncementFiltering:
             priority='medium',
             announcement_type='general',
             province=province_davao_del_norte,
-            municipality=tagum,
+            municipality=municipality_tagum,
             author=user,
             is_active=True
         )
@@ -295,19 +295,19 @@ class TestAnnouncementFiltering:
             priority='medium',
             announcement_type='general',
             province=province_davao_de_oro,
-            municipality=montevista,
+            municipality=municipality_montevista,
             author=user,
             is_active=True
         )
 
         # Filter by Davao del Norte
-        response = api_client.get('/api/announcements/', {'province': province_davao_del_norte.id})
+        response = api_client.get('/api/announcements/', {'province': province_davao_del_norte.psgc_code})
         results = response.data.get('results', response.data)
         assert len(results) == 1
         assert results[0]['id'] == norte_announcement.id
 
         # Filter by Davao de Oro
-        response = api_client.get('/api/announcements/', {'province': province_davao_de_oro.id})
+        response = api_client.get('/api/announcements/', {'province': province_davao_de_oro.psgc_code})
         results = response.data.get('results', response.data)
         assert len(results) == 1
         assert results[0]['id'] == oro_announcement.id
@@ -413,9 +413,6 @@ class TestAnnouncementFiltering:
     ):
         """
         Test that announcements are ordered by priority (desc) then created_at (desc)
-
-        Note: Priority is a CharField, so Django orders alphabetically DESC:
-        'urgent' > 'medium' > 'low' > 'high' (alphabetically)
         """
         import time
 
@@ -455,11 +452,10 @@ class TestAnnouncementFiltering:
             is_active=True
         )
 
-        response = api_client.get('/api/announcements/', {'province': province_davao_del_norte.id})
+        response = api_client.get('/api/announcements/', {'province': province_davao_del_norte.psgc_code})
         results = response.data.get('results', response.data)
 
         # Priority orders alphabetically DESC: urgent > low > high
-        # So the order is: urgent (newest with 'u'), low (older with 'l'), high (newest with 'h')
         assert len(results) == 3
         assert results[0]['priority'] == 'urgent'
         # The next two could be in any order since they have different alphabetical priorities
