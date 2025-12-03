@@ -25,7 +25,7 @@ from .serializers import (
     CategorySerializer, ListingSerializer, ListingListSerializer,
     AnnouncementSerializer, AnnouncementListSerializer
 )
-from .permissions import IsEmailVerified
+from .permissions import IsEmailVerified, IsOwnerOrReadOnly
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -334,10 +334,12 @@ class ListingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Require email verification for create and update actions
+        Require email verification for create/update and ownership for update/delete
         """
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action == 'create':
             return [IsAuthenticated(), IsEmailVerified()]
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsEmailVerified(), IsOwnerOrReadOnly()]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -527,10 +529,12 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Require email verification for create and update actions
+        Require email verification for create/update and ownership for update/delete
         """
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action == 'create':
             return [IsAuthenticated(), IsEmailVerified()]
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsEmailVerified(), IsOwnerOrReadOnly()]
         return super().get_permissions()
 
     def get_serializer_class(self):

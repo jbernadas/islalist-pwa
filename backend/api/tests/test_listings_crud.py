@@ -209,11 +209,32 @@ class TestListingUpdate:
         assert response.data['title'] == 'Updated Title'
         assert response.data['price'] == '1500.00'
 
-    # NOTE: This test documents that ownership check is NOT currently enforced
-    # This should be fixed by adding IsOwnerOrReadOnly permission to the viewset
-    # def test_update_other_user_listing(self, ...):
-    #     """Test user cannot update another user's listing"""
-    #     # Should return 403 FORBIDDEN but currently allows updates
+    def test_update_other_user_listing(
+        self, verified_client, province_davao_del_norte, category_real_estate
+    ):
+        """Test user cannot update another user's listing"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123'
+        )
+        listing = Listing.objects.create(
+            title='Other User Listing',
+            description='Not yours',
+            price=1000,
+            province=province_davao_del_norte,
+            category=category_real_estate,
+            seller=other_user,
+            status='active'
+        )
+
+        response = verified_client.patch(f'/api/listings/{listing.id}/', {
+            'title': 'Trying to update'
+        })
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_update_listing_unauthenticated(
         self, api_client, user, province_davao_del_norte, category_real_estate
@@ -240,28 +261,48 @@ class TestListingDelete:
     """Tests for deleting listings"""
 
     def test_delete_own_listing(
-        self, authenticated_client, user, province_davao_del_norte, category_real_estate
+        self, verified_client, verified_user, province_davao_del_norte, category_real_estate
     ):
-        """Test owner can delete their listing"""
+        """Test verified owner can delete their listing"""
         listing = Listing.objects.create(
             title='To Be Deleted',
             description='Will be removed',
             price=1000,
             province=province_davao_del_norte,
             category=category_real_estate,
-            seller=user,
+            seller=verified_user,
             status='active'
         )
 
-        response = authenticated_client.delete(f'/api/listings/{listing.id}/')
+        response = verified_client.delete(f'/api/listings/{listing.id}/')
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Listing.objects.filter(id=listing.id).exists()
 
-    # NOTE: This test documents that ownership check is NOT currently enforced
-    # This should be fixed by adding IsOwnerOrReadOnly permission to the viewset
-    # def test_delete_other_user_listing(self, ...):
-    #     """Test user cannot delete another user's listing"""
-    #     # Should return 403 FORBIDDEN but currently allows deletion
+    def test_delete_other_user_listing(
+        self, verified_client, province_davao_del_norte, category_real_estate
+    ):
+        """Test user cannot delete another user's listing"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        other_user = User.objects.create_user(
+            username='otheruser2',
+            email='other2@example.com',
+            password='testpass123'
+        )
+        listing = Listing.objects.create(
+            title='Not Yours',
+            description='Cannot delete',
+            price=1000,
+            province=province_davao_del_norte,
+            category=category_real_estate,
+            seller=other_user,
+            status='active'
+        )
+
+        response = verified_client.delete(f'/api/listings/{listing.id}/')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Listing.objects.filter(id=listing.id).exists()
 
 
 @pytest.mark.django_db
