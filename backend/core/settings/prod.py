@@ -4,6 +4,37 @@ Production settings for core project.
 
 from .base import *
 from decouple import config
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+# Sentry error monitoring
+SENTRY_DSN = config('SENTRY_DSN', default='')
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(
+                transaction_style='url',
+                middleware_spans=True,
+            ),
+            LoggingIntegration(
+                level=None,  # Capture all log levels
+                event_level='ERROR',  # Send errors and above as events
+            ),
+        ],
+        # Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring
+        # Reduce in production to lower costs
+        traces_sample_rate=config('SENTRY_TRACES_SAMPLE_RATE', default=0.1, cast=float),
+        # Set profiles_sample_rate to 1.0 to profile 100% of sampled transactions
+        profiles_sample_rate=config('SENTRY_PROFILES_SAMPLE_RATE', default=0.1, cast=float),
+        # Send user info with errors (without PII)
+        send_default_pii=False,
+        # Environment tag
+        environment=config('SENTRY_ENVIRONMENT', default='production'),
+        # Release version (set via CI/CD or manually)
+        release=config('SENTRY_RELEASE', default=None),
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

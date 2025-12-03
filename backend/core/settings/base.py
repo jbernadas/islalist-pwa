@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'corsheaders',
     'django_filters',
+    'drf_spectacular',  # OpenAPI/Swagger documentation
     # Authentication apps
     'allauth',
     'allauth.account',
@@ -184,6 +185,26 @@ REST_FRAMEWORK = {
         'auth': '5/minute',      # Auth endpoints (login, register): 5 per minute
         'password_reset': '3/hour',  # Password reset: 3 per hour
     },
+    # OpenAPI schema generation
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# drf-spectacular settings for OpenAPI/Swagger documentation
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'IslaList API',
+    'DESCRIPTION': 'REST API for IslaList - Philippine Classified Listings Platform',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'TAGS': [
+        {'name': 'auth', 'description': 'Authentication endpoints (login, register, logout)'},
+        {'name': 'users', 'description': 'User profile endpoints'},
+        {'name': 'listings', 'description': 'Classified listings CRUD operations'},
+        {'name': 'announcements', 'description': 'Community announcements'},
+        {'name': 'locations', 'description': 'Province, Municipality, Barangay data'},
+        {'name': 'categories', 'description': 'Listing categories'},
+    ],
 }
 
 # JWT Configuration
