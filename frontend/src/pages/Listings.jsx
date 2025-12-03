@@ -106,7 +106,6 @@ const Listings = () => {
       // Find the municipality object to get its ID
       const currentMun = municipalities.find(m => slugify(m.name) === municipality);
       if (!currentMun) {
-        console.log('Municipality not found in municipalities array');
         return;
       }
 
@@ -158,7 +157,6 @@ const Listings = () => {
   const fetchCategories = async () => {
     try {
       const response = await categoriesAPI.getAll();
-      console.log('Categories response:', response.data);
 
       // Handle both paginated and non-paginated responses
       const data = response.data.results || response.data;
@@ -205,7 +203,6 @@ const Listings = () => {
       }
 
       const response = await listingsAPI.getAll(params);
-      console.log('Listings response:', response.data);
 
       // Handle both paginated and non-paginated responses
       const data = response.data.results || response.data;

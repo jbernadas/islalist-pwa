@@ -152,15 +152,9 @@ const CityMunBulletinBoard = () => {
       const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
       const announcements = Array.isArray(announcementsData) ? announcementsData : [];
 
-      console.log('Fetched announcements:', announcements);
-      console.log('Announcements params:', announcementsParams);
-
       // Separate urgent from recent
       const urgent = announcements.filter(a => a.priority === 'urgent');
       const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 3);
-
-      console.log('Urgent announcements:', urgent);
-      console.log('Non-urgent announcements:', nonUrgent);
 
       setUrgentAnnouncements(urgent);
       setRecentAnnouncements(nonUrgent);

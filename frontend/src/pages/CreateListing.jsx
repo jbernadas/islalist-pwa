@@ -52,23 +52,17 @@ const CreateListing = () => {
   const fetchCategories = async () => {
     try {
       const response = await categoriesAPI.getAll();
-      console.log('Categories response:', response.data);
 
       // Handle both paginated and non-paginated responses
       const categoriesData = response.data.results || response.data;
-      console.log('Categories data:', categoriesData);
 
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
       // Auto-select Real Estate category
       const realEstateCategory = categoriesData.find(cat => cat.name === 'Real Estate');
-      console.log('Real Estate category:', realEstateCategory);
 
       if (realEstateCategory) {
-        console.log('Setting category to:', realEstateCategory.id);
         setFormData(prev => ({ ...prev, category: realEstateCategory.id }));
-      } else {
-        console.warn('Real Estate category not found! Available categories:', categoriesData);
       }
     } catch (err) {
       console.error('Error fetching categories:', err);
@@ -200,11 +194,9 @@ const CreateListing = () => {
       const data = new FormData();
 
       // Add form fields
-      console.log('Form data before submit:', formData);
       Object.keys(formData).forEach(key => {
         if (formData[key] !== '') {
           data.append(key, formData[key]);
-          console.log(`Added to FormData: ${key} = ${formData[key]}`);
         }
       });
 
@@ -218,16 +210,10 @@ const CreateListing = () => {
         data.append('uploaded_images', image);
       });
 
-      console.log('FormData entries:');
-      for (let pair of data.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-      }
-
       await listingsAPI.create(data);
       navigate(`/${province}/${municipality}/listings`);
     } catch (err) {
-      console.error('Error creating listing:', err);
-      console.error('Error response:', err.response?.data);
+      console.error('Error creating listing:', err.response?.data || err.message);
 
       // Handle validation errors from DRF
       if (err.response?.data) {

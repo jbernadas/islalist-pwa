@@ -6,19 +6,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
-from api.views_auth import CustomRegisterView, CustomVerifyEmailView
+from api.views_auth import CustomRegisterView, CustomVerifyEmailView, ThrottledTokenObtainPairView
 from api.views_password import CustomPasswordResetConfirmView
 
 urlpatterns = [
     # Django Admin
     path('admin/', admin.site.urls),
 
-    # JWT Authentication endpoints
-    path('api/auth/login/', TokenObtainPairView.as_view(),
+    # JWT Authentication endpoints (with rate limiting)
+    path('api/auth/login/', ThrottledTokenObtainPairView.as_view(),
          name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),

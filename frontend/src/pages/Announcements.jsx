@@ -56,7 +56,6 @@ const Announcements = () => {
       // Find the municipality object to get its ID
       const currentMun = municipalities.find(m => slugify(m.name) === municipality);
       if (!currentMun) {
-        console.log('Municipality not found in municipalities array');
         return;
       }
 

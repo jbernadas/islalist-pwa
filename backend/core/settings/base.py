@@ -173,6 +173,17 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
+    # Rate limiting to protect against brute force and abuse
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',      # Anonymous users: 100 requests per hour
+        'user': '1000/hour',     # Authenticated users: 1000 requests per hour
+        'auth': '5/minute',      # Auth endpoints (login, register): 5 per minute
+        'password_reset': '3/hour',  # Password reset: 3 per hour
+    },
 }
 
 # JWT Configuration

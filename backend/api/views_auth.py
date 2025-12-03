@@ -6,16 +6,28 @@ from allauth.account.models import EmailAddress, EmailConfirmation, EmailConfirm
 from allauth.account import app_settings as allauth_settings
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.utils.translation import gettext_lazy as _
 import logging
 
+from .throttles import AuthRateThrottle
+
 logger = logging.getLogger(__name__)
+
+
+class ThrottledTokenObtainPairView(TokenObtainPairView):
+    """
+    JWT login view with rate limiting to prevent brute force attacks.
+    Limits login attempts to 5 per minute per IP address.
+    """
+    throttle_classes = [AuthRateThrottle]
 
 
 class CustomRegisterView(RegisterView):
     """
     Custom registration view that properly integrates with allauth email verification
     """
+    throttle_classes = [AuthRateThrottle]
 
     def create(self, request, *args, **kwargs):
         """Override to handle errors gracefully"""
@@ -73,8 +85,8 @@ class CustomVerifyEmailView(VerifyEmailView):
                 logger.info(f"Email verified and user activated (ID: {user.pk})")
 
             return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Email verification error: {type(e).__name__}")
+        except (EmailConfirmation.DoesNotExist, ValueError, AttributeError) as e:
+            logger.warning(f"Email verification failed: {type(e).__name__}")
             return Response(
                 {'detail': _('Invalid or expired verification link.')},
                 status=status.HTTP_400_BAD_REQUEST

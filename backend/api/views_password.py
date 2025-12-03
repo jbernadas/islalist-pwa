@@ -11,6 +11,8 @@ from django.utils.translation import gettext_lazy as _
 from allauth.account.forms import default_token_generator
 import logging
 
+from .throttles import PasswordResetRateThrottle
+
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
@@ -20,6 +22,7 @@ class CustomPasswordResetConfirmView(APIView):
     Custom password reset confirm view that handles uid/token validation properly
     """
     permission_classes = []
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request, *args, **kwargs):
         """Handle password reset confirmation"""
