@@ -5,6 +5,7 @@ from .models import (
     Province, Municipality, Barangay, Category, Listing,
     ListingImage, UserProfile, Favorite, Announcement
 )
+from .validators import ValidatedImageField
 
 
 class BarangaySerializer(serializers.ModelSerializer):
@@ -379,7 +380,7 @@ class ListingSerializer(serializers.ModelSerializer):
     barangay_details = BarangaySerializer(source='barangay', read_only=True)
     images = ListingImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
-        child=serializers.ImageField(),
+        child=ValidatedImageField(),
         write_only=True,
         required=False
     )
@@ -643,3 +644,8 @@ class AnnouncementListSerializer(serializers.ModelSerializer):
     def get_is_expired(self, obj):
         """Check if announcement has expired"""
         return obj.is_expired()
+
+
+class ProfilePictureSerializer(serializers.Serializer):
+    """Serializer for profile picture upload with validation"""
+    image = ValidatedImageField(required=True)

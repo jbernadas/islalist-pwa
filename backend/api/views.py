@@ -21,7 +21,7 @@ from .serializers import (
     ProvinceSerializer, ProvinceListSerializer, MunicipalitySerializer,
     BarangaySerializer,
     UserSerializer, PublicUserSerializer, UserRegistrationSerializer,
-    UserProfileUpdateSerializer,
+    UserProfileUpdateSerializer, ProfilePictureSerializer,
     CategorySerializer, ListingSerializer, ListingListSerializer,
     AnnouncementSerializer, AnnouncementListSerializer
 )
@@ -101,29 +101,12 @@ def user_profile_view(request):
 @permission_classes([IsAuthenticated])
 def upload_profile_picture(request):
     """API endpoint to upload/update profile picture"""
-    if 'image' not in request.FILES:
-        return Response(
-            {'error': 'No image file provided. Use "image" field.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    # Use serializer for validation
+    serializer = ProfilePictureSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    image_file = request.FILES['image']
-
-    # Validate file type
-    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-    if image_file.content_type not in allowed_types:
-        return Response(
-            {'error': f'Invalid file type. Allowed: {", ".join(allowed_types)}'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Validate file size (max 5MB)
-    max_size = 5 * 1024 * 1024  # 5MB
-    if image_file.size > max_size:
-        return Response(
-            {'error': 'File too large. Maximum size is 5MB.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    image_file = serializer.validated_data['image']
 
     try:
         # Get or create user profile
