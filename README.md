@@ -519,10 +519,17 @@ Deploy the `dist/` folder to any static hosting (Nginx, Netlify, Vercel, etc.).
 |----------|-------------|---------|
 | `VITE_API_URL` | Backend API URL | `http://localhost:8000` |
 
-## Detailed Documentation
+## Deep-Dive Documentation
 
-- **Backend**: See `backend/README.md` for detailed API documentation, systemd setup, and cron configuration
-- **Frontend**: See `frontend/README.md` for PWA configuration, project structure, and deployment options
+| Topic | Location |
+|-------|----------|
+| Settings configuration & priority | [backend/README.md](backend/README.md) |
+| API curl examples | [backend/README.md](backend/README.md) |
+| Systemd services & timers | [backend/README.md](backend/README.md) |
+| Frontend project structure | [frontend/README.md](frontend/README.md) |
+| PWA configuration & icons | [frontend/README.md](frontend/README.md) |
+| Troubleshooting (service worker, API, build) | [frontend/README.md](frontend/README.md) |
+| Feature roadmap | [frontend/README.md](frontend/README.md) |
 
 ## Future Features
 
