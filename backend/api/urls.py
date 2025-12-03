@@ -19,6 +19,8 @@ urlpatterns = [
          name='register'),
     path('auth/logout/', views.logout_view, name='logout'),
     path('auth/profile/', views.user_profile_view, name='profile'),
+    path('auth/profile/picture/', views.upload_profile_picture, name='profile-picture-upload'),
+    path('auth/profile/picture/delete/', views.delete_profile_picture, name='profile-picture-delete'),
 
     # Public user profile endpoints
     path('users/<str:username>/', views.public_user_profile_view, name='public-user-profile'),

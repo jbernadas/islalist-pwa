@@ -88,6 +88,68 @@ def user_profile_view(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_profile_picture(request):
+    """API endpoint to upload/update profile picture"""
+    if 'image' not in request.FILES:
+        return Response(
+            {'error': 'No image file provided. Use "image" field.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    image_file = request.FILES['image']
+
+    # Validate file type
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if image_file.content_type not in allowed_types:
+        return Response(
+            {'error': f'Invalid file type. Allowed: {", ".join(allowed_types)}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Validate file size (max 5MB)
+    max_size = 5 * 1024 * 1024  # 5MB
+    if image_file.size > max_size:
+        return Response(
+            {'error': 'File too large. Maximum size is 5MB.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        # Get or create user profile
+        profile, created = request.user.profile, False
+    except Exception:
+        from .models import UserProfile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    # Process and save the profile picture
+    profile.set_profile_picture(image_file)
+
+    # Return updated user data
+    user_serializer = UserSerializer(request.user)
+    return Response(user_serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_profile_picture(request):
+    """API endpoint to delete profile picture"""
+    try:
+        profile = request.user.profile
+        profile.delete_profile_pictures()
+        profile.save()
+
+        # Return updated user data
+        user_serializer = UserSerializer(request.user)
+        return Response(user_serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def public_user_profile_view(request, username):

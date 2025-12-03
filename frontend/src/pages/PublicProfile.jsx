@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usersAPI, authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,6 +22,8 @@ const PublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [filter, setFilter] = useState('all'); // all, listings, announcements
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Edit form state
   const [formData, setFormData] = useState({
@@ -89,6 +91,61 @@ const PublicProfile = () => {
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
+    }
+  };
+
+  const handleProfilePictureClick = () => {
+    if (isOwnProfile && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('Image file is too large. Maximum size is 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingPicture(true);
+      await authAPI.uploadProfilePicture(file);
+      fetchProfileData(); // Refresh profile data
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert(error.response?.data?.error || 'Failed to upload profile picture. Please try again.');
+    } finally {
+      setUploadingPicture(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    if (!confirm('Are you sure you want to remove your profile picture?')) return;
+
+    try {
+      setUploadingPicture(true);
+      await authAPI.deleteProfilePicture();
+      fetchProfileData(); // Refresh profile data
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      alert('Failed to remove profile picture. Please try again.');
+    } finally {
+      setUploadingPicture(false);
     }
   };
 
@@ -209,13 +266,53 @@ const PublicProfile = () => {
         {/* Profile Header */}
         <div className="profile-header">
           <div className="profile-info">
-            {profile.profile_picture && (
-              <img
-                src={profile.profile_picture}
-                alt={`${profile.first_name} ${profile.last_name}`}
-                className="profile-picture"
-              />
-            )}
+            <div className={`profile-picture-container ${isOwnProfile ? 'editable' : ''}`}>
+              {profile.profile_picture ? (
+                <img
+                  src={profile.profile_picture_medium || profile.profile_picture}
+                  alt={`${profile.first_name} ${profile.last_name}`}
+                  className="profile-picture"
+                  onClick={handleProfilePictureClick}
+                />
+              ) : (
+                <div
+                  className="profile-picture-placeholder"
+                  onClick={handleProfilePictureClick}
+                >
+                  {profile.first_name?.[0]?.toUpperCase() || profile.username?.[0]?.toUpperCase() || '?'}
+                </div>
+              )}
+              {isOwnProfile && (
+                <>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleProfilePictureChange}
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    style={{ display: 'none' }}
+                  />
+                  <div className="profile-picture-overlay" onClick={handleProfilePictureClick}>
+                    {uploadingPicture ? (
+                      <span className="uploading-text">Uploading...</span>
+                    ) : (
+                      <span className="change-photo-text">Change Photo</span>
+                    )}
+                  </div>
+                  {profile.profile_picture && !uploadingPicture && (
+                    <button
+                      className="btn-remove-picture"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProfilePicture();
+                      }}
+                      title="Remove profile picture"
+                    >
+                      ×
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
             <div className="profile-details">
               <h1>
                 {profile.first_name} {profile.last_name}

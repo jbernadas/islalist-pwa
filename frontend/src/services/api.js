@@ -86,6 +86,18 @@ export const authAPI = {
       new_password1,
       new_password2
     }),
+
+  // Profile picture
+  uploadProfilePicture: (imageFile) => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    return api.post('/api/auth/profile/picture/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  deleteProfilePicture: () => api.delete('/api/auth/profile/picture/delete/'),
 };
 
 // Public user profiles API
