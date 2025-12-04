@@ -348,42 +348,46 @@ const BarangayBulletinBoard = () => {
                 <span className="stat-label">Announcements</span>
               </div>
             </div>
-
-            {/* Activity Feed - Combined Recent Activity */}
-            <div className="activity-feed">
-              <h2>⚡ Recent Activity</h2>
-              <div className="activity-list">
-                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
-                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
-                  .sort((a, b) => new Date(b.time) - new Date(a.time))
-                  .slice(0, 8)
-                  .map((item) => (
-                    <div
-                      key={`${item.type}-${item.id}`}
-                      className="activity-item"
-                      onClick={() => navigate(`/${item.province_slug}/${item.municipality_slug}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
-                    >
-                      <div className="activity-icon">
-                        {item.type === 'listing' ? '🛒' : '📢'}
-                      </div>
-                      <div className="activity-content">
-                        <div className="activity-title">{item.title}</div>
-                        <div className="activity-meta">
-                          {item.type === 'listing' && item.price && (
-                            <span className="activity-price">{formatPrice(item.price)}</span>
-                          )}
-                          {item.type === 'announcement' && (
-                            <span className={`activity-priority priority-${item.priority}`}>
-                              {getPriorityIcon(item.priority)} {item.priority}
-                            </span>
-                          )}
-                          <span className="activity-time">{getTimeAgo(item.time)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            {/* Quick Actions */}
+            {isAuthenticated && (
+              <div className="quick-actions">
+                <h3>Quick Actions</h3>
+                <div className="actions-grid d-flex justify-content-start flex-column">
+                  <Link
+                    to={`/${province}/${municipality}/create-listing`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">📝 </span>
+                    <span className="action-title">Post a Listing: </span>
+                    <span className="action-description">Sell or rent items in {displayBarangay}</span>
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/create-announcement`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">📢 </span>
+                    <span className="action-title">Make an Announcement: </span>
+                    <span className="action-description">Share news with the barangay</span>
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/listings?barangay=${barangay}`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">🔍 </span>
+                    <span className="action-title">Browse Listings: </span>
+                    <span className="action-description">View all listings in {displayBarangay}</span>
+                  </Link>
+                  <Link
+                    to={`/${province}/${municipality}/announcements?barangay=${barangay}`}
+                    className="action-card"
+                  >
+                    <span className="action-icon">📋 </span>
+                    <span className="action-title">View Announcements: </span>
+                    <span className="action-description">See all announcements</span>
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="col-md-9">
@@ -539,47 +543,41 @@ const BarangayBulletinBoard = () => {
             </div>
           </div>
         )}
-
-            {/* Quick Actions */}
-            {isAuthenticated && (
-              <div className="quick-actions">
-                <h3>Quick Actions</h3>
-                <div className="actions-grid">
-                  <Link
-                    to={`/${province}/${municipality}/create-listing`}
-                    className="action-card"
-                  >
-                    <span className="action-icon">📝</span>
-                    <span className="action-title">Post a Listing</span>
-                    <span className="action-description">Sell or rent items in {displayBarangay}</span>
-                  </Link>
-                  <Link
-                    to={`/${province}/${municipality}/create-announcement`}
-                    className="action-card"
-                  >
-                    <span className="action-icon">📢</span>
-                    <span className="action-title">Make an Announcement</span>
-                    <span className="action-description">Share news with the barangay</span>
-                  </Link>
-                  <Link
-                    to={`/${province}/${municipality}/listings?barangay=${barangay}`}
-                    className="action-card"
-                  >
-                    <span className="action-icon">🔍</span>
-                    <span className="action-title">Browse Listings</span>
-                    <span className="action-description">View all listings in {displayBarangay}</span>
-                  </Link>
-                  <Link
-                    to={`/${province}/${municipality}/announcements?barangay=${barangay}`}
-                    className="action-card"
-                  >
-                    <span className="action-icon">📋</span>
-                    <span className="action-title">View Announcements</span>
-                    <span className="action-description">See all announcements</span>
-                  </Link>
+          </div>
+        </div>
+        {/* Activity Feed - Combined Recent Activity */}
+        <div className="activity-feed">
+          <h2>⚡ Recent Activity</h2>
+          <div className="activity-list d-flex justify-content-start flex-row">
+            {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
+              ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
+              .sort((a, b) => new Date(b.time) - new Date(a.time))
+              .slice(0, 8)
+              .map((item) => (
+                <div
+                  key={`${item.type}-${item.id}`}
+                  className="activity-item"
+                  onClick={() => navigate(`/${item.province_slug}/${item.municipality_slug}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                >
+                  <div className="activity-icon">
+                    {item.type === 'listing' ? '🛒' : '📢'}
+                  </div>
+                  <div className="activity-content">
+                    <div className="activity-title">{item.title}</div>
+                    <div className="activity-meta">
+                      {item.type === 'listing' && item.price && (
+                        <span className="activity-price">{formatPrice(item.price)}</span>
+                      )}
+                      {item.type === 'announcement' && (
+                        <span className={`activity-priority priority-${item.priority}`}>
+                          {getPriorityIcon(item.priority)} {item.priority}
+                        </span>
+                      )}
+                      <span className="activity-time">{getTimeAgo(item.time)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
           </div>
         </div>
       </div>
