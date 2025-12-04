@@ -177,4 +177,26 @@ export const announcementsAPI = {
   getMyAnnouncements: () => api.get('/api/announcements/my_announcements/'),
 };
 
+// Moderator API
+export const modAPI = {
+  // Check if user is a moderator
+  checkStatus: () => api.get('/api/mod/status/'),
+
+  // Dashboard stats
+  getStats: () => api.get('/api/mod/stats/'),
+
+  // Users in mod's province
+  getUsers: () => api.get('/api/mod/users/'),
+
+  // Listings management
+  getListings: (params) => api.get('/api/mod/listings/', { params }),
+  updateListingStatus: (id, status) => api.patch(`/api/mod/listings/${id}/`, { status }),
+  deleteListing: (id) => api.delete(`/api/mod/listings/${id}/delete/`),
+
+  // Announcements management
+  getAnnouncements: (params) => api.get('/api/mod/announcements/', { params }),
+  updateAnnouncementStatus: (id, isActive) => api.patch(`/api/mod/announcements/${id}/`, { is_active: isActive }),
+  deleteAnnouncement: (id) => api.delete(`/api/mod/announcements/${id}/delete/`),
+};
+
 export default api;

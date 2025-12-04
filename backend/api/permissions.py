@@ -43,3 +43,48 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         # Check for 'seller' (listings) or 'author' (announcements)
         owner = getattr(obj, 'seller', None) or getattr(obj, 'author', None)
         return owner == request.user
+
+
+class IsProvinceModerator(permissions.BasePermission):
+    """
+    Permission class for Province Moderators.
+    Checks if the user has an active ProvinceModerator assignment.
+    """
+    message = "You must be an active province moderator to access this resource."
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Check if user has an active province moderator assignment
+        return hasattr(request.user, 'province_moderator') and \
+               request.user.province_moderator.is_active
+
+    def get_mod_province(self, user):
+        """Helper to get the moderator's province"""
+        if hasattr(user, 'province_moderator') and user.province_moderator.is_active:
+            return user.province_moderator.province
+        return None
+
+
+class IsProvinceModeratorForObject(permissions.BasePermission):
+    """
+    Object-level permission for Province Moderators.
+    Checks if the object belongs to the moderator's province.
+    """
+    message = "You can only moderate content within your assigned province."
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Check if user is an active province moderator
+        if not hasattr(request.user, 'province_moderator') or \
+           not request.user.province_moderator.is_active:
+            return False
+
+        mod_province = request.user.province_moderator.province
+
+        # Check if object's province matches mod's province
+        obj_province = getattr(obj, 'province', None)
+        return obj_province == mod_province

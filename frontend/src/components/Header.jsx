@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { modAPI } from '../services/api';
 import { slugify } from '../utils/slugify';
 import './Header.css';
 
@@ -19,10 +20,28 @@ const Header = ({
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState(null); // 'post' | 'user' | null
+  const [isModerator, setIsModerator] = useState(false);
 
   const toggleDropdown = (dropdownName) => {
     setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
   };
+
+  // Check if user is a moderator
+  useEffect(() => {
+    const checkModStatus = async () => {
+      if (!isAuthenticated) {
+        setIsModerator(false);
+        return;
+      }
+      try {
+        const response = await modAPI.checkStatus();
+        setIsModerator(response.data.is_moderator);
+      } catch (err) {
+        setIsModerator(false);
+      }
+    };
+    checkModStatus();
+  }, [isAuthenticated]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -224,6 +243,19 @@ const Header = ({
                     ⭐ My Favorites
                   </button>
                 </li>
+                {isModerator && (
+                  <li>
+                    <button
+                      className="dropdown-item dropdown-item-mod"
+                      onClick={() => {
+                        navigate('/mod');
+                        setActiveDropdown(null);
+                      }}
+                    >
+                      🛡️ Mod Dashboard
+                    </button>
+                  </li>
+                )}
                 <li>
                   <button
                     className="dropdown-item dropdown-item-danger"

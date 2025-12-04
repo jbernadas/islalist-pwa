@@ -36,9 +36,15 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-# Disable throttling in development
+# Disable default throttling in development but keep rates for custom throttle classes
 REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
-REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {}
+# Keep throttle rates high for development (custom throttle classes still need these defined)
+REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
+    'anon': '10000/hour',
+    'user': '10000/hour',
+    'auth': '10000/minute',
+    'password_reset': '10000/hour',
+}
 
 # Development-specific settings
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

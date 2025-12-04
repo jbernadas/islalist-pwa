@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { usersAPI, authAPI } from '../services/api';
+import { usersAPI, authAPI, modAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   buildListingURL,
@@ -25,6 +25,9 @@ const PublicProfile = () => {
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Moderator state
+  const [modStatus, setModStatus] = useState(null);
+
   // Edit form state
   const [formData, setFormData] = useState({
     first_name: '',
@@ -38,7 +41,27 @@ const PublicProfile = () => {
 
   useEffect(() => {
     fetchProfileData();
+    checkModStatus();
   }, [username]);
+
+  const checkModStatus = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await modAPI.checkStatus();
+      setModStatus(response.data);
+    } catch (err) {
+      // User is not a moderator, that's fine
+      setModStatus({ is_moderator: false });
+    }
+  };
+
+  // Check if current user can moderate this content (is mod for the user's province)
+  const canModerate = (post) => {
+    if (!modStatus?.is_moderator || !modStatus?.province) return false;
+    // Check if the post's province matches the mod's province
+    return post.province_name === modStatus.province.name ||
+           post.province_slug === modStatus.province.slug;
+  };
 
   const fetchProfileData = async () => {
     try {
@@ -185,6 +208,57 @@ const PublicProfile = () => {
     } catch (error) {
       console.error('Error deleting announcement:', error);
       alert('Failed to delete announcement. Please try again.');
+    }
+  };
+
+  // Moderator actions
+  const handleModListingStatusChange = async (id, newStatus) => {
+    const action = newStatus === 'hidden' ? 'unpublish' : 'publish';
+    if (!confirm(`Are you sure you want to ${action} this listing?`)) return;
+
+    try {
+      await modAPI.updateListingStatus(id, newStatus);
+      fetchProfileData();
+    } catch (error) {
+      console.error('Error updating listing status:', error);
+      alert('Failed to update listing status.');
+    }
+  };
+
+  const handleModListingDelete = async (id, title) => {
+    if (!confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`)) return;
+
+    try {
+      await modAPI.deleteListing(id);
+      fetchProfileData();
+    } catch (error) {
+      console.error('Error deleting listing:', error);
+      alert('Failed to delete listing.');
+    }
+  };
+
+  const handleModAnnouncementStatusChange = async (id, isActive) => {
+    const action = isActive ? 'publish' : 'unpublish';
+    if (!confirm(`Are you sure you want to ${action} this announcement?`)) return;
+
+    try {
+      await modAPI.updateAnnouncementStatus(id, isActive);
+      fetchProfileData();
+    } catch (error) {
+      console.error('Error updating announcement status:', error);
+      alert('Failed to update announcement status.');
+    }
+  };
+
+  const handleModAnnouncementDelete = async (id, title) => {
+    if (!confirm(`Are you sure you want to permanently delete "${title}"? This cannot be undone.`)) return;
+
+    try {
+      await modAPI.deleteAnnouncement(id);
+      fetchProfileData();
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      alert('Failed to delete announcement.');
     }
   };
 
@@ -502,6 +576,34 @@ const PublicProfile = () => {
                           </button>
                         </div>
                       )}
+
+                      {/* Moderator Actions */}
+                      {!isOwnProfile && canModerate(post) && (
+                        <div className="post-actions mod-actions">
+                          <span className="mod-label">Mod:</span>
+                          {post.status === 'active' ? (
+                            <button
+                              onClick={() => handleModListingStatusChange(post.id, 'hidden')}
+                              className="btn-mod-unpublish"
+                            >
+                              Unpublish
+                            </button>
+                          ) : post.status === 'hidden' ? (
+                            <button
+                              onClick={() => handleModListingStatusChange(post.id, 'active')}
+                              className="btn-mod-publish"
+                            >
+                              Publish
+                            </button>
+                          ) : null}
+                          <button
+                            onClick={() => handleModListingDelete(post.id, post.title)}
+                            className="btn-mod-delete"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -557,6 +659,34 @@ const PublicProfile = () => {
                             className="btn-delete"
                           >
                             🗑️ Delete
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Moderator Actions */}
+                      {!isOwnProfile && canModerate(post) && (
+                        <div className="post-actions mod-actions">
+                          <span className="mod-label">Mod:</span>
+                          {post.is_active ? (
+                            <button
+                              onClick={() => handleModAnnouncementStatusChange(post.id, false)}
+                              className="btn-mod-unpublish"
+                            >
+                              Unpublish
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleModAnnouncementStatusChange(post.id, true)}
+                              className="btn-mod-publish"
+                            >
+                              Publish
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleModAnnouncementDelete(post.id, post.title)}
+                            className="btn-mod-delete"
+                          >
+                            Delete
                           </button>
                         </div>
                       )}

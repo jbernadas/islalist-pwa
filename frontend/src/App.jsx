@@ -22,6 +22,7 @@ import MyPosts from './pages/MyPosts';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
+import ModDashboard from './pages/ModDashboard';
 
 function App() {
   return (
@@ -58,6 +59,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <Favorites />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Moderator Dashboard - requires authentication */}
+          <Route
+            path="/mod"
+            element={
+              <ProtectedRoute>
+                <ModDashboard />
               </ProtectedRoute>
             }
           />
