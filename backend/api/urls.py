@@ -27,6 +27,9 @@ urlpatterns = [
     path('users/<str:username>/listings/', views.public_user_listings_view, name='public-user-listings'),
     path('users/<str:username>/announcements/', views.public_user_announcements_view, name='public-user-announcements'),
 
+    # Location search endpoint
+    path('locations/search/', views.location_search, name='location-search'),
+
     # Include router URLs
     path('', include(router.urls)),
 ]

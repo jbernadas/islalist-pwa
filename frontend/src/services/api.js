@@ -114,6 +114,11 @@ export const provincesAPI = {
   getMunicipalities: (slug) => api.get(`/api/provinces/${slug}/municipalities/`),
 };
 
+// Locations API (search)
+export const locationsAPI = {
+  search: (query) => api.get('/api/locations/search/', { params: { q: query } }),
+};
+
 // Municipalities API
 export const municipalitiesAPI = {
   getAll: (params) => api.get('/api/municipalities/', { params }),

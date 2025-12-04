@@ -230,7 +230,15 @@ const Province = () => {
 
         {/* Back to All Provinces */}
         <div className="back-link">
-          <Link to="/">← View All Provinces</Link>
+          <Link
+            to="/"
+            onClick={() => {
+              localStorage.removeItem('lastProvince');
+              localStorage.removeItem('lastMunicipality');
+            }}
+          >
+            ← View All Provinces
+          </Link>
         </div>
       </div>
     </div>

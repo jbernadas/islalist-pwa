@@ -313,6 +313,58 @@ class BarangayViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ['municipality']
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def location_search(request):
+    """
+    Search for provinces and municipalities by name.
+    Returns up to 8 results combining both types.
+
+    Query params:
+        q: Search query (min 2 characters)
+    """
+    query = request.query_params.get('q', '').strip()
+
+    if len(query) < 2:
+        return Response([])
+
+    # Search provinces (limit 4)
+    provinces = Province.objects.filter(
+        active=True,
+        name__icontains=query
+    ).values('id', 'name', 'slug')[:4]
+
+    province_results = [{
+        'type': 'province',
+        'id': p['id'],
+        'name': p['name'],
+        'slug': p['slug'],
+        'displayText': p['name']
+    } for p in provinces]
+
+    # Search municipalities (limit 4)
+    municipalities = Municipality.objects.filter(
+        active=True,
+        name__icontains=query
+    ).select_related('province').values(
+        'id', 'name', 'slug', 'province__name', 'province__slug'
+    )[:4]
+
+    municipality_results = [{
+        'type': 'municipality',
+        'id': m['id'],
+        'name': m['name'],
+        'slug': m['slug'],
+        'provinceName': m['province__name'],
+        'provinceSlug': m['province__slug'],
+        'displayText': f"{m['name']}, {m['province__name']}"
+    } for m in municipalities]
+
+    # Combine and limit to 8 total results
+    results = province_results + municipality_results
+    return Response(results[:8])
+
+
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint for viewing categories"""
     queryset = Category.objects.filter(active=True, parent=None)

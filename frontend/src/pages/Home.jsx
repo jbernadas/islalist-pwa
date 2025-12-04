@@ -3,18 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { slugify } from '../utils/slugify';
-import api from '../services/api';
+import api, { locationsAPI } from '../services/api';
 import './Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
   const [provinces, setProvinces] = useState([]);
-  const [allMunicipalities, setAllMunicipalities] = useState([]);
   const [provincesLoading, setProvincesLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const searchRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   // Featured major cities across Philippines
   // Note: City names must match exactly with database entries
@@ -72,7 +73,13 @@ const Home = () => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      // Clear search timeout on unmount
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, []);
 
   const fetchData = async () => {
@@ -96,9 +103,6 @@ const Home = () => {
         const provincesData = JSON.parse(cachedProvinces);
         setProvinces(provincesData);
         setProvincesLoading(false);
-
-        // Fetch municipalities in background for cached provinces
-        fetchMunicipalities(provincesData);
       } else {
         // Fetch provinces fresh
         const provincesResponse = await api.get('/api/provinces/');
@@ -114,9 +118,6 @@ const Home = () => {
 
         setProvinces(provincesData);
         setProvincesLoading(false);
-
-        // Fetch municipalities in background
-        fetchMunicipalities(provincesData);
       }
 
     } catch (error) {
@@ -125,92 +126,43 @@ const Home = () => {
     }
   };
 
-  const fetchMunicipalities = async (provincesData) => {
-    try {
-      const now = Date.now();
-      const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-
-      // Check cache for municipalities
-      const cachedMunicipalities = localStorage.getItem('all_municipalities');
-      const munCacheTime = localStorage.getItem('municipalities_cache_time');
-
-      if (cachedMunicipalities && munCacheTime && (now - parseInt(munCacheTime)) < cacheExpiry) {
-        // Use cached municipalities
-        setAllMunicipalities(JSON.parse(cachedMunicipalities));
-        return;
-      }
-
-      // Fetch all municipalities in background (non-blocking)
-      const municipalitiesPromises = provincesData.map(async (province) => {
-        try {
-          const response = await api.get(`/api/provinces/${province.slug}/municipalities/`);
-          return response.data.map(mun => ({
-            ...mun,
-            provinceName: province.name,
-            provinceSlug: province.slug
-          }));
-        } catch (error) {
-          console.error(`Error fetching municipalities for ${province.name}:`, error);
-          return [];
-        }
-      });
-
-      const municipalitiesArrays = await Promise.all(municipalitiesPromises);
-      const allMuns = municipalitiesArrays.flat();
-
-      // Cache municipalities
-      localStorage.setItem('all_municipalities', JSON.stringify(allMuns));
-      localStorage.setItem('municipalities_cache_time', now.toString());
-
-      setAllMunicipalities(allMuns);
-    } catch (error) {
-      console.error('Error fetching municipalities:', error);
-    }
-  };
-
   const handleSearch = (query) => {
     setSearchQuery(query);
 
-    if (!query.trim()) {
+    // Clear any pending search timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!query.trim() || query.trim().length < 2) {
       setSearchResults([]);
       setShowAutocomplete(false);
+      setSearchLoading(false);
       return;
     }
 
-    const lowerQuery = query.toLowerCase();
-
-    // Search provinces
-    const provinceResults = provinces
-      .filter(p => p.name.toLowerCase().includes(lowerQuery))
-      .map(p => ({
-        type: 'province',
-        name: p.name,
-        slug: p.slug,
-        displayText: p.name
-      }));
-
-    // Search municipalities
-    const municipalityResults = allMunicipalities
-      .filter(m => m.name.toLowerCase().includes(lowerQuery))
-      .map(m => ({
-        type: 'municipality',
-        name: m.name,
-        provinceName: m.provinceName,
-        provinceSlug: m.provinceSlug,
-        displayText: `${m.name}, ${m.provinceName}`
-      }));
-
-    const combinedResults = [...provinceResults, ...municipalityResults].slice(0, 8);
-    setSearchResults(combinedResults);
-    setShowAutocomplete(combinedResults.length > 0);
+    // Debounce the API call by 300ms
+    setSearchLoading(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await locationsAPI.search(query.trim());
+        setSearchResults(response.data);
+        setShowAutocomplete(response.data.length > 0);
+      } catch (error) {
+        console.error('Error searching locations:', error);
+        setSearchResults([]);
+        setShowAutocomplete(false);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
   };
 
   const handleResultClick = (result) => {
     if (result.type === 'province') {
       navigate(`/${result.slug}`);
     } else {
-      const munSlug = slugify(result.name);
-      navigate(`/${result.provinceSlug}/${munSlug}`);
+      navigate(`/${result.provinceSlug}/${result.slug}`);
     }
     setSearchQuery('');
     setShowAutocomplete(false);
