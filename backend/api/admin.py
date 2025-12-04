@@ -1,34 +1,83 @@
 from django.contrib import admin
-from .models import Province, Municipality, Barangay, Category, Listing, ListingImage, UserProfile, Announcement
+from django.contrib import messages
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
+from .models import Province, Municipality, Barangay, Category, Listing, ListingImage, UserProfile, Announcement, ProvinceModerator
+
+
+# Unregister the default User admin and re-register with search_fields for autocomplete
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    """Custom User admin with search_fields for autocomplete support"""
+    search_fields = ['username', 'email', 'first_name', 'last_name']
 
 
 @admin.register(Province)
 class ProvinceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'active', 'featured', 'municipality_count']
+    """
+    Province admin - read-only since provinces come from PSGC data (provinces_data.json).
+    Only 'active' and 'featured' flags can be modified.
+    """
+    list_display = ['name', 'slug', 'psgc_code', 'active', 'featured', 'municipality_count']
     list_filter = ['active', 'featured']
-    search_fields = ['name', 'description']
-    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ['name', 'psgc_code']
+    readonly_fields = ['name', 'slug', 'psgc_code', 'description', 'created_at', 'updated_at']
 
     def municipality_count(self, obj):
         return obj.municipalities.filter(active=True).count()
     municipality_count.short_description = 'Cities/Municipalities'
 
+    def has_add_permission(self, request):
+        """Provinces cannot be added - they come from PSGC data"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Provinces cannot be deleted - they come from PSGC data"""
+        return False
+
 
 @admin.register(Municipality)
 class MunicipalityAdmin(admin.ModelAdmin):
-    list_display = ['name', 'province', 'slug', 'active']
-    list_filter = ['active', 'province']
-    search_fields = ['name', 'province__name']
-    prepopulated_fields = {'slug': ('name',)}
+    """
+    Municipality admin - read-only since municipalities come from PSGC data.
+    Only 'active' flag can be modified.
+    """
+    list_display = ['name', 'province', 'slug', 'psgc_code', 'type', 'active']
+    list_filter = ['active', 'type', 'province']
+    search_fields = ['name', 'province__name', 'psgc_code']
+    readonly_fields = ['name', 'slug', 'psgc_code', 'province', 'type', 'created_at', 'updated_at']
+
+    def has_add_permission(self, request):
+        """Municipalities cannot be added - they come from PSGC data"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Municipalities cannot be deleted - they come from PSGC data"""
+        return False
 
 
 @admin.register(Barangay)
 class BarangayAdmin(admin.ModelAdmin):
+    """
+    Barangay admin - read-only since barangays come from PSGC data.
+    Only 'active' flag can be modified.
+    """
     list_display = ['name', 'municipality', 'psgc_code', 'slug', 'active']
     list_filter = ['active', 'municipality__province']
     search_fields = ['name', 'municipality__name', 'psgc_code']
-    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ['name', 'slug', 'psgc_code', 'municipality', 'created_at', 'updated_at']
     list_select_related = ['municipality', 'municipality__province']
+
+    def has_add_permission(self, request):
+        """Barangays cannot be added - they come from PSGC data"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Barangays cannot be deleted - they come from PSGC data"""
+        return False
 
 
 @admin.register(Category)
@@ -164,3 +213,77 @@ class AnnouncementAdmin(admin.ModelAdmin):
         """Optimize queryset with related fields"""
         queryset = super().get_queryset(request)
         return queryset.select_related('province', 'municipality', 'author')
+
+
+@admin.register(ProvinceModerator)
+class ProvinceModeratorAdmin(admin.ModelAdmin):
+    """
+    Admin interface for managing Province Moderators.
+    Only superusers can access this admin.
+    """
+    list_display = ['user', 'province', 'is_active', 'assigned_by', 'assigned_at']
+    list_filter = ['is_active', 'province', 'assigned_at']
+    search_fields = ['user__username', 'user__email', 'province__name']
+    readonly_fields = ['assigned_by', 'assigned_at']
+    autocomplete_fields = ['province']  # Only province uses autocomplete
+    ordering = ['province__name']
+
+    fieldsets = (
+        ('Assignment', {
+            'fields': ('user', 'province')
+        }),
+        ('Status', {
+            'fields': ('is_active', 'notes')
+        }),
+        ('Audit', {
+            'fields': ('assigned_by', 'assigned_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def has_module_permission(self, request):
+        """Only superusers can see this in admin index"""
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        """Only superusers can view"""
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        """Only superusers can add"""
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        """Only superusers can change"""
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        """Only superusers can delete"""
+        return request.user.is_superuser
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Remove add/change/delete/view buttons from user and province fields"""
+        form = super().get_form(request, obj, **kwargs)
+        # Remove buttons from user dropdown
+        form.base_fields['user'].widget.can_add_related = False
+        form.base_fields['user'].widget.can_change_related = False
+        form.base_fields['user'].widget.can_delete_related = False
+        form.base_fields['user'].widget.can_view_related = False
+        # Remove buttons from province autocomplete
+        form.base_fields['province'].widget.can_add_related = False
+        form.base_fields['province'].widget.can_change_related = False
+        form.base_fields['province'].widget.can_delete_related = False
+        form.base_fields['province'].widget.can_view_related = False
+        return form
+
+    def save_model(self, request, obj, form, change):
+        """Automatically set assigned_by to the current superuser"""
+        if not change:  # Only on create
+            obj.assigned_by = request.user
+        super().save_model(request, obj, form, change)
+
+        action = "updated" if change else "assigned"
+        messages.success(
+            request,
+            f"Successfully {action} {obj.user.username} as moderator for {obj.province.name}"
+        )

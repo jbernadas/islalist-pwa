@@ -688,3 +688,49 @@ class Announcement(models.Model):
         if not self.expiry_date:
             return False
         return timezone.now().date() > self.expiry_date
+
+
+class ProvinceModerator(models.Model):
+    """
+    Province-level moderator assignment.
+    Only super admins (is_superuser=True) can assign province moderators.
+    Each province can have only one moderator, and each user can only moderate one province.
+    """
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='province_moderator',
+        help_text="User assigned as province moderator"
+    )
+    province = models.OneToOneField(
+        Province,
+        on_delete=models.CASCADE,
+        related_name='moderator',
+        help_text="Province this user moderates"
+    )
+    assigned_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='mod_assignments',
+        limit_choices_to={'is_superuser': True},
+        help_text="Super admin who assigned this moderator"
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this moderator is currently active"
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Optional notes about this assignment"
+    )
+
+    class Meta:
+        verbose_name = "Province Moderator"
+        verbose_name_plural = "Province Moderators"
+        ordering = ['province__name']
+
+    def __str__(self):
+        status = "active" if self.is_active else "inactive"
+        return f"{self.user.username} - {self.province.name} ({status})"
