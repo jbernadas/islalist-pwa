@@ -183,7 +183,7 @@ const AnnouncementDetail = () => {
         <div className="announcement-detail-meta">
           <p className="meta-item">
             <strong>📍 Location:</strong> {announcement.barangay_details?.name ? `${announcement.barangay_details.name}, ` : ''}
-            {announcement.municipality_name}, {announcement.province_name}
+            {announcement.municipality ? announcement.municipality_name + ", " : ""} {announcement.province_name}
           </p>
           <p className="meta-item">
             <strong>👤 Posted by:</strong>{' '}
