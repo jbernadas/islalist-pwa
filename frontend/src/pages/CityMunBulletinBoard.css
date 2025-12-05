@@ -141,6 +141,24 @@
   opacity: 0.95;
 }
 
+.bulletin-hero .hero-subtitle.clickable-subtitle {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.bulletin-hero .hero-subtitle.clickable-subtitle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
+.bulletin-hero .hero-subtitle.clickable-subtitle:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
 .bulletin-hero .hero-stats {
   display: flex;
   gap: 3rem;

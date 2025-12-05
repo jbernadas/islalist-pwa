@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocations } from '../hooks/useLocations';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
+import BarangayModal from '../components/BarangayModal';
 import './CityMunBulletinBoard.css';
 
 const BarangayBulletinBoard = () => {
@@ -17,6 +18,7 @@ const BarangayBulletinBoard = () => {
   const {
     provinces,
     municipalities,
+    barangays,
     currentProvince,
     currentMunicipality,
     currentBarangay,
@@ -31,6 +33,15 @@ const BarangayBulletinBoard = () => {
   const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
+  const [isBarangayModalOpen, setIsBarangayModalOpen] = useState(false);
+
+  const handleOpenBarangayModal = () => {
+    setIsBarangayModalOpen(true);
+  };
+
+  const handleCloseBarangayModal = () => {
+    setIsBarangayModalOpen(false);
+  };
 
   // Handle redirects
   useEffect(() => {
@@ -238,7 +249,26 @@ const BarangayBulletinBoard = () => {
           </div>
           <div className="hero-info text-end">
             <h1 className="hero-title">{displayBarangay}</h1>
-            <p className="hero-subtitle">{isManila ? "District Hub" : "Barangay Hub"}</p>
+            {barangays.length > 0 && (
+              <p
+                className="hero-subtitle clickable-subtitle"
+                onClick={handleOpenBarangayModal}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleOpenBarangayModal();
+                  }
+                }}
+                title={`Switch to another ${isManila ? 'district' : 'barangay'}`}
+              >
+               🡐 {isManila ? "District Hub" : "Barangay Hub"} 
+              </p>
+            )}
+            {barangays.length === 0 && (
+              <p className="hero-subtitle">{isManila ? "District Hub" : "Barangay Hub"}</p>
+            )}
           </div>
         </div>
       </div>
@@ -500,6 +530,17 @@ const BarangayBulletinBoard = () => {
           </div>
         </div>
       </div>
+
+      {/* Barangay Modal */}
+      <BarangayModal
+        isOpen={isBarangayModalOpen}
+        onClose={handleCloseBarangayModal}
+        barangays={barangays}
+        province={province}
+        municipality={municipality}
+        municipalityName={displayMunicipality}
+        isManila={isManila}
+      />
     </div>
   );
 };
