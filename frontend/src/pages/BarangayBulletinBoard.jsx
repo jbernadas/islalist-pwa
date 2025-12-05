@@ -329,7 +329,7 @@ const BarangayBulletinBoard = () => {
             )}
             <div className="back-link">
               <Link to={`${province}/${municipality}`}>
-                ← Back to {displayMunicipality}
+                🡐 Back to {displayMunicipality}
               </Link>
             </div>
           </div>
