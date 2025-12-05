@@ -259,7 +259,7 @@ const CityMunBulletinBoard = () => {
             >
               <div className="hero-stat-item">
                 <span className="hero-stat-number">{barangays.length}</span>
-                <span className="hero-stat-label">{isManila ? 'Districts' : 'Barangays'} →</span>
+                <span className="hero-stat-label">{isManila ? 'Districts' : 'Barangays'} 🡒</span>
               </div>
             </div>
           )}
@@ -283,7 +283,7 @@ const CityMunBulletinBoard = () => {
             </div>
             <div className="back-link">
               <Link to={`/${province}`}>
-                ← Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
+                🡐 Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
               </Link>
             </div>
           </div>
@@ -348,7 +348,7 @@ const CityMunBulletinBoard = () => {
                 <div className="section-header">
                   <h2>📢 Latest Announcements</h2>
                   <Link to={`/${province}/${municipality}/announcements`} className="view-all-link">
-                    View all {stats.announcements} →
+                    View all {stats.announcements} 🡒
                   </Link>
                 </div>
                 <div className="announcements-grid">
@@ -385,7 +385,7 @@ const CityMunBulletinBoard = () => {
                 <div className="section-header">
                   <h2>🏷️ Featured Listings</h2>
                   <Link to={`/${province}/${municipality}/listings`} className="view-all-link">
-                    View all {stats.listings} →
+                    View all {stats.listings} 🡒
                   </Link>
                 </div>
                 <div className="featured-listings-grid">

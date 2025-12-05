@@ -397,7 +397,7 @@ const BarangayBulletinBoard = () => {
             <div className="section-header">
               <h2>📢 Latest Announcements</h2>
               <Link to={`/${province}/${municipality}/announcements?barangay=${barangay}`} className="view-all-link">
-                View all {stats.announcements} →
+                View all {stats.announcements} 🡒
               </Link>
             </div>
             <div className="announcements-grid">
@@ -438,7 +438,7 @@ const BarangayBulletinBoard = () => {
             <div className="section-header">
               <h2>🛒 Featured Listings</h2>
               <Link to={`/${province}/${municipality}/listings?barangay=${barangay}`} className="view-all-link">
-                View all {stats.listings} →
+                View all {stats.listings} 🡒
               </Link>
             </div>
             <div className="featured-listings-grid">

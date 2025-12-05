@@ -138,7 +138,7 @@ const Province = () => {
               <h3>Buy & Sell Locally</h3>
               <p>Browse classifieds, find great deals, and sell your items to the island community</p>
               <Link to={`/${province}/all/listings`} className="feature-link">
-                View All Listings →
+                View All Listings 🡒
               </Link>
             </div>
 
@@ -147,7 +147,7 @@ const Province = () => {
               <h3>Community Updates</h3>
               <p>Stay informed with local announcements, alerts, and important community news</p>
               <Link to={`/${province}/all/announcements`} className="feature-link">
-                View Announcements →
+                View Announcements 🡒 
               </Link>
             </div>
 
@@ -185,7 +185,7 @@ const Province = () => {
               localStorage.removeItem('lastMunicipality');
             }}
           >
-            ← View All Provinces
+            🡐 View All Provinces
           </Link>
         </div>
       </div>
