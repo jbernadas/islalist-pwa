@@ -91,7 +91,8 @@ class CategoryAdmin(admin.ModelAdmin):
 class ListingImageInline(admin.TabularInline):
     model = ListingImage
     extra = 1
-    fields = ['image', 'order']
+    fields = ['image_medium', 'order']
+    readonly_fields = ['image_medium']
 
 
 @admin.register(Listing)
