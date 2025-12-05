@@ -154,7 +154,7 @@ const ModDashboard = () => {
           <div className="error-message">
             <h2>Access Denied</h2>
             <p>{error}</p>
-            <Link to="/" className="btn-back">Back to Home</Link>
+            <Link to="/" className="btn-back">🡐 Back to Home</Link>
           </div>
         </div>
       </div>

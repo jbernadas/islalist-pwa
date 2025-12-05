@@ -52,7 +52,7 @@ const ForgotPassword = () => {
 
           <div style={{ marginTop: '30px' }}>
             <Link to="/login" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none', width: '100%', textAlign: 'center' }}>
-              Back to Login
+              🡐 Back to Login
             </Link>
           </div>
 
