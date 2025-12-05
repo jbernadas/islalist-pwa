@@ -21,9 +21,11 @@ const Listings = () => {
     currentProvince,
     currentMunicipality,
     loading: loadingLocations,
+    loadingMunicipalities,
     loadingBarangays,
     displayProvinceName,
-    displayMunicipalityName
+    displayMunicipalityName,
+    buildAPIParams
   } = useLocations(province, municipality);
 
   const [listings, setListings] = useState([]);
@@ -63,10 +65,15 @@ const Listings = () => {
     // Always fetch categories (doesn't depend on provinces)
     fetchCategories();
 
-    // Only fetch listings if:
+    // Only fetch listings when location data is ready:
     // 1. No province in URL (will show all listings), OR
-    // 2. Provinces have been loaded (to avoid race condition)
-    if (!province || provinces.length > 0) {
+    // 2. Province data is loaded AND (municipality is 'all' OR currentMunicipality is loaded)
+    const isLocationReady = !province || (
+      provinces.length > 0 &&
+      (municipality === 'all' || !municipality || currentMunicipality)
+    );
+
+    if (isLocationReady) {
       fetchListings();
 
       // Pre-populate province filter from URL using actual province name from API data
@@ -77,7 +84,7 @@ const Listings = () => {
         }));
       }
     }
-  }, [province, municipality, provinces, currentProvince]);
+  }, [province, municipality, provinces, currentProvince, currentMunicipality]);
 
   const fetchCategories = async () => {
     try {
@@ -95,23 +102,17 @@ const Listings = () => {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const params = {};
 
+      // Use buildAPIParams from useLocations hook for PSGC-based location filtering
+      const locationParams = buildAPIParams();
+      const params = { ...locationParams };
+
+      // Add user-selected filters
       if (filters.search) params.search = filters.search;
       if (filters.category) params.category = filters.category;
       if (filters.property_type) params.property_type = filters.property_type;
       if (filters.min_price) params.min_price = filters.min_price;
       if (filters.max_price) params.max_price = filters.max_price;
-
-      // ALWAYS filter by province from URL using PSGC code
-      if (currentProvince?.psgc_code) {
-        params.province = currentProvince.psgc_code;
-      }
-
-      // Add city/municipality filter from URL if not 'all' using PSGC code
-      if (currentMunicipality?.psgc_code) {
-        params.municipality = currentMunicipality.psgc_code;
-      }
 
       // Add barangay filter using PSGC code if present
       if (filters.barangay) {

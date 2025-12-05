@@ -23,6 +23,8 @@ const mockGetMunicipalities = vi.fn();
 const mockToggleFavorite = vi.fn();
 const mockBarangaysGetAll = vi.fn();
 
+const mockMunicipalitiesGetDistrictsOrBarangays = vi.fn();
+
 vi.mock('../../services/api', () => ({
   listingsAPI: {
     getAll: (...args) => mockListingsGetAll(...args),
@@ -34,6 +36,9 @@ vi.mock('../../services/api', () => ({
   provincesAPI: {
     getAll: (...args) => mockProvincesGetAll(...args),
     getMunicipalities: (...args) => mockGetMunicipalities(...args)
+  },
+  municipalitiesAPI: {
+    getDistrictsOrBarangays: (...args) => mockMunicipalitiesGetDistrictsOrBarangays(...args)
   },
   barangaysAPI: {
     getAll: (...args) => mockBarangaysGetAll(...args)
@@ -95,6 +100,10 @@ describe('Listings Component - PSGC Filtering', () => {
     });
 
     mockBarangaysGetAll.mockResolvedValue({
+      data: []
+    });
+
+    mockMunicipalitiesGetDistrictsOrBarangays.mockResolvedValue({
       data: []
     });
   });
