@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { announcementsAPI, provincesAPI, barangaysAPI } from '../services/api';
+import { announcementsAPI } from '../services/api';
+import { useLocations } from '../hooks/useLocations';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './Listings.css';
@@ -8,12 +9,22 @@ import './Listings.css';
 const Announcements = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
+
+  // Use the centralized useLocations hook for all location data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const {
+    provinces,
+    municipalities,
+    barangays,
+    currentProvince,
+    currentMunicipality,
+    loadingBarangays,
+    displayProvinceName,
+    displayMunicipalityName
+  } = useLocations(province, municipality);
+
   const [announcements, setAnnouncements] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingBarangays, setLoadingBarangays] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     priority: '',
@@ -21,96 +32,25 @@ const Announcements = () => {
     barangay: '',
   });
 
+  // Handle redirects
   useEffect(() => {
     if (!province) {
       navigate('/');
       return;
     }
+  }, [province, navigate]);
 
-    localStorage.setItem('lastProvince', province);
-    if (municipality) {
-      localStorage.setItem('lastMunicipality', municipality);
-    }
-
-    fetchLocations();
-  }, [province]);
+  // Clear barangay filter when municipality changes
+  useEffect(() => {
+    setFilters(prev => ({ ...prev, barangay: '' }));
+  }, [municipality]);
 
   useEffect(() => {
-    // Only fetch announcements after provinces and municipalities are loaded
+    // Only fetch announcements after provinces are loaded
     if (provinces.length > 0) {
       fetchAnnouncements();
     }
-  }, [province, municipality, provinces, municipalities]);
-
-  // Fetch barangays for current municipality
-  useEffect(() => {
-    const fetchBarangays = async () => {
-      // Only fetch if we have both province and municipality, and municipality is not 'all'
-      if (!province || !municipality || municipality.toLowerCase() === 'all') {
-        setBarangays([]);
-        // Clear barangay filter when viewing all municipalities
-        setFilters(prev => ({ ...prev, barangay: '' }));
-        return;
-      }
-
-      // Find the municipality object to get its ID
-      const currentMun = municipalities.find(m => slugify(m.name) === municipality);
-      if (!currentMun) {
-        return;
-      }
-
-      try {
-        setLoadingBarangays(true);
-        const response = await barangaysAPI.getAll({ municipality: currentMun.id });
-        setBarangays(response.data || []);
-      } catch (error) {
-        console.error('Error fetching barangays:', error);
-        setBarangays([]);
-      } finally {
-        setLoadingBarangays(false);
-      }
-    };
-
-    fetchBarangays();
-    // Clear barangay filter when municipality changes
-    setFilters(prev => ({ ...prev, barangay: '' }));
-  }, [province, municipality, municipalities]);
-
-  const fetchLocations = async () => {
-    try {
-      const cachedProvinces = localStorage.getItem('provinces');
-      const cacheTime = localStorage.getItem('provinces_cache_time');
-      const now = Date.now();
-      const cacheExpiry = 24 * 60 * 60 * 1000;
-
-      if (cachedProvinces && cacheTime && (now - parseInt(cacheTime)) < cacheExpiry) {
-        const provincesData = JSON.parse(cachedProvinces);
-        setProvinces(provincesData);
-
-        const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
-        if (currentProv) {
-          const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
-          setMunicipalities(munResponse.data);
-        }
-      } else {
-        const response = await provincesAPI.getAll();
-        const provincesData = response.data.results || response.data;
-        setProvinces(Array.isArray(provincesData) ? provincesData : []);
-
-        localStorage.setItem('provinces', JSON.stringify(provincesData));
-        localStorage.setItem('provinces_cache_time', now.toString());
-
-        if (province) {
-          const munResponse = await provincesAPI.getMunicipalities(province.toLowerCase());
-          setMunicipalities(munResponse.data);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching locations:', error);
-      setProvinces([]);
-      setMunicipalities([]);
-    }
-  };
+  }, [province, municipality, provinces, currentProvince, currentMunicipality]);
 
   const fetchAnnouncements = async () => {
     try {
@@ -122,25 +62,19 @@ const Announcements = () => {
       if (filters.announcement_type) params.announcement_type = filters.announcement_type;
 
       // Filter by province using PSGC code
-      if (province) {
-        const currentProvince = provinces.find(p => p.slug === province);
-        if (currentProvince && currentProvince.psgc_code) {
-          params.province = currentProvince.psgc_code;
-        }
+      if (currentProvince?.psgc_code) {
+        params.province = currentProvince.psgc_code;
       }
 
       // Filter by municipality using PSGC code
-      if (municipality && municipality.toLowerCase() !== 'all') {
-        const currentMunicipality = municipalities.find(m => slugify(m.name) === municipality);
-        if (currentMunicipality && currentMunicipality.psgc_code) {
-          params.municipality = currentMunicipality.psgc_code;
-        }
+      if (currentMunicipality?.psgc_code) {
+        params.municipality = currentMunicipality.psgc_code;
       }
 
       // Filter by barangay using PSGC code if present
       if (filters.barangay) {
         const barangayObj = barangays.find(b => b.id === parseInt(filters.barangay));
-        if (barangayObj && barangayObj.psgc_code) {
+        if (barangayObj?.psgc_code) {
           params.barangay = barangayObj.psgc_code;
         }
       }
@@ -221,20 +155,10 @@ const Announcements = () => {
 
   const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
   const currentMunicipalities = municipalities.map(m => m.name);
-  
-  const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
 
-  const currentProvince = provinces.find(p => p.slug === province);
-  const displayProvince = currentProvince?.name || province
-    ?.split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-  const displayMunicipality = municipality === 'all'
-    ? 'All Cities/Municipalities'
-    : currentMunicipalityObj?.name || municipality
-        ?.split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+  // Display names are now provided by useLocations hook
+  const displayProvince = displayProvinceName;
+  const displayMunicipality = displayMunicipalityName;
 
   return (
     <div className="listings-container">

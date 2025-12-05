@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { slugify } from '../utils/slugify';
+import { useLocations } from '../hooks/useLocations';
 import ImageSelectorModal from '../components/ImageSelectorModal';
 import Header from '../components/Header';
 import './CreateListing.css';
@@ -10,15 +10,26 @@ import './CreateListing.css';
 const CreateListing = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
+
+  // Use the centralized useLocations hook for initial location data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const {
+    provinces,
+    municipalities: initialMunicipalities,
+    barangays: initialBarangays,
+    currentProvince,
+    currentMunicipality
+  } = useLocations(province, municipality);
+
   const [categories, setCategories] = useState([]);
-  const [provinces, setProvinces] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showImageModal, setShowImageModal] = useState(false);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
+  // Form-specific municipalities/barangays that can be changed by user
+  const [formMunicipalities, setFormMunicipalities] = useState([]);
+  const [formBarangays, setFormBarangays] = useState([]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -43,24 +54,42 @@ const CreateListing = () => {
     barangay: '',
   });
 
+  // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
-    fetchProvinces();
-    fetchMunicipalities();
-  }, [province, municipality]);
+  }, []);
+
+  // Set initial form values from URL-based location data
+  useEffect(() => {
+    if (currentProvince) {
+      setFormData(prev => ({ ...prev, province: currentProvince.id }));
+    }
+  }, [currentProvince]);
+
+  useEffect(() => {
+    if (currentMunicipality) {
+      setFormData(prev => ({ ...prev, municipality: currentMunicipality.id }));
+    }
+  }, [currentMunicipality]);
+
+  // Sync municipalities from hook to form state
+  useEffect(() => {
+    setFormMunicipalities(initialMunicipalities);
+  }, [initialMunicipalities]);
+
+  // Sync barangays from hook to form state
+  useEffect(() => {
+    setFormBarangays(initialBarangays);
+  }, [initialBarangays]);
 
   const fetchCategories = async () => {
     try {
       const response = await categoriesAPI.getAll();
-
-      // Handle both paginated and non-paginated responses
       const categoriesData = response.data.results || response.data;
-
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
       // Auto-select Real Estate category
       const realEstateCategory = categoriesData.find(cat => cat.name === 'Real Estate');
-
       if (realEstateCategory) {
         setFormData(prev => ({ ...prev, category: realEstateCategory.id }));
       }
@@ -69,66 +98,18 @@ const CreateListing = () => {
     }
   };
 
-  const fetchProvinces = async () => {
-    try {
-      const cachedProvinces = localStorage.getItem('provinces');
-      let provincesData;
-
-      if (cachedProvinces) {
-        provincesData = JSON.parse(cachedProvinces);
-      } else {
-        const response = await provincesAPI.getAll();
-        provincesData = response.data.results || response.data;
-        localStorage.setItem('provinces', JSON.stringify(provincesData));
-      }
-
-      setProvinces(provincesData);
-
-      // Find current province and set it
-      const currentProvince = provincesData.find(p => p.slug === province);
-      if (currentProvince) {
-        setFormData(prev => ({
-          ...prev,
-          province: currentProvince.id
-        }));
-      }
-    } catch (err) {
-      console.error('Error fetching provinces:', err);
-    }
-  };
-
-  const fetchMunicipalities = async () => {
-    try {
-      if (!province) return;
-
-      const response = await provincesAPI.getMunicipalities(province);
-      const municipalitiesData = response.data;
-      setMunicipalities(municipalitiesData);
-
-      // Find current municipality and set it
-      const currentMunicipality = municipalitiesData.find(m => slugify(m.name) === municipality);
-      if (currentMunicipality) {
-        setFormData(prev => ({ ...prev, municipality: currentMunicipality.id }));
-        // Fetch barangays for this municipality
-        fetchBarangays(currentMunicipality.id);
-      }
-    } catch (err) {
-      console.error('Error fetching municipalities:', err);
-    }
-  };
-
   const fetchBarangays = async (municipalityId) => {
     if (!municipalityId) {
-      setBarangays([]);
+      setFormBarangays([]);
       return;
     }
     try {
       const response = await barangaysAPI.getAll({ municipality: municipalityId });
       const barangaysData = response.data.results || response.data;
-      setBarangays(Array.isArray(barangaysData) ? barangaysData : []);
+      setFormBarangays(Array.isArray(barangaysData) ? barangaysData : []);
     } catch (err) {
       console.error('Error fetching barangays:', err);
-      setBarangays([]);
+      setFormBarangays([]);
     }
   };
 
@@ -143,7 +124,7 @@ const CreateListing = () => {
       setFormData(prev => ({ ...prev, barangay: '' }));
     } else if (name === 'municipality' && !value) {
       // Clear barangays if municipality is cleared
-      setBarangays([]);
+      setFormBarangays([]);
       setFormData(prev => ({ ...prev, barangay: '' }));
     }
   };
@@ -547,9 +528,10 @@ const CreateListing = () => {
                   // Fetch municipalities for selected province
                   if (selectedProvince) {
                     provincesAPI.getMunicipalities(selectedProvince.slug).then(response => {
-                      setMunicipalities(response.data);
+                      setFormMunicipalities(response.data);
                     });
                   }
+                  setFormBarangays([]);
                 }}
                 required
               >
@@ -572,7 +554,7 @@ const CreateListing = () => {
                 required
               >
                 <option value="">Select a municipality</option>
-                {municipalities.map(mun => (
+                {formMunicipalities.map(mun => (
                   <option key={mun.id} value={mun.id}>
                     {mun.name}
                   </option>
@@ -588,10 +570,10 @@ const CreateListing = () => {
               name="barangay"
               value={formData.barangay}
               onChange={handleChange}
-              disabled={barangays.length === 0}
+              disabled={formBarangays.length === 0}
             >
               <option value="">Select a barangay</option>
-              {barangays.map(barangay => (
+              {formBarangays.map(barangay => (
                 <option key={barangay.id} value={barangay.id}>
                   {barangay.name}
                 </option>

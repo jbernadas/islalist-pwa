@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { provincesAPI, municipalitiesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../services/api';
+import { listingsAPI, announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocations } from '../hooks/useLocations';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import BarangayModal from '../components/BarangayModal';
@@ -11,18 +12,28 @@ const CityMunBulletinBoard = () => {
   const { province, municipality } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [provinces, setProvinces] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use the centralized useLocations hook for all location data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const {
+    provinces,
+    municipalities,
+    barangays,
+    currentProvince,
+    currentMunicipality,
+    loading,
+    displayProvinceName,
+    displayMunicipalityName,
+    isManila
+  } = useLocations(province, municipality);
+
   const [recentListings, setRecentListings] = useState([]);
   const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
   const [isBarangayModalOpen, setIsBarangayModalOpen] = useState(false);
-  const [isManila, setIsManila] = useState(false); // Track if current municipality is City of Manila
 
-  // Fetch provinces and municipalities
+  // Handle redirects
   useEffect(() => {
     if (!province) {
       navigate('/siquijor');
@@ -34,108 +45,31 @@ const CityMunBulletinBoard = () => {
       navigate(`/${province}`, { replace: true });
       return;
     }
-
-    // Save current location to localStorage
-    localStorage.setItem('lastProvince', province);
-    if (municipality) {
-      localStorage.setItem('lastMunicipality', municipality);
-    }
-
-    const fetchLocations = async () => {
-      try {
-        setLoading(true);
-
-        // Try to get from cache first (24 hour cache)
-        const cachedProvinces = localStorage.getItem('provinces');
-        const cacheTime = localStorage.getItem('provinces_cache_time');
-        const cachedVersion = localStorage.getItem('provinces_cache_version');
-        const now = Date.now();
-        const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-        const CACHE_VERSION = '3'; // Must match Home.jsx version
-
-        if (cachedProvinces && cacheTime && cachedVersion === CACHE_VERSION && (now - parseInt(cacheTime)) < cacheExpiry) {
-          const provincesData = JSON.parse(cachedProvinces);
-          setProvinces(provincesData);
-
-          const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
-          if (currentProv) {
-            const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
-            setMunicipalities(munResponse.data);
-
-            // Fetch barangays/districts for the current municipality
-            const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
-            if (currentMun) {
-              // Check if this is City of Manila
-              setIsManila(currentMun.name === 'City of Manila');
-
-              // Use psgc_code if available (unique), otherwise fall back to slug
-              // This ensures municipalities with duplicate names (like Morong) work correctly
-              const municipalityIdentifier = currentMun.psgc_code || currentMun.slug;
-              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(municipalityIdentifier);
-              setBarangays(barResponse.data || []);
-            }
-          }
-        } else {
-          const response = await provincesAPI.getAll();
-          const provincesData = response.data.results || response.data;
-          setProvinces(Array.isArray(provincesData) ? provincesData : []);
-
-          localStorage.setItem('provinces', JSON.stringify(provincesData));
-          localStorage.setItem('provinces_cache_time', now.toString());
-          localStorage.setItem('provinces_cache_version', CACHE_VERSION);
-
-          if (province) {
-            const munResponse = await provincesAPI.getMunicipalities(province.toLowerCase());
-            setMunicipalities(munResponse.data);
-
-            // Fetch barangays/districts for the current municipality
-            const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
-            if (currentMun) {
-              // Check if this is City of Manila
-              setIsManila(currentMun.name === 'City of Manila');
-
-              // Use psgc_code if available (unique), otherwise fall back to slug
-              // This ensures municipalities with duplicate names (like Morong) work correctly
-              const municipalityIdentifier = currentMun.psgc_code || currentMun.slug;
-              const barResponse = await municipalitiesAPI.getDistrictsOrBarangays(municipalityIdentifier);
-              setBarangays(barResponse.data || []);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching locations:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLocations();
   }, [province, municipality, navigate]);
 
   // Fetch recent content
   useEffect(() => {
-    if (provinces.length > 0 && municipalities.length > 0) {
+    if (currentProvince && currentMunicipality) {
       fetchRecentContent();
     }
-  }, [province, municipality, provinces, municipalities]);
+  }, [currentProvince, currentMunicipality]);
 
   const fetchRecentContent = async () => {
     try {
-      const currentProvince = provinces.find(p => p.slug === province);
-      const currentMunicipality = municipalities.find(m => slugify(m.name) === municipality);
-
       if (!currentProvince || !currentMunicipality) return;
 
-      // Use PSGC codes for filtering (reliable, portable identifiers)
+      // Listings use municipality slug for text search in location field
+      // Also pass province to include province-wide listings
       const listingsParams = {
-        province: currentProvince.psgc_code,
-        municipality: currentMunicipality.psgc_code,
+        municipality: municipality,
+        province: province,
       };
 
-      // Announcements also use PSGC codes
+      // Announcements use province and municipality IDs (foreign keys)
+      // Backend will automatically include province-wide announcements
       const announcementsParams = {
-        province: currentProvince.psgc_code,
-        municipality: currentMunicipality.psgc_code,
+        province: currentProvince.id,
+        municipality: currentMunicipality.id,
       };
 
       // Fetch recent listings (limit 3)
@@ -152,9 +86,15 @@ const CityMunBulletinBoard = () => {
       const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
       const announcements = Array.isArray(announcementsData) ? announcementsData : [];
 
+      console.log('Fetched announcements:', announcements);
+      console.log('Announcements params:', announcementsParams);
+
       // Separate urgent from recent
       const urgent = announcements.filter(a => a.priority === 'urgent');
       const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 3);
+
+      console.log('Urgent announcements:', urgent);
+      console.log('Non-urgent announcements:', nonUrgent);
 
       setUrgentAnnouncements(urgent);
       setRecentAnnouncements(nonUrgent);
@@ -204,20 +144,9 @@ const CityMunBulletinBoard = () => {
     }
   };
 
-  // Get proper display names from API data
-  const currentProvince = provinces.find(p => p.slug === province);
-  const displayProvince = currentProvince?.name || province
-    ?.split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
-  const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
-  const displayMunicipality = municipality === 'all'
-    ? 'All Cities/Municipalities'
-    : currentMunicipalityObj?.name || municipality
-        ?.split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+  // Display names are now provided by useLocations hook
+  const displayProvince = displayProvinceName;
+  const displayMunicipality = displayMunicipalityName;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-PH', {
@@ -323,7 +252,7 @@ const CityMunBulletinBoard = () => {
                 <h1 className="hero-title">{displayMunicipality}</h1>
                 <p className="hero-subtitle">
                   {displayMunicipality !== "All Cities/Municipalities"
-                    ? (currentMunicipalityObj?.type === 'City' ? "City Hub" : "Municipality Hub")
+                    ? (currentMunicipality?.type === 'City' ? "City Hub" : "Municipality Hub")
                     : (displayProvince !== "Metro Manila (NCR)" ? displayProvince + " Provincial Hub" : "Metro Manila Hub")}
                 </p>
               </div>
@@ -368,36 +297,10 @@ const CityMunBulletinBoard = () => {
                 <span className="stat-label">Announcements</span>
               </div>
             </div>
-
-            {/* Activity Feed - Combined Recent Activity */}
-            <div className="activity-feed">
-              <h2>⚡ Recent Activity</h2>
-              <div className="activity-list">
-                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
-                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
-                  .sort((a, b) => new Date(b.time) - new Date(a.time))
-                  .slice(0, 8)
-                  .map((item) => (
-                    <div
-                      key={`${item.type}-${item.id}`}
-                      className={`activity-item ${item.type}`}
-                      onClick={() => navigate(`/${item.province_slug}/${item.municipality_slug}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
-                    >
-                      <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
-                      <span className="activity-text">
-                        {item.type === 'listing'
-                          ? `${item.title} - ${formatPrice(item.price)}`
-                          : item.title}
-                      </span>
-                      <span className="activity-time">{getTimeAgo(item.time)}</span>
-                    </div>
-                  ))}
-                {recentListings.length === 0 && recentAnnouncements.length === 0 && (
-                  <div className="activity-empty">
-                    <p>No recent activity in this area</p>
-                  </div>
-                )}
-              </div>
+            <div className="back-link">
+              <Link to={`/${province}`}>
+                ← Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
+              </Link>
             </div>
           </div>
           
@@ -508,7 +411,7 @@ const CityMunBulletinBoard = () => {
                       <div
                         key={listing.id}
                         className="featured-card"
-                        onClick={() => navigate(`/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`)}
+                        onClick={() => navigate(`/${province}/${municipality}/listings/${listing.id}`)}
                       >
                         {listing.first_image ? (
                           <div className="featured-image">
@@ -562,14 +465,38 @@ const CityMunBulletinBoard = () => {
                 </div>
               </div>
             )}
-
-            <div className="back-link">
-              <Link to={`/${province}`}>
-                ← Back to {displayProvince} {displayProvince !== "Metro Manila (NCR)" ? "Province" : ""}
-              </Link>
-            </div>
           </div>
         </div>
+        {/* Activity Feed - Combined Recent Activity */}
+          <div className="activity-feed">
+            <h2>⚡ Recent Activity</h2>
+            <div className="activity-list">
+              {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
+                ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
+                .sort((a, b) => new Date(b.time) - new Date(a.time))
+                .slice(0, 8)
+                .map((item) => (
+                  <div
+                    key={`${item.type}-${item.id}`}
+                    className={`activity-item ${item.type}`}
+                    onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                  >
+                    <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
+                    <span className="activity-text">
+                      {item.type === 'listing'
+                        ? `${item.title} - ${formatPrice(item.price)}`
+                        : item.title}
+                    </span>
+                    <span className="activity-time">{getTimeAgo(item.time)}</span>
+                  </div>
+                ))}
+              {recentListings.length === 0 && recentAnnouncements.length === 0 && (
+                <div className="activity-empty">
+                  <p>No recent activity in this area</p>
+                </div>
+              )}
+            </div>
+          </div>
       </div>
 
       {/* Barangay Modal */}

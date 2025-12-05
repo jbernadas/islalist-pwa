@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { announcementsAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { slugify } from '../utils/slugify';
+import { useLocations } from '../hooks/useLocations';
 import Header from '../components/Header';
 import './CreateListing.css';
 
@@ -10,9 +10,14 @@ const EditAnnouncement = () => {
   const { id, province, municipality } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [provinces, setProvinces] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
+
+  // Use the centralized useLocations hook for province data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const { provinces } = useLocations(province, municipality);
+
+  // Form-specific municipalities/barangays that can be changed by user
+  const [formMunicipalities, setFormMunicipalities] = useState([]);
+  const [formBarangays, setFormBarangays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingAnnouncement, setLoadingAnnouncement] = useState(true);
   const [error, setError] = useState('');
@@ -31,56 +36,32 @@ const EditAnnouncement = () => {
     is_municipality_wide: false,
   });
 
+  // Fetch announcement data once provinces are loaded
   useEffect(() => {
-    fetchLocations();
-    fetchAnnouncement();
-  }, [id]);
+    if (provinces.length > 0) {
+      fetchAnnouncement();
+    }
+  }, [id, provinces]);
 
   // Fetch barangays when municipalities are loaded and municipality_id is set
   useEffect(() => {
-    if (formData.municipality_id && municipalities.length > 0) {
+    if (formData.municipality_id && formMunicipalities.length > 0) {
       fetchBarangays(formData.municipality_id);
     }
-  }, [formData.municipality_id, municipalities]);
-
-  const fetchLocations = async () => {
-    try {
-      const cachedProvinces = localStorage.getItem('provinces');
-      let provincesData;
-
-      if (cachedProvinces) {
-        provincesData = JSON.parse(cachedProvinces);
-      } else {
-        const response = await provincesAPI.getAll();
-        provincesData = response.data.results || response.data;
-        localStorage.setItem('provinces', JSON.stringify(provincesData));
-      }
-
-      setProvinces(provincesData);
-
-      // Find current province
-      const currentProvince = provincesData.find(p => p.slug === province);
-      if (currentProvince) {
-        const munResponse = await provincesAPI.getMunicipalities(province);
-        setMunicipalities(munResponse.data);
-      }
-    } catch (err) {
-      console.error('Error fetching locations:', err);
-    }
-  };
+  }, [formData.municipality_id, formMunicipalities]);
 
   const fetchBarangays = async (municipalityId) => {
     if (!municipalityId) {
-      setBarangays([]);
+      setFormBarangays([]);
       return;
     }
     try {
       const response = await barangaysAPI.getAll({ municipality: municipalityId });
       const barangaysData = response.data.results || response.data;
-      setBarangays(Array.isArray(barangaysData) ? barangaysData : []);
+      setFormBarangays(Array.isArray(barangaysData) ? barangaysData : []);
     } catch (err) {
       console.error('Error fetching barangays:', err);
-      setBarangays([]);
+      setFormBarangays([]);
     }
   };
 
@@ -94,6 +75,13 @@ const EditAnnouncement = () => {
         setError('You can only edit your own announcements');
         setTimeout(() => navigate('/my-posts'), 2000);
         return;
+      }
+
+      // Find province and fetch its municipalities
+      const currentProvince = provinces.find(p => p.id === announcement.province);
+      if (currentProvince) {
+        const munResponse = await provincesAPI.getMunicipalities(currentProvince.slug);
+        setFormMunicipalities(munResponse.data);
       }
 
       // Populate form with existing data
@@ -129,7 +117,7 @@ const EditAnnouncement = () => {
       setFormData(prev => ({ ...prev, barangay: '' }));
     } else if (name === 'municipality_id' && !value) {
       // Clear barangays if municipality is cleared
-      setBarangays([]);
+      setFormBarangays([]);
       setFormData(prev => ({ ...prev, barangay: '' }));
     }
   };
@@ -320,9 +308,10 @@ const EditAnnouncement = () => {
                   const selectedProvince = provinces.find(p => p.id === parseInt(provinceId));
                   if (selectedProvince) {
                     provincesAPI.getMunicipalities(selectedProvince.slug).then(response => {
-                      setMunicipalities(response.data);
+                      setFormMunicipalities(response.data);
                     });
                   }
+                  setFormBarangays([]);
                 }}
                 required
               >
@@ -346,7 +335,7 @@ const EditAnnouncement = () => {
                 disabled={formData.is_province_wide}
               >
                 <option value="">Select municipality</option>
-                {municipalities.map(mun => (
+                {formMunicipalities.map(mun => (
                   <option key={mun.id} value={mun.id}>
                     {mun.name}
                   </option>
@@ -362,14 +351,14 @@ const EditAnnouncement = () => {
               name="barangay"
               value={formData.barangay}
               onChange={handleChange}
-              disabled={barangays.length === 0 || formData.is_province_wide || formData.is_municipality_wide}
+              disabled={formBarangays.length === 0 || formData.is_province_wide || formData.is_municipality_wide}
             >
               <option value="">
                 {formData.is_municipality_wide
                   ? 'Disabled - Municipality-wide announcement'
                   : 'Select your barangay'}
               </option>
-              {barangays.map(barangay => (
+              {formBarangays.map(barangay => (
                 <option key={barangay.id} value={barangay.id}>
                   {barangay.name}
                 </option>

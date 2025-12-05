@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { categoriesAPI, listingsAPI, provincesAPI, barangaysAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocations } from '../hooks/useLocations';
 import ImageSelectorModal from '../components/ImageSelectorModal';
 import Header from '../components/Header';
 import './CreateListing.css';
@@ -10,10 +11,14 @@ const EditListing = () => {
   const { id, province, municipality } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Use the centralized useLocations hook for province data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const { provinces } = useLocations(province, municipality);
+
   const [categories, setCategories] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
+  const [formMunicipalities, setFormMunicipalities] = useState([]);
+  const [formBarangays, setFormBarangays] = useState([]);
   const [images, setImages] = useState([]);
   const [reusedImages, setReusedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -47,11 +52,7 @@ const EditListing = () => {
   });
 
   useEffect(() => {
-    const loadData = async () => {
-      await fetchCategories();
-      await fetchProvinces();
-    };
-    loadData();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -62,13 +63,13 @@ const EditListing = () => {
 
   // Fetch barangays when municipalities are loaded and location is set
   useEffect(() => {
-    if (formData.location && municipalities.length > 0) {
-      const currentMunicipality = municipalities.find(m => m.name === formData.location);
+    if (formData.location && formMunicipalities.length > 0) {
+      const currentMunicipality = formMunicipalities.find(m => m.name === formData.location);
       if (currentMunicipality) {
         fetchBarangays(currentMunicipality.id);
       }
     }
-  }, [formData.location, municipalities]);
+  }, [formData.location, formMunicipalities]);
 
   const fetchCategories = async () => {
     try {
@@ -80,29 +81,10 @@ const EditListing = () => {
     }
   };
 
-  const fetchProvinces = async () => {
-    try {
-      const cachedProvinces = localStorage.getItem('provinces');
-      let provincesData;
-
-      if (cachedProvinces) {
-        provincesData = JSON.parse(cachedProvinces);
-      } else {
-        const response = await provincesAPI.getAll();
-        provincesData = response.data.results || response.data;
-        localStorage.setItem('provinces', JSON.stringify(provincesData));
-      }
-
-      setProvinces(provincesData);
-    } catch (err) {
-      console.error('Error fetching provinces:', err);
-    }
-  };
-
   const fetchMunicipalities = async (provinceSlug) => {
     try {
       const response = await provincesAPI.getMunicipalities(provinceSlug);
-      setMunicipalities(response.data);
+      setFormMunicipalities(response.data);
     } catch (err) {
       console.error('Error fetching municipalities:', err);
     }
@@ -110,16 +92,16 @@ const EditListing = () => {
 
   const fetchBarangays = async (municipalityId) => {
     if (!municipalityId) {
-      setBarangays([]);
+      setFormBarangays([]);
       return;
     }
     try {
       const response = await barangaysAPI.getAll({ municipality: municipalityId });
       const barangaysData = response.data.results || response.data;
-      setBarangays(Array.isArray(barangaysData) ? barangaysData : []);
+      setFormBarangays(Array.isArray(barangaysData) ? barangaysData : []);
     } catch (err) {
       console.error('Error fetching barangays:', err);
-      setBarangays([]);
+      setFormBarangays([]);
     }
   };
 
@@ -182,7 +164,7 @@ const EditListing = () => {
 
     // If location (municipality) changes, fetch barangays for that municipality
     if (name === 'location' && value) {
-      const selectedMunicipality = municipalities.find(m => m.name === value);
+      const selectedMunicipality = formMunicipalities.find(m => m.name === value);
       if (selectedMunicipality) {
         fetchBarangays(selectedMunicipality.id);
         // Clear barangay selection when municipality changes
@@ -190,7 +172,7 @@ const EditListing = () => {
       }
     } else if (name === 'location' && !value) {
       // Clear barangays if location is cleared
-      setBarangays([]);
+      setFormBarangays([]);
       setFormData(prev => ({ ...prev, barangay: '' }));
     }
   };
@@ -639,7 +621,7 @@ const EditListing = () => {
                 required
               >
                 <option value="">Select a municipality</option>
-                {municipalities.map(mun => (
+                {formMunicipalities.map(mun => (
                   <option key={mun.id} value={mun.name}>
                     {mun.name}
                   </option>
@@ -656,10 +638,10 @@ const EditListing = () => {
                 name="barangay"
                 value={formData.barangay}
                 onChange={handleChange}
-                disabled={barangays.length === 0}
+                disabled={formBarangays.length === 0}
               >
                 <option value="">Select your barangay</option>
-                {barangays.map(barangay => (
+                {formBarangays.map(barangay => (
                   <option key={barangay.id} value={barangay.id}>
                     {barangay.name}
                   </option>

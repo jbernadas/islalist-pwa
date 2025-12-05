@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { provincesAPI, municipalitiesAPI, listingsAPI, announcementsAPI, barangaysAPI } from '../services/api';
+import { listingsAPI, announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocations } from '../hooks/useLocations';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './CityMunBulletinBoard.css';
@@ -10,18 +11,28 @@ const BarangayBulletinBoard = () => {
   const { province, municipality, barangay } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [provinces, setProvinces] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use the centralized useLocations hook for all location data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const {
+    provinces,
+    municipalities,
+    currentProvince,
+    currentMunicipality,
+    currentBarangay,
+    loading,
+    displayProvinceName,
+    displayMunicipalityName,
+    displayBarangayName,
+    isManila
+  } = useLocations(province, municipality, barangay);
+
   const [recentListings, setRecentListings] = useState([]);
   const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
-  const [isDistrict, setIsDistrict] = useState(false); // Track if this is a Manila district (SubMun)
-  const [currentMunicipalityData, setCurrentMunicipalityData] = useState(null);
 
-  // Fetch provinces, municipalities, and barangays
+  // Handle redirects
   useEffect(() => {
     if (!province || !municipality || !barangay) {
       if (!province) navigate('/siquijor');
@@ -29,98 +40,17 @@ const BarangayBulletinBoard = () => {
       else if (!barangay) navigate(`/${province}/${municipality}`);
       return;
     }
-
-    // Save current location to localStorage
-    localStorage.setItem('lastProvince', province);
-    localStorage.setItem('lastMunicipality', municipality);
-    localStorage.setItem('lastBarangay', barangay);
-
-    const fetchLocations = async () => {
-      try {
-        setLoading(true);
-
-        // Try to get from cache first (24 hour cache)
-        const cachedProvinces = localStorage.getItem('provinces');
-        const cacheTime = localStorage.getItem('provinces_cache_time');
-        const cachedVersion = localStorage.getItem('provinces_cache_version');
-        const now = Date.now();
-        const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-        const CACHE_VERSION = '3'; // Must match Home.jsx version
-
-        let provincesData = [];
-
-        if (cachedProvinces && cacheTime && cachedVersion === CACHE_VERSION && (now - parseInt(cacheTime)) < cacheExpiry) {
-          provincesData = JSON.parse(cachedProvinces);
-          setProvinces(provincesData);
-        } else {
-          const response = await provincesAPI.getAll();
-          provincesData = response.data.results || response.data;
-          setProvinces(Array.isArray(provincesData) ? provincesData : []);
-
-          localStorage.setItem('provinces', JSON.stringify(provincesData));
-          localStorage.setItem('provinces_cache_time', now.toString());
-          localStorage.setItem('provinces_cache_version', CACHE_VERSION);
-        }
-
-        const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
-        if (currentProv) {
-          // Fetch municipalities
-          const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
-          setMunicipalities(munResponse.data);
-
-          // Special handling for City of Manila districts
-          // Check if municipality is City of Manila and fetch districts
-          if (municipality === 'city-of-manila') {
-            try {
-              const districtsResponse = await municipalitiesAPI.getDistrictsOrBarangays('city-of-manila');
-              const currentDistrict = districtsResponse.data.find(d => slugify(d.name) === barangay);
-
-              if (currentDistrict && currentDistrict.is_district) {
-                // This is a Manila district (SubMun)
-                setIsDistrict(true);
-                setCurrentMunicipalityData(currentDistrict);
-
-                // Fetch barangays within this district
-                const barResponse = await barangaysAPI.getAll({ municipality: currentDistrict.id });
-                setBarangays(barResponse.data || []);
-              }
-            } catch (error) {
-              console.error('Error fetching Manila districts:', error);
-            }
-          } else {
-            // Regular case: fetch barangays for the municipality
-            const currentMun = munResponse.data.find(m => slugify(m.name) === municipality);
-            if (currentMun) {
-              setIsDistrict(false);
-              setCurrentMunicipalityData(currentMun);
-              const barResponse = await barangaysAPI.getAll({ municipality: currentMun.id });
-              setBarangays(barResponse.data || []);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching locations:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLocations();
   }, [province, municipality, barangay, navigate]);
 
   // Fetch recent content
   useEffect(() => {
-    if (provinces.length > 0 && municipalities.length > 0 && barangays.length > 0) {
+    if (currentProvince && currentMunicipality && currentBarangay) {
       fetchRecentContent();
     }
-  }, [province, municipality, barangay, provinces, municipalities, barangays]);
+  }, [currentProvince, currentMunicipality, currentBarangay]);
 
   const fetchRecentContent = async () => {
     try {
-      const currentProvince = provinces.find(p => p.slug === province);
-      const currentMunicipality = municipalities.find(m => slugify(m.name) === municipality);
-      const currentBarangay = barangays.find(b => slugify(b.name) === barangay);
-
       if (!currentProvince || !currentMunicipality || !currentBarangay) return;
 
       // Use PSGC codes for filtering (reliable, portable identifiers)
@@ -206,27 +136,13 @@ const BarangayBulletinBoard = () => {
     }
   };
 
-  // Get proper display names from API data
-  const currentProvince = provinces.find(p => p.slug === province);
-  const displayProvince = currentProvince?.name || province
+  // Display names are now provided by useLocations hook
+  const displayProvince = displayProvinceName;
+  const displayMunicipality = displayMunicipalityName;
+  const displayBarangay = displayBarangayName || barangay
     ?.split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-
-  const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
-  const displayMunicipality = currentMunicipalityObj?.name || municipality
-    ?.split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
-  const currentBarangayObj = barangays.find(b => slugify(b.name) === barangay);
-  // For districts, use currentMunicipalityData.name; for barangays, use the barangay name
-  const displayBarangay = isDistrict
-    ? currentMunicipalityData?.name  // Use district name from municipality data (e.g., "Tondo I/II")
-    : (currentBarangayObj?.name || barangay  // Use barangay name or fallback to slug formatting
-        ?.split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' '));
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-PH', {
@@ -329,7 +245,7 @@ const BarangayBulletinBoard = () => {
           </div>
           <div className="hero-info text-end">
             <h1 className="hero-title">{displayBarangay}</h1>
-            <p className="hero-subtitle">{isDistrict ? "District Hub" : "Barangay Hub"}</p>
+            <p className="hero-subtitle">{isManila ? "District Hub" : "Barangay Hub"}</p>
           </div>
         </div>
       </div>
@@ -388,6 +304,11 @@ const BarangayBulletinBoard = () => {
                 </div>
               </div>
             )}
+            <div className="back-link">
+              <Link to={`${province}/${municipality}`}>
+                ← Back to {displayMunicipality}
+              </Link>
+            </div>
           </div>
 
           <div className="col-md-9">
@@ -578,6 +499,11 @@ const BarangayBulletinBoard = () => {
                   </div>
                 </div>
               ))}
+              {recentListings.length === 0 && recentAnnouncements.length === 0 && (
+                <div className="activity-empty w-100 text-center">
+                  <p>No recent activity in this area</p>
+                </div>
+              )}
           </div>
         </div>
       </div>

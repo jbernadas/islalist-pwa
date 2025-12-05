@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { listingsAPI, categoriesAPI, provincesAPI, barangaysAPI } from '../services/api';
+import { listingsAPI, categoriesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocations } from '../hooks/useLocations';
 import { slugify } from '../utils/slugify';
 import Header from '../components/Header';
 import './Listings.css';
@@ -10,14 +11,24 @@ const Listings = () => {
   const navigate = useNavigate();
   const { province, municipality } = useParams();
   const { isAuthenticated } = useAuth();
+
+  // Use the centralized useLocations hook for all location data
+  // This uses PSGC codes for lookups, avoiding slug collision issues
+  const {
+    provinces,
+    municipalities,
+    barangays,
+    currentProvince,
+    currentMunicipality,
+    loading: loadingLocations,
+    loadingBarangays,
+    displayProvinceName,
+    displayMunicipalityName
+  } = useLocations(province, municipality);
+
   const [listings, setListings] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [loadingBarangays, setLoadingBarangays] = useState(false);
   const [favoritingIds, setFavoritingIds] = useState(new Set());
   const [filters, setFilters] = useState({
     search: '',
@@ -29,102 +40,18 @@ const Listings = () => {
     barangay: '',
   });
 
-  // Fetch provinces and cities/municipalities from API (with caching)
+  // Handle redirects
   useEffect(() => {
-    // If no province in URL, redirect to home page
     if (!province) {
       navigate('/');
       return;
     }
+  }, [province, navigate]);
 
-    // Save current province and municipality to localStorage for remembering last location
-    localStorage.setItem('lastProvince', province);
-    if (municipality) {
-      localStorage.setItem('lastMunicipality', municipality);
-    }
-
-    const fetchLocations = async () => {
-      try {
-        setLoadingLocations(true);
-
-        // Try to get from cache first (24 hour cache)
-        const cachedProvinces = localStorage.getItem('provinces');
-        const cacheTime = localStorage.getItem('provinces_cache_time');
-        const now = Date.now();
-        const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-
-        if (cachedProvinces && cacheTime && (now - parseInt(cacheTime)) < cacheExpiry) {
-          // Use cached data
-          const provincesData = JSON.parse(cachedProvinces);
-          setProvinces(provincesData);
-
-          // Find current province to get cities/municipalities
-          const currentProv = provincesData.find(p => p.slug === province?.toLowerCase());
-          if (currentProv) {
-            const munResponse = await provincesAPI.getMunicipalities(currentProv.slug);
-            setMunicipalities(munResponse.data);
-          }
-        } else {
-          // Fetch fresh data
-          const response = await provincesAPI.getAll();
-          const provincesData = response.data.results || response.data;
-          setProvinces(Array.isArray(provincesData) ? provincesData : []);
-
-          // Cache the data
-          localStorage.setItem('provinces', JSON.stringify(provincesData));
-          localStorage.setItem('provinces_cache_time', now.toString());
-
-          // Fetch cities/municipalities for current province
-          if (province) {
-            const munResponse = await provincesAPI.getMunicipalities(province.toLowerCase());
-            setMunicipalities(munResponse.data);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching locations:', error);
-        setProvinces([]);
-        setMunicipalities([]);
-      } finally {
-        setLoadingLocations(false);
-      }
-    };
-
-    fetchLocations();
-  }, [province]);
-
-  // Fetch barangays for current municipality
+  // Clear barangay filter when municipality changes
   useEffect(() => {
-    const fetchBarangays = async () => {
-      // Only fetch if we have both province and municipality, and municipality is not 'all'
-      if (!province || !municipality || municipality.toLowerCase() === 'all') {
-        setBarangays([]);
-        // Clear barangay filter when viewing all municipalities
-        setFilters(prev => ({ ...prev, barangay: '' }));
-        return;
-      }
-
-      // Find the municipality object to get its ID
-      const currentMun = municipalities.find(m => slugify(m.name) === municipality);
-      if (!currentMun) {
-        return;
-      }
-
-      try {
-        setLoadingBarangays(true);
-        const response = await barangaysAPI.getAll({ municipality: currentMun.id });
-        setBarangays(response.data || []);
-      } catch (error) {
-        console.error('Error fetching barangays:', error);
-        setBarangays([]);
-      } finally {
-        setLoadingBarangays(false);
-      }
-    };
-
-    fetchBarangays();
-    // Clear barangay filter when municipality changes
     setFilters(prev => ({ ...prev, barangay: '' }));
-  }, [province, municipality, municipalities]);
+  }, [municipality]);
 
   // Derive province names for dropdown (from API data)
   const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
@@ -143,16 +70,14 @@ const Listings = () => {
       fetchListings();
 
       // Pre-populate province filter from URL using actual province name from API data
-      if (province) {
-        const provinceObj = provinces.find(p => p.slug === province);
-        const provinceName = provinceObj ? provinceObj.name : province;
+      if (currentProvince) {
         setFilters(prev => ({
           ...prev,
-          province: provinceName
+          province: currentProvince.name
         }));
       }
     }
-  }, [province, municipality, provinces]);
+  }, [province, municipality, provinces, currentProvince]);
 
   const fetchCategories = async () => {
     try {
@@ -179,25 +104,19 @@ const Listings = () => {
       if (filters.max_price) params.max_price = filters.max_price;
 
       // ALWAYS filter by province from URL using PSGC code
-      if (province) {
-        const provinceObj = provinces.find(p => p.slug === province);
-        if (provinceObj && provinceObj.psgc_code) {
-          params.province = provinceObj.psgc_code;
-        }
+      if (currentProvince?.psgc_code) {
+        params.province = currentProvince.psgc_code;
       }
 
       // Add city/municipality filter from URL if not 'all' using PSGC code
-      if (municipality && municipality.toLowerCase() !== 'all') {
-        const municipalityObj = municipalities.find(m => slugify(m.name) === municipality);
-        if (municipalityObj && municipalityObj.psgc_code) {
-          params.municipality = municipalityObj.psgc_code;
-        }
+      if (currentMunicipality?.psgc_code) {
+        params.municipality = currentMunicipality.psgc_code;
       }
 
       // Add barangay filter using PSGC code if present
       if (filters.barangay) {
         const barangayObj = barangays.find(b => b.id === parseInt(filters.barangay));
-        if (barangayObj && barangayObj.psgc_code) {
+        if (barangayObj?.psgc_code) {
           params.barangay = barangayObj.psgc_code;
         }
       }
@@ -247,16 +166,13 @@ const Listings = () => {
   };
 
   const clearFilters = () => {
-    // Use actual province name from API data
-    const provinceObj = provinces.find(p => p.slug === province);
-    const provinceName = provinceObj ? provinceObj.name : (province || '');
     setFilters({
       search: '',
       category: '',
       property_type: '',
       min_price: '',
       max_price: '',
-      province: provinceName,
+      province: currentProvince?.name || '',
       barangay: '',
     });
     setTimeout(() => fetchListings(), 0);
@@ -324,20 +240,9 @@ const Listings = () => {
     }
   };
 
-  // Get proper display names from API data
-  const currentProvince = provinces.find(p => p.slug === province);
-  const displayProvince = currentProvince?.name || province
-    ?.split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
-  const currentMunicipalityObj = municipalities.find(m => slugify(m.name) === municipality);
-  const displayMunicipality = municipality === 'all'
-    ? 'All Cities/Municipalities'
-    : currentMunicipalityObj?.name || municipality
-        ?.split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+  // Display names are now provided by useLocations hook
+  const displayProvince = displayProvinceName;
+  const displayMunicipality = displayMunicipalityName;
 
   return (
     <div className="listings-container">
