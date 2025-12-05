@@ -37,6 +37,10 @@ const Province = () => {
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
 
+  // State for collapsible sections on mobile
+  const [announcementsExpanded, setAnnouncementsExpanded] = useState(true);
+  const [listingsExpanded, setListingsExpanded] = useState(true);
+
   // Get city/municipality names for current province
   const municipalityNames = municipalities.map(m => m.name);
   const PHILIPPINE_PROVINCES = provinces.map(p => p.name).sort();
@@ -239,91 +243,118 @@ const Province = () => {
           </div>
         )}
 
-        {/* Recent Listings Section */}
-        <div className="province-section">
-          <div className="section-header">
-            <h2>🏷️ Recent Listings</h2>
-            <Link to={`/${province}/all/listings`} className="view-all-link">
-              View all {stats.listings} 🡒
-            </Link>
-          </div>
-          {recentListings.length > 0 ? (
-            <div className="province-listings-grid">
-              {recentListings.map(listing => (
-                <div
-                  key={listing.id}
-                  className="province-listing-card"
-                  onClick={() => navigate(`/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`)}
+        {/* Two-Column Layout: Announcements (Left) | Listings (Right) */}
+        <div className="province-two-column">
+          {/* Announcements Column */}
+          <div className={`province-column announcements-column ${announcementsExpanded ? 'expanded' : 'collapsed'}`}>
+            <div
+              className="section-header"
+              onClick={() => setAnnouncementsExpanded(!announcementsExpanded)}
+            >
+              <h2>📢 Announcements</h2>
+              <div className="section-header-right">
+                <Link
+                  to={`/${province}/all/announcements`}
+                  className="view-all-link"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="province-listing-image">
-                    {listing.first_image ? (
-                      <img src={listing.first_image} alt={listing.title} />
-                    ) : (
-                      <span className="no-image-placeholder">🏝️</span>
-                    )}
-                  </div>
-                  <div className="province-listing-info">
-                    <h4>{listing.title}</h4>
-                    <p className="province-listing-price">{formatPrice(listing.price)}</p>
-                    <p className="province-listing-meta">
-                      <span className="location">📍 {listing.municipality_name}</span>
-                      <span className="time">{getTimeAgo(listing.created_at)}</span>
-                    </p>
-                  </div>
+                  View all {stats.announcements} 🡒
+                </Link>
+                <span className="collapse-toggle">{announcementsExpanded ? '▼' : '▶'}</span>
+              </div>
+            </div>
+            <div className="section-content">
+              {recentAnnouncements.length > 0 ? (
+                <div className="province-announcements-list">
+                  {recentAnnouncements.slice(0, 4).map(announcement => (
+                    <div
+                      key={announcement.id}
+                      className="province-announcement-card"
+                      onClick={() => navigate(`/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`)}
+                    >
+                      <div className="province-announcement-header">
+                        <span className="priority-icon">{getPriorityIcon(announcement.priority)}</span>
+                        <span className="announcement-type">{announcement.announcement_type}</span>
+                      </div>
+                      <h4>{announcement.title}</h4>
+                      <p className="province-announcement-preview">
+                        {announcement.description.length > 80
+                          ? `${announcement.description.substring(0, 80)}...`
+                          : announcement.description}
+                      </p>
+                      <p className="province-announcement-meta">
+                        <span className="location">📍 {announcement.municipality_name}</span>
+                        <span className="time">{getTimeAgo(announcement.created_at)}</span>
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="empty-section">
+                  <p>No announcements yet</p>
+                  <Link to={`/${province}/all/announcements`} className="btn-primary">
+                    Post an announcement 🡒
+                  </Link>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="empty-section">
-              <p>No listings yet in {provinceName}</p>
-              <Link to={`/${province}/all/listings`} className="btn-primary">
-                Be the first to post 🡒
-              </Link>
-            </div>
-          )}
-        </div>
+          </div>
 
-        {/* Recent Announcements Section */}
-        <div className="province-section">
-          <div className="section-header">
-            <h2>📢 Community Announcements</h2>
-            <Link to={`/${province}/all/announcements`} className="view-all-link">
-              View all {stats.announcements} 🡒
-            </Link>
-          </div>
-          {recentAnnouncements.length > 0 ? (
-            <div className="province-announcements-grid">
-              {recentAnnouncements.map(announcement => (
-                <div
-                  key={announcement.id}
-                  className="province-announcement-card"
-                  onClick={() => navigate(`/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`)}
+          {/* Listings Column */}
+          <div className={`province-column listings-column ${listingsExpanded ? 'expanded' : 'collapsed'}`}>
+            <div
+              className="section-header"
+              onClick={() => setListingsExpanded(!listingsExpanded)}
+            >
+              <h2>🏷️ Listings</h2>
+              <div className="section-header-right">
+                <Link
+                  to={`/${province}/all/listings`}
+                  className="view-all-link"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="province-announcement-header">
-                    <span className="priority-icon">{getPriorityIcon(announcement.priority)}</span>
-                    <span className="announcement-type">{announcement.announcement_type}</span>
-                  </div>
-                  <h4>{announcement.title}</h4>
-                  <p className="province-announcement-preview">
-                    {announcement.description.length > 80
-                      ? `${announcement.description.substring(0, 80)}...`
-                      : announcement.description}
-                  </p>
-                  <p className="province-announcement-meta">
-                    <span className="location">📍 {announcement.municipality_name}</span>
-                    <span className="time">{getTimeAgo(announcement.created_at)}</span>
-                  </p>
+                  View all {stats.listings} 🡒
+                </Link>
+                <span className="collapse-toggle">{listingsExpanded ? '▼' : '▶'}</span>
+              </div>
+            </div>
+            <div className="section-content">
+              {recentListings.length > 0 ? (
+                <div className="province-listings-list">
+                  {recentListings.slice(0, 4).map(listing => (
+                    <div
+                      key={listing.id}
+                      className="province-listing-card"
+                      onClick={() => navigate(`/${listing.province_slug}/${listing.municipality_slug}/listings/${listing.id}`)}
+                    >
+                      <div className="province-listing-image">
+                        {listing.first_image ? (
+                          <img src={listing.first_image} alt={listing.title} />
+                        ) : (
+                          <span className="no-image-placeholder">🏝️</span>
+                        )}
+                      </div>
+                      <div className="province-listing-info">
+                        <h4>{listing.title}</h4>
+                        <p className="province-listing-price">{formatPrice(listing.price)}</p>
+                        <p className="province-listing-meta">
+                          <span className="location">📍 {listing.municipality_name}</span>
+                          <span className="time">{getTimeAgo(listing.created_at)}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="empty-section">
+                  <p>No listings yet</p>
+                  <Link to={`/${province}/all/listings`} className="btn-primary">
+                    Be the first to post 🡒
+                  </Link>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="empty-section">
-              <p>No announcements yet in {provinceName}</p>
-              <Link to={`/${province}/all/announcements`} className="btn-primary">
-                Post an announcement 🡒
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Back to All Provinces */}
