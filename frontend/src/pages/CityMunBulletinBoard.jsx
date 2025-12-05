@@ -467,7 +467,7 @@ const CityMunBulletinBoard = () => {
                   >
                     <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
                     <div className="activity-content">
-                      <span className="activity-text">
+                      <span className="activity-title">
                         {item.type === 'listing'
                           ? `${item.title} - ${formatPrice(item.price)}`
                           : item.title}
