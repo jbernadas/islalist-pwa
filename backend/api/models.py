@@ -628,8 +628,11 @@ class Announcement(models.Model):
     )
     municipality = models.ForeignKey(
         Municipality,
-        on_delete=models.CASCADE,
-        related_name='announcements'
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='announcements',
+        help_text="City/Municipality (optional for province-wide announcements)"
     )
     barangay = models.ForeignKey(
         'Barangay',

@@ -200,7 +200,12 @@ class AnnouncementAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'announcement_type', 'priority')
         }),
         ('Location', {
-            'fields': ('province', 'municipality', 'barangay')
+            'fields': ('province', 'municipality', 'barangay'),
+            'description': 'Select location using Province → City/Municipality → Barangay hierarchy.'
+        }),
+        ('Scope', {
+            'fields': ('is_province_wide', 'is_municipality_wide'),
+            'description': 'Set scope to broadcast announcement to wider areas.'
         }),
         ('Author & Contact', {
             'fields': ('author', 'contact_info')
@@ -214,6 +219,54 @@ class AnnouncementAdmin(admin.ModelAdmin):
         """Optimize queryset with related fields"""
         queryset = super().get_queryset(request)
         return queryset.select_related('province', 'municipality', 'author')
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Disable add/change/delete/view buttons for location ForeignKeys"""
+        form = super().get_form(request, obj, **kwargs)
+        # Remove the add/edit/delete/view links for province, municipality, barangay
+        form.base_fields['province'].widget.can_add_related = False
+        form.base_fields['province'].widget.can_change_related = False
+        form.base_fields['province'].widget.can_delete_related = False
+        form.base_fields['province'].widget.can_view_related = False
+
+        form.base_fields['municipality'].widget.can_add_related = False
+        form.base_fields['municipality'].widget.can_change_related = False
+        form.base_fields['municipality'].widget.can_delete_related = False
+        form.base_fields['municipality'].widget.can_view_related = False
+
+        form.base_fields['barangay'].widget.can_add_related = False
+        form.base_fields['barangay'].widget.can_change_related = False
+        form.base_fields['barangay'].widget.can_delete_related = False
+        form.base_fields['barangay'].widget.can_view_related = False
+
+        return form
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Filter municipality and barangay based on selected province/municipality"""
+        if db_field.name == "municipality":
+            # Customize label to show "City/District/Muni"
+            kwargs["label"] = "City/District/Muni"
+            # Get province from request if editing existing announcement
+            if request.resolver_match.kwargs.get('object_id'):
+                try:
+                    announcement = Announcement.objects.get(pk=request.resolver_match.kwargs['object_id'])
+                    if announcement.province:
+                        kwargs["queryset"] = announcement.province.municipalities.filter(active=True)
+                except Announcement.DoesNotExist:
+                    pass
+        elif db_field.name == "barangay":
+            # Get municipality from request if editing existing announcement
+            if request.resolver_match.kwargs.get('object_id'):
+                try:
+                    announcement = Announcement.objects.get(pk=request.resolver_match.kwargs['object_id'])
+                    if announcement.municipality:
+                        kwargs["queryset"] = announcement.municipality.barangays.filter(active=True)
+                except Announcement.DoesNotExist:
+                    pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    class Media:
+        js = ('admin/js/listing_location_cascade.js',)
 
 
 @admin.register(ProvinceModerator)
