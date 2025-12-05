@@ -470,7 +470,7 @@ const BarangayBulletinBoard = () => {
               .map((item) => (
                 <div
                   key={`${item.type}-${item.id}`}
-                  className="activity-item"
+                  className={`activity-item ${item.type}`}
                   onClick={() => navigate(`/${item.province_slug}/${item.municipality_slug}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
                 >
                   <div className="activity-icon">

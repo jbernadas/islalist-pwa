@@ -24,7 +24,8 @@ const CityMunBulletinBoard = () => {
     loading,
     displayProvinceName,
     displayMunicipalityName,
-    isManila
+    isManila,
+    buildAPIParams
   } = useLocations(province, municipality);
 
   const [recentListings, setRecentListings] = useState([]);
@@ -58,43 +59,26 @@ const CityMunBulletinBoard = () => {
     try {
       if (!currentProvince || !currentMunicipality) return;
 
-      // Listings use municipality slug for text search in location field
-      // Also pass province to include province-wide listings
-      const listingsParams = {
-        municipality: municipality,
-        province: province,
-      };
-
-      // Announcements use province and municipality IDs (foreign keys)
-      // Backend will automatically include province-wide announcements
-      const announcementsParams = {
-        province: currentProvince.id,
-        municipality: currentMunicipality.id,
-      };
+      // Use PSGC codes from useLocations hook for proper backend filtering
+      const apiParams = buildAPIParams();
 
       // Fetch recent listings (limit 3)
-      const listingsResponse = await listingsAPI.getAll({ ...listingsParams, page_size: 3, ordering: '-created_at' });
+      const listingsResponse = await listingsAPI.getAll({ ...apiParams, page_size: 3, ordering: '-created_at' });
       const listingsData = listingsResponse.data.results || listingsResponse.data;
       setRecentListings(Array.isArray(listingsData) ? listingsData.slice(0, 3) : []);
 
       // Fetch all announcements for counts
-      const allAnnouncementsResponse = await announcementsAPI.getAll(announcementsParams);
+      const allAnnouncementsResponse = await announcementsAPI.getAll(apiParams);
       const allAnnouncements = allAnnouncementsResponse.data.results || allAnnouncementsResponse.data;
 
       // Fetch recent announcements (limit 3)
-      const announcementsResponse = await announcementsAPI.getAll({ ...announcementsParams, page_size: 3, ordering: '-created_at' });
+      const announcementsResponse = await announcementsAPI.getAll({ ...apiParams, page_size: 3, ordering: '-created_at' });
       const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
       const announcements = Array.isArray(announcementsData) ? announcementsData : [];
-
-      console.log('Fetched announcements:', announcements);
-      console.log('Announcements params:', announcementsParams);
 
       // Separate urgent from recent
       const urgent = announcements.filter(a => a.priority === 'urgent');
       const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 3);
-
-      console.log('Urgent announcements:', urgent);
-      console.log('Non-urgent announcements:', nonUrgent);
 
       setUrgentAnnouncements(urgent);
       setRecentAnnouncements(nonUrgent);
@@ -470,7 +454,7 @@ const CityMunBulletinBoard = () => {
         {/* Activity Feed - Combined Recent Activity */}
           <div className="activity-feed">
             <h2>⚡ Recent Activity</h2>
-            <div className="activity-list">
+            <div className="activity-list d-flex justify-content-start flex-row overflow-x-auto">
               {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
                 ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
                 .sort((a, b) => new Date(b.time) - new Date(a.time))
@@ -482,12 +466,14 @@ const CityMunBulletinBoard = () => {
                     onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
                   >
                     <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
-                    <span className="activity-text">
-                      {item.type === 'listing'
-                        ? `${item.title} - ${formatPrice(item.price)}`
-                        : item.title}
-                    </span>
-                    <span className="activity-time">{getTimeAgo(item.time)}</span>
+                    <div className="activity-content">
+                      <span className="activity-text">
+                        {item.type === 'listing'
+                          ? `${item.title} - ${formatPrice(item.price)}`
+                          : item.title}
+                      </span>
+                      <span className="activity-time">{getTimeAgo(item.time)}</span>
+                    </div>
                   </div>
                 ))}
               {recentListings.length === 0 && recentAnnouncements.length === 0 && (
