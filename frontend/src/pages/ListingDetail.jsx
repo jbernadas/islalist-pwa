@@ -166,22 +166,33 @@ const ListingDetail = () => {
     if (!listing) return [];
 
     const breadcrumbs = [
-      { label: formatDisplayName(province), path: `/${province}` },
-      { label: formatDisplayName(municipality), path: `/${province}/${municipality}` }
+      { label: formatDisplayName(province), path: `/${province}` }
     ];
 
-    // Add barangay if it exists
-    if (listing.barangay && listing.barangay_details) {
+    // Add municipality only if listing has municipality (not province-wide)
+    const showMunicipality = listing.municipality;
+    if (showMunicipality) {
+      breadcrumbs.push({
+        label: formatDisplayName(municipality),
+        path: `/${province}/${municipality}`
+      });
+    }
+
+    // Add barangay only if municipality is shown and barangay exists
+    if (showMunicipality && listing.barangay && listing.barangay_details) {
       breadcrumbs.push({
         label: listing.barangay_details.name,
         path: `/${province}/${municipality}/${slugify(listing.barangay_details.name)}`
       });
     }
 
-    // Add content type
+    // Add content type with appropriate path based on scope
+    const listingsPath = showMunicipality
+      ? `/${province}/${municipality}/listings`
+      : `/${province}/all/listings`;
     breadcrumbs.push({
       label: 'Listings',
-      path: `/${province}/${municipality}/listings`
+      path: listingsPath
     });
 
     // Add truncated title (non-clickable)

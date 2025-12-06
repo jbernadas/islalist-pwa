@@ -98,22 +98,33 @@ const AnnouncementDetail = () => {
     if (!announcement) return [];
 
     const breadcrumbs = [
-      { label: formatDisplayName(province), path: `/${province}` },
-      { label: formatDisplayName(municipality), path: `/${province}/${municipality}` }
+      { label: formatDisplayName(province), path: `/${province}` }
     ];
 
-    // Add barangay if it exists
-    if (announcement.barangay && announcement.barangay_details) {
+    // Add municipality only if not province-wide and municipality exists
+    const showMunicipality = !announcement.is_province_wide && announcement.municipality;
+    if (showMunicipality) {
+      breadcrumbs.push({
+        label: formatDisplayName(municipality),
+        path: `/${province}/${municipality}`
+      });
+    }
+
+    // Add barangay only if municipality is shown and not municipality-wide
+    if (showMunicipality && !announcement.is_municipality_wide && announcement.barangay && announcement.barangay_details) {
       breadcrumbs.push({
         label: announcement.barangay_details.name,
         path: `/${province}/${municipality}/${slugify(announcement.barangay_details.name)}`
       });
     }
 
-    // Add content type
+    // Add content type with appropriate path based on scope
+    const announcementsPath = showMunicipality
+      ? `/${province}/${municipality}/announcements`
+      : `/${province}/all/announcements`;
     breadcrumbs.push({
       label: 'Announcements',
-      path: `/${province}/${municipality}/announcements`
+      path: announcementsPath
     });
 
     // Add truncated title (non-clickable)

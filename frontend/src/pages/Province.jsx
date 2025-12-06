@@ -71,14 +71,18 @@ const Province = () => {
       const allAnnouncementsResponse = await announcementsAPI.getAll(apiParams);
       const allAnnouncements = allAnnouncementsResponse.data.results || allAnnouncementsResponse.data;
 
-      // Fetch recent announcements (limit 6)
-      const announcementsResponse = await announcementsAPI.getAll({ ...apiParams, page_size: 6, ordering: '-created_at' });
-      const announcementsData = announcementsResponse.data.results || announcementsResponse.data;
-      const announcements = Array.isArray(announcementsData) ? announcementsData : [];
+      // Fetch urgent announcements separately (these should always show at top)
+      const urgentResponse = await announcementsAPI.getAll({ ...apiParams, priority: 'urgent', ordering: '-created_at' });
+      const urgentData = urgentResponse.data.results || urgentResponse.data;
+      const urgent = Array.isArray(urgentData) ? urgentData : [];
 
-      // Separate urgent from recent
-      const urgent = announcements.filter(a => a.priority === 'urgent');
-      const nonUrgent = announcements.filter(a => a.priority !== 'urgent').slice(0, 6);
+      // Fetch recent non-urgent announcements for the announcements column
+      const recentResponse = await announcementsAPI.getAll({ ...apiParams, page_size: 6, ordering: '-created_at' });
+      const recentData = recentResponse.data.results || recentResponse.data;
+      const recentAnnouncements = Array.isArray(recentData) ? recentData : [];
+
+      // Filter out urgent from recent for the announcements column (since urgent shows separately)
+      const nonUrgent = recentAnnouncements.filter(a => a.priority !== 'urgent').slice(0, 6);
 
       setUrgentAnnouncements(urgent);
       setRecentAnnouncements(nonUrgent);
@@ -229,17 +233,24 @@ const Province = () => {
               <span className="urgent-icon">🚨</span>
               <strong>URGENT ALERTS</strong>
             </div>
-            {urgentAnnouncements.map(announcement => (
-              <div
-                key={announcement.id}
-                className="urgent-item"
-                onClick={() => navigate(`/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`)}
-              >
-                <span className="urgent-title">{announcement.title}</span>
-                <span className="urgent-location">{announcement.municipality_name}</span>
-                <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
-              </div>
-            ))}
+            {urgentAnnouncements.map(announcement => {
+              const urgentUrl = announcement.municipality_slug
+                ? `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`
+                : `/${announcement.province_slug}/all/announcements/${announcement.id}`;
+              const urgentLocation = announcement.municipality_name || 'Province-wide';
+
+              return (
+                <div
+                  key={announcement.id}
+                  className="urgent-item"
+                  onClick={() => navigate(urgentUrl)}
+                >
+                  <span className="urgent-title">{announcement.title}</span>
+                  <span className="urgent-location">{urgentLocation}</span>
+                  <span className="urgent-time">{getTimeAgo(announcement.created_at)}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -266,28 +277,37 @@ const Province = () => {
             <div className="section-content">
               {recentAnnouncements.length > 0 ? (
                 <div className="province-announcements-list">
-                  {recentAnnouncements.slice(0, 4).map(announcement => (
-                    <div
-                      key={announcement.id}
-                      className="province-announcement-card"
-                      onClick={() => navigate(`/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`)}
-                    >
-                      <div className="province-announcement-header">
-                        <span className="priority-icon">{getPriorityIcon(announcement.priority)}</span>
-                        <span className="announcement-type">{announcement.announcement_type}</span>
+                  {recentAnnouncements.slice(0, 4).map(announcement => {
+                    // Build correct URL based on scope
+                    const announcementUrl = announcement.municipality_slug
+                      ? `/${announcement.province_slug}/${announcement.municipality_slug}/announcements/${announcement.id}`
+                      : `/${announcement.province_slug}/all/announcements/${announcement.id}`;
+                    // Build location display
+                    const locationDisplay = announcement.municipality_name || 'Province-wide';
+
+                    return (
+                      <div
+                        key={announcement.id}
+                        className="province-announcement-card"
+                        onClick={() => navigate(announcementUrl)}
+                      >
+                        <div className="province-announcement-header">
+                          <span className="priority-icon">{getPriorityIcon(announcement.priority)}</span>
+                          <span className="announcement-type">{announcement.announcement_type}</span>
+                        </div>
+                        <h4>{announcement.title}</h4>
+                        <p className="province-announcement-preview">
+                          {announcement.description.length > 80
+                            ? `${announcement.description.substring(0, 80)}...`
+                            : announcement.description}
+                        </p>
+                        <p className="province-announcement-meta">
+                          <span className="location">📍 {locationDisplay}</span>
+                          <span className="time">{getTimeAgo(announcement.created_at)}</span>
+                        </p>
                       </div>
-                      <h4>{announcement.title}</h4>
-                      <p className="province-announcement-preview">
-                        {announcement.description.length > 80
-                          ? `${announcement.description.substring(0, 80)}...`
-                          : announcement.description}
-                      </p>
-                      <p className="province-announcement-meta">
-                        <span className="location">📍 {announcement.municipality_name}</span>
-                        <span className="time">{getTimeAgo(announcement.created_at)}</span>
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="empty-section">
