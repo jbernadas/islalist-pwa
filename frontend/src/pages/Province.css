@@ -8,7 +8,6 @@
 /* Hero Section */
 .province-hero {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-size: cover;
   background-position: center;
   display: flex;
