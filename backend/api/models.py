@@ -66,6 +66,12 @@ class Municipality(models.Model):
         help_text="Designation: City, Municipality, or Sub-Municipality (Manila districts)"
     )
     active = models.BooleanField(default=True, help_text="Show in city/municipality listings")
+    hero_image = models.ImageField(
+        upload_to='municipalities/heroes/',
+        blank=True,
+        null=True,
+        help_text="Hero background image for municipality page (recommended: 1920x600 or wider)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

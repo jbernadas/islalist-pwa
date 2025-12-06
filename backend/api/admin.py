@@ -72,12 +72,41 @@ class ProvinceAdmin(admin.ModelAdmin):
 class MunicipalityAdmin(admin.ModelAdmin):
     """
     Municipality admin - read-only since municipalities come from PSGC data.
-    Only 'active' flag can be modified.
+    Only 'active' and 'hero_image' can be modified.
     """
-    list_display = ['name', 'province', 'slug', 'psgc_code', 'type', 'active']
+    list_display = ['name', 'province', 'slug', 'psgc_code', 'type', 'active', 'has_hero_image']
     list_filter = ['active', 'type', 'province']
     search_fields = ['name', 'province__name', 'psgc_code']
-    readonly_fields = ['name', 'slug', 'psgc_code', 'province', 'type', 'created_at', 'updated_at']
+    readonly_fields = ['name', 'slug', 'psgc_code', 'province', 'type', 'created_at', 'updated_at', 'hero_image_preview']
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'psgc_code', 'province', 'type')
+        }),
+        ('Status', {
+            'fields': ('active',)
+        }),
+        ('Hero Image', {
+            'fields': ('hero_image', 'hero_image_preview'),
+            'description': 'Upload a hero background image for the municipality page. Recommended size: 1920x600 or wider.'
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def has_hero_image(self, obj):
+        return bool(obj.hero_image)
+    has_hero_image.boolean = True
+    has_hero_image.short_description = 'Hero'
+
+    def hero_image_preview(self, obj):
+        if obj.hero_image:
+            from django.utils.html import format_html
+            return format_html('<img src="{}" style="max-width: 400px; max-height: 150px; border-radius: 8px;" />', obj.hero_image.url)
+        return "No image uploaded"
+    hero_image_preview.short_description = 'Preview'
 
     def has_add_permission(self, request):
         """Municipalities cannot be added - they come from PSGC data"""

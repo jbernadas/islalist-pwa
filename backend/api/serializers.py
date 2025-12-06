@@ -21,11 +21,20 @@ class BarangaySerializer(serializers.ModelSerializer):
 class MunicipalitySerializer(serializers.ModelSerializer):
     """Serializer for City/Municipality model"""
     province_name = serializers.CharField(source='province.name', read_only=True)
+    hero_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Municipality
-        fields = ['id', 'name', 'slug', 'psgc_code', 'province', 'province_name', 'type', 'active']
+        fields = ['id', 'name', 'slug', 'psgc_code', 'province', 'province_name', 'type', 'active', 'hero_image_url']
         read_only_fields = ['id', 'slug']
+
+    def get_hero_image_url(self, obj):
+        if obj.hero_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.hero_image.url)
+            return obj.hero_image.url
+        return None
 
 
 class ProvinceSerializer(serializers.ModelSerializer):

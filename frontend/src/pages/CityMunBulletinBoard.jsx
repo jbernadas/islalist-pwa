@@ -250,7 +250,14 @@ const CityMunBulletinBoard = () => {
       />
 
       {/* Hero Section */}
-      <div className="bulletin-hero">
+      <div
+        className="bulletin-hero"
+        style={currentMunicipality?.hero_image_url ? {
+          backgroundImage: `url(${currentMunicipality.hero_image_url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        } : {}}
+      >
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <div className="d-flex justify-content-between flex-column">
