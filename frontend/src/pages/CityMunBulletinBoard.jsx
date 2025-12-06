@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { listingsAPI, announcementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,6 +33,35 @@ const CityMunBulletinBoard = () => {
   const [urgentAnnouncements, setUrgentAnnouncements] = useState([]);
   const [stats, setStats] = useState({ listings: 0, announcements: 0 });
   const [isBarangayModalOpen, setIsBarangayModalOpen] = useState(false);
+
+  // Horizontal scroll for activity feed
+  const activityScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollButtons = () => {
+    if (activityScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = activityScrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  const scrollActivity = (direction) => {
+    if (activityScrollRef.current) {
+      const scrollAmount = 300;
+      activityScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    checkScrollButtons();
+    window.addEventListener('resize', checkScrollButtons);
+    return () => window.removeEventListener('resize', checkScrollButtons);
+  }, [recentListings, recentAnnouncements]);
 
   // Handle redirects
   useEffect(() => {
@@ -454,32 +483,56 @@ const CityMunBulletinBoard = () => {
         {/* Activity Feed - Combined Recent Activity */}
           <div className="activity-feed">
             <h2>⚡ Recent Activity</h2>
-            <div className="activity-list d-flex justify-content-start flex-row overflow-x-auto">
-              {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
-                ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
-                .sort((a, b) => new Date(b.time) - new Date(a.time))
-                .slice(0, 8)
-                .map((item) => (
-                  <div
-                    key={`${item.type}-${item.id}`}
-                    className={`activity-item ${item.type}`}
-                    onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
-                  >
-                    <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
-                    <div className="activity-content">
-                      <span className="activity-title">
-                        {item.type === 'listing'
-                          ? `${item.title} - ${formatPrice(item.price)}`
-                          : item.title}
-                      </span>
-                      <span className="activity-time">{getTimeAgo(item.time)}</span>
+            <div className="activity-scroll-container">
+              {canScrollLeft && (
+                <button
+                  className="activity-scroll-btn activity-scroll-left"
+                  onClick={() => scrollActivity('left')}
+                  aria-label="Scroll left"
+                >
+                  ‹
+                </button>
+              )}
+              <div
+                className="activity-list"
+                ref={activityScrollRef}
+                onScroll={checkScrollButtons}
+              >
+                {[...recentListings.map(l => ({ ...l, type: 'listing', time: l.created_at })),
+                  ...recentAnnouncements.map(a => ({ ...a, type: 'announcement', time: a.created_at }))]
+                  .sort((a, b) => new Date(b.time) - new Date(a.time))
+                  .slice(0, 8)
+                  .map((item) => (
+                    <div
+                      key={`${item.type}-${item.id}`}
+                      className={`activity-item ${item.type}`}
+                      onClick={() => navigate(`/${province}/${municipality}/${item.type === 'listing' ? 'listings' : 'announcements'}/${item.id}`)}
+                    >
+                      <span className="activity-icon">{item.type === 'listing' ? '🏷️' : '📢'}</span>
+                      <div className="activity-content">
+                        <span className="activity-title">
+                          {item.type === 'listing'
+                            ? `${item.title} - ${formatPrice(item.price)}`
+                            : item.title}
+                        </span>
+                        <span className="activity-time">{getTimeAgo(item.time)}</span>
+                      </div>
                     </div>
+                  ))}
+                {recentListings.length === 0 && recentAnnouncements.length === 0 && (
+                  <div className="activity-empty">
+                    <p>No recent activity in this area</p>
                   </div>
-                ))}
-              {recentListings.length === 0 && recentAnnouncements.length === 0 && (
-                <div className="activity-empty">
-                  <p>No recent activity in this area</p>
-                </div>
+                )}
+              </div>
+              {canScrollRight && (
+                <button
+                  className="activity-scroll-btn activity-scroll-right"
+                  onClick={() => scrollActivity('right')}
+                  aria-label="Scroll right"
+                >
+                  ›
+                </button>
               )}
             </div>
           </div>
