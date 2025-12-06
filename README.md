@@ -169,7 +169,7 @@ The backend uses pytest with Django test settings (SQLite in-memory for speed).
 
 ```bash
 cd backend
-source venv/bin/activate
+source .venv/bin/activate
 
 # Run all tests
 pytest
