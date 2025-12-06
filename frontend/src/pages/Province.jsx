@@ -191,7 +191,14 @@ const Province = () => {
       />
 
       {/* Hero Section with Integrated Sticky Municipality Nav */}
-      <div className="province-hero">
+      <div
+        className="province-hero"
+        style={currentProvince?.hero_image_url ? {
+          backgroundImage: `url(${currentProvince.hero_image_url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        } : {}}
+      >
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">Welcome to {provinceName}</h1>

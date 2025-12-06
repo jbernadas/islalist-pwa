@@ -19,16 +19,45 @@ class UserAdmin(BaseUserAdmin):
 class ProvinceAdmin(admin.ModelAdmin):
     """
     Province admin - read-only since provinces come from PSGC data (provinces_data.json).
-    Only 'active' and 'featured' flags can be modified.
+    Only 'active', 'featured', and 'hero_image' can be modified.
     """
-    list_display = ['name', 'slug', 'psgc_code', 'active', 'featured', 'municipality_count']
+    list_display = ['name', 'slug', 'psgc_code', 'active', 'featured', 'has_hero_image', 'municipality_count']
     list_filter = ['active', 'featured']
     search_fields = ['name', 'psgc_code']
-    readonly_fields = ['name', 'slug', 'psgc_code', 'description', 'created_at', 'updated_at']
+    readonly_fields = ['name', 'slug', 'psgc_code', 'description', 'created_at', 'updated_at', 'hero_image_preview']
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'psgc_code', 'description')
+        }),
+        ('Status', {
+            'fields': ('active', 'featured')
+        }),
+        ('Hero Image', {
+            'fields': ('hero_image', 'hero_image_preview'),
+            'description': 'Upload a hero background image for the province page. Recommended size: 1920x600 or wider.'
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
     def municipality_count(self, obj):
         return obj.municipalities.filter(active=True).count()
     municipality_count.short_description = 'Cities/Municipalities'
+
+    def has_hero_image(self, obj):
+        return bool(obj.hero_image)
+    has_hero_image.boolean = True
+    has_hero_image.short_description = 'Hero'
+
+    def hero_image_preview(self, obj):
+        if obj.hero_image:
+            from django.utils.html import format_html
+            return format_html('<img src="{}" style="max-width: 400px; max-height: 150px; border-radius: 8px;" />', obj.hero_image.url)
+        return "No image uploaded"
+    hero_image_preview.short_description = 'Preview'
 
     def has_add_permission(self, request):
         """Provinces cannot be added - they come from PSGC data"""

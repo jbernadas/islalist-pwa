@@ -32,29 +32,47 @@ class ProvinceSerializer(serializers.ModelSerializer):
     """Serializer for Province model with cities/municipalities"""
     municipalities = MunicipalitySerializer(many=True, read_only=True)
     municipality_count = serializers.SerializerMethodField()
+    hero_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Province
         fields = [
             'id', 'name', 'slug', 'psgc_code', 'active', 'featured',
-            'description', 'municipalities', 'municipality_count'
+            'description', 'hero_image_url', 'municipalities', 'municipality_count'
         ]
         read_only_fields = ['id', 'slug']
 
     def get_municipality_count(self, obj):
         return obj.municipalities.filter(active=True).count()
 
+    def get_hero_image_url(self, obj):
+        if obj.hero_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.hero_image.url)
+            return obj.hero_image.url
+        return None
+
 
 class ProvinceListSerializer(serializers.ModelSerializer):
     """Simplified serializer for province lists (no cities/municipalities)"""
     municipality_count = serializers.SerializerMethodField()
+    hero_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Province
-        fields = ['id', 'name', 'slug', 'psgc_code', 'municipality_count']
+        fields = ['id', 'name', 'slug', 'psgc_code', 'municipality_count', 'hero_image_url']
 
     def get_municipality_count(self, obj):
         return obj.municipalities.filter(active=True).count()
+
+    def get_hero_image_url(self, obj):
+        if obj.hero_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.hero_image.url)
+            return obj.hero_image.url
+        return None
 
 
 class UserSerializer(serializers.ModelSerializer):

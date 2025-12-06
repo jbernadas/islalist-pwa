@@ -19,6 +19,12 @@ class Province(models.Model):
     active = models.BooleanField(default=True, help_text="Show in province listings")
     featured = models.BooleanField(default=False, help_text="Highlight on homepage")
     description = models.TextField(blank=True, help_text="Province description")
+    hero_image = models.ImageField(
+        upload_to='provinces/heroes/',
+        blank=True,
+        null=True,
+        help_text="Hero background image for province page (recommended: 1920x600 or wider)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
