@@ -80,6 +80,52 @@ curl -X POST http://localhost:8000/api/auth/logout/ \
   -d '{"refresh": "REFRESH_TOKEN"}'
 ```
 
+## Testing
+
+The backend uses pytest with pytest-django. Tests run against an SQLite in-memory database for speed.
+
+```bash
+# Activate virtual environment first
+source .venv/bin/activate
+
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run with coverage
+pytest --cov=api
+
+# Run with HTML coverage report
+pytest --cov=api --cov-report=html
+
+# Run specific test file
+pytest api/tests/test_auth.py
+
+# Run specific test class
+pytest api/tests/test_auth.py::TestLoginView
+
+# Run specific test method
+pytest api/tests/test_auth.py::TestLoginView::test_login_success
+
+# Run tests by marker
+pytest -m unit          # Unit tests only
+pytest -m integration   # Integration tests only
+pytest -m "not slow"    # Exclude slow tests
+```
+
+### Test Files
+
+| File | Description |
+|------|-------------|
+| `api/tests/test_auth.py` | Authentication endpoints |
+| `api/tests/test_listings_crud.py` | Listing CRUD operations |
+| `api/tests/test_listing_filtering.py` | Listing filter/search |
+| `api/tests/test_announcement_filtering.py` | Announcement filter/search |
+| `api/tests/test_validators.py` | Custom validators |
+| `api/tests/test_checks.py` | System checks |
+
 ## Systemd Service Configuration
 
 ### Main Application Service

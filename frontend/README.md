@@ -81,6 +81,54 @@ await authAPI.logout(refreshToken);
 4. On 401 response, refresh token automatically gets new access token
 5. If refresh fails, user redirected to login
 
+## Testing
+
+The frontend uses Vitest with jsdom environment.
+
+```bash
+# Run tests in watch mode (interactive)
+npm test
+
+# Run tests once and exit
+npm test -- --run
+
+# Run with browser UI
+npm run test:ui
+
+# Run with coverage report
+npm run test:coverage
+
+# Run specific test file
+npm test -- src/hooks/__tests__/useLocationsCompliance.test.js
+
+# Run tests matching a pattern
+npm test -- --grep "useLocations"
+```
+
+### Test Files
+
+| File | Description |
+|------|-------------|
+| `src/hooks/__tests__/useLocationsCompliance.test.js` | Location hook compliance |
+| `src/pages/__tests__/Listings.test.jsx` | Listings page tests |
+
+### Writing Tests
+
+Tests use React Testing Library. Example:
+
+```javascript
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import MyComponent from '../MyComponent';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    render(<MyComponent />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+});
+```
+
 ## Troubleshooting
 
 ### Service Worker Issues
