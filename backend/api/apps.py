@@ -8,3 +8,5 @@ class ApiConfig(AppConfig):
     def ready(self):
         # Import checks to register them with Django's check framework
         from . import checks  # noqa: F401
+        # Import signals to register them
+        from . import signals  # noqa: F401
