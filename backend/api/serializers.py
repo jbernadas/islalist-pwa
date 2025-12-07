@@ -602,7 +602,8 @@ class AnnouncementSerializer(serializers.ModelSerializer):
     )
     municipality_name = serializers.CharField(
         source='municipality.name',
-        read_only=True
+        read_only=True,
+        allow_null=True
     )
     barangay_details = BarangaySerializer(source='barangay', read_only=True)
     is_expired = serializers.SerializerMethodField()
@@ -638,11 +639,13 @@ class AnnouncementListSerializer(serializers.ModelSerializer):
     )
     municipality_name = serializers.CharField(
         source='municipality.name',
-        read_only=True
+        read_only=True,
+        allow_null=True
     )
     municipality_slug = serializers.CharField(
         source='municipality.slug',
-        read_only=True
+        read_only=True,
+        allow_null=True
     )
     barangay_name = serializers.CharField(
         source='barangay.name',

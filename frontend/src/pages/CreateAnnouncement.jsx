@@ -103,10 +103,14 @@ const CreateAnnouncement = () => {
         priority: formData.priority,
         announcement_type: formData.announcement_type,
         province: formData.province_id,
-        municipality: formData.municipality_id,
         is_province_wide: formData.is_province_wide,
         is_municipality_wide: formData.is_municipality_wide,
       };
+
+      // Only include municipality if not province-wide
+      if (!formData.is_province_wide && formData.municipality_id) {
+        data.municipality = formData.municipality_id;
+      }
 
       if (formData.barangay) data.barangay = formData.barangay;
       if (formData.contact_info) data.contact_info = formData.contact_info;
@@ -223,7 +227,9 @@ const CreateAnnouncement = () => {
                 onChange={(e) => setFormData(prev => ({
                   ...prev,
                   is_province_wide: e.target.checked,
-                  is_municipality_wide: e.target.checked ? false : prev.is_municipality_wide
+                  is_municipality_wide: e.target.checked ? false : prev.is_municipality_wide,
+                  municipality_id: e.target.checked ? '' : (currentMunicipality?.id || prev.municipality_id),
+                  barangay: e.target.checked ? '' : prev.barangay
                 }))}
                 style={{ width: 'auto', flexShrink: 0, marginRight: '0.75rem' }}
               />
@@ -284,13 +290,13 @@ const CreateAnnouncement = () => {
               </select>
             </div>
             <div className="form-group">
-              <label htmlFor="municipality_id">City/Municipality *</label>
+              <label htmlFor="municipality_id">City/Municipality {!formData.is_province_wide && '*'}</label>
               <select
                 id="municipality_id"
                 name="municipality_id"
                 value={formData.municipality_id}
                 onChange={handleChange}
-                required
+                required={!formData.is_province_wide}
                 disabled={formData.is_province_wide}
               >
                 <option value="">Select municipality</option>
