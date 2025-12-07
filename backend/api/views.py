@@ -301,6 +301,24 @@ class MunicipalityViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = BarangaySerializer(barangays, many=True, context={'request': request})
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        """Get featured municipalities for 'Popular Destinations' on homepage"""
+        featured = Municipality.objects.filter(
+            is_featured=True,
+            active=True
+        ).select_related('province')
+
+        data = [{
+            'id': mun.id,
+            'name': mun.name,
+            'slug': mun.slug,
+            'province_name': mun.province.name,
+            'province_slug': mun.province.slug,
+        } for mun in featured]
+
+        return Response(data)
+
 
 class BarangayViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint for viewing barangays"""

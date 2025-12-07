@@ -2,14 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { slugify } from '../utils/slugify';
-import api, { locationsAPI } from '../services/api';
+import api, { locationsAPI, municipalitiesAPI } from '../services/api';
 import './Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
   const [provinces, setProvinces] = useState([]);
   const [provincesLoading, setProvincesLoading] = useState(true);
+  const [featuredCities, setFeaturedCities] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -17,33 +18,14 @@ const Home = () => {
   const searchRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // Featured major cities across Philippines
-  // Note: City names must match exactly with database entries
-  const FEATURED_CITIES = [
-    { name: 'City of Angeles', province: 'Pampanga' },
-    { name: 'City of Antipolo', province: 'Rizal' },
-    { name: 'City of Bacolod', province: 'Negros Occidental' },
-    { name: 'City of Baguio', province: 'Benguet' },
-    { name: 'City of Cebu', province: 'Cebu' },
-    { name: 'City of Davao', province: 'Davao del Sur' },
-    { name: 'City of Dumaguete', province: 'Negros Oriental' },
-    { name: 'El Nido', province: 'Palawan' },
-    { name: 'City of Iloilo', province: 'Iloilo' },
-    { name: 'City of Laoag', province: 'Ilocos Norte' },
-    { name: 'City of Lapu-Lapu', province: 'Cebu' },
-    { name: 'City of Manila', province: 'Metro Manila (NCR)' },
-    { name: 'City of Olongapo', province: 'Zambales' },
-    { name: 'Panglao', province: 'Bohol' },
-    { name: 'City of Puerto Princesa', province: 'Palawan' },
-    { name: 'City of Roxas', province: 'Capiz' },
-    { name: 'Siquijor', province: 'Siquijor'},
-    { name: 'City of Surigao', province: 'Surigao del Norte'},
-    { name: 'City of Tacloban', province: 'Leyte' },
-    { name: 'City of Tagaytay', province: 'Cavite' },
-    { name: 'City of Tagbilaran', province: 'Bohol' },
-    { name: 'City of Vigan', province: 'Ilocos Sur' },
-    { name: 'City of Zamboanga', province: 'Zamboanga del Sur' }
-  ];
+  // Sort featured cities alphabetically, ignoring "City of " prefix
+  const sortFeaturedCities = (cities) => {
+    return [...cities].sort((a, b) => {
+      const nameA = a.name.replace(/^City of /, '');
+      const nameB = b.name.replace(/^City of /, '');
+      return nameA.localeCompare(nameB);
+    });
+  };
 
   useEffect(() => {
     // Auto-redirect to last visited province/municipality if available
@@ -124,6 +106,17 @@ const Home = () => {
       console.error('Error fetching provinces:', error);
       setProvincesLoading(false);
     }
+
+    // Fetch featured cities
+    try {
+      const featuredResponse = await municipalitiesAPI.getFeatured();
+      const sortedFeatured = sortFeaturedCities(featuredResponse.data);
+      setFeaturedCities(sortedFeatured);
+    } catch (error) {
+      console.error('Error fetching featured cities:', error);
+    } finally {
+      setFeaturedLoading(false);
+    }
   };
 
   const handleSearch = (query) => {
@@ -169,9 +162,7 @@ const Home = () => {
   };
 
   const handleFeaturedCityClick = (city) => {
-    const provinceSlug = slugify(city.province);
-    const citySlug = slugify(city.name);
-    navigate(`/${provinceSlug}/${citySlug}`);
+    navigate(`/${city.province_slug}/${city.slug}`);
   };
 
   return (
@@ -214,23 +205,25 @@ const Home = () => {
         </div>
 
         {/* Featured Cities Section */}
-        <div className="featured-cities-section">
-          <h3 className="section-title">Popular Destinations</h3>
-          <p className="section-description">
-            Select a popular destination to explore local listings
-          </p>
-          <div className="featured-cities-list">
-            {FEATURED_CITIES.map((city, index) => (
-              <button
-                key={index}
-                className="featured-city-link"
-                onClick={() => handleFeaturedCityClick(city)}
-              >
-                {city.name}
-              </button>
-            ))}
+        {featuredCities.length > 0 && (
+          <div className="featured-cities-section">
+            <h3 className="section-title">Popular Destinations</h3>
+            <p className="section-description">
+              Select a popular destination to explore local listings
+            </p>
+            <div className="featured-cities-list">
+              {featuredCities.map((city) => (
+                <button
+                  key={city.id}
+                  className="featured-city-link"
+                  onClick={() => handleFeaturedCityClick(city)}
+                >
+                  {city.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Browse by Province Section */}
         <div className="browse-section">

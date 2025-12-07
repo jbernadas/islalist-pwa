@@ -66,6 +66,10 @@ class Municipality(models.Model):
         help_text="Designation: City, Municipality, or Sub-Municipality (Manila districts)"
     )
     active = models.BooleanField(default=True, help_text="Show in city/municipality listings")
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="Show in 'Popular Destinations' section on homepage"
+    )
     hero_image = models.ImageField(
         upload_to='municipalities/heroes/',
         blank=True,

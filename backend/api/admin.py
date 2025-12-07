@@ -72,10 +72,11 @@ class ProvinceAdmin(admin.ModelAdmin):
 class MunicipalityAdmin(admin.ModelAdmin):
     """
     Municipality admin - read-only since municipalities come from PSGC data.
-    Only 'active' and 'hero_image' can be modified.
+    Only 'active', 'is_featured', and 'hero_image' can be modified.
     """
-    list_display = ['name', 'province', 'slug', 'psgc_code', 'type', 'active', 'has_hero_image']
-    list_filter = ['active', 'type', 'province']
+    list_display = ['name', 'province', 'slug', 'psgc_code', 'type', 'active', 'is_featured', 'has_hero_image']
+    list_filter = ['active', 'is_featured', 'type', 'province']
+    list_editable = ['is_featured']
     search_fields = ['name', 'province__name', 'psgc_code']
     readonly_fields = ['name', 'slug', 'psgc_code', 'province', 'type', 'created_at', 'updated_at', 'hero_image_preview']
 
@@ -84,7 +85,8 @@ class MunicipalityAdmin(admin.ModelAdmin):
             'fields': ('name', 'slug', 'psgc_code', 'province', 'type')
         }),
         ('Status', {
-            'fields': ('active',)
+            'fields': ('active', 'is_featured'),
+            'description': 'Featured municipalities appear in "Popular Destinations" on the homepage.'
         }),
         ('Hero Image', {
             'fields': ('hero_image', 'hero_image_preview'),
