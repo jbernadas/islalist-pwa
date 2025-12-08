@@ -186,14 +186,18 @@
   color: white;
   border: none;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   cursor: pointer;
   font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s;
+  /* Ensure touch target meets accessibility guidelines */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .remove-image:hover {
